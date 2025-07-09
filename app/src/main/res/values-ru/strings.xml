@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search">Поиск</string>
+    <string name="message">Сообщение</string>
+    <string name="settings">Настройки</string>
+    <string name="delete_chat">Удалить чат</string>
+    <string name="notifications">Уведомления</string>
+    <string name="language">Язык</string>
+    <string name="exit">Выйти</string>
+    <string name="help">Помощь</string>
+    <string name="confidentiality">Конфиденциальность</string>
+    <string name="design">Оформление</string>
+    <string name="account">Аккаунт</string>
+    <string name="profile">Профиль</string>
+    <string name="saved_messages">Избранное</string>
+    <string name="new_message">Новое сообщение</string>
+    <string name="information">Информация</string>
+    <string name="dark_theme">Тёмная тема</string>
+    <string name="security">Безопасность</string>
+    <string name="devices">Устройства</string>
+    <string name="createGroup">Создать группу</string>
+    <string name="createChannel">Создать канал</string>
+    <string name="dataAndStorage">Данные и память</string>
+    <string name="chatFolders">Папки с чатами</string>
+    <string name="faq">Вопросы о приложении</string>
+    <string name="colorTheme">Цветовая тема</string>
+    <string name="aboutMe">Напишите немного о себе</string>
+    <string name="protectYourAccount">Защитите свой аккаунт</string>
+    <string name="privacyPolicy">Политика конфиденциальности</string>
+</resources>
