@@ -79,7 +79,7 @@ private fun Content() {
                 .padding(it)
                 .fillMaxSize()
                 .background(colors.secondary)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
         ) {
             Column {
                 SectionContainer {
@@ -89,8 +89,9 @@ private fun Content() {
                     )
 
                     SectionItem(
-                        text = "Код пароль",
-                        primaryText = "Выкл."
+                        text = stringResource(R.string.passcodeLock),
+                        primaryText = "Выкл.",
+                        onClick = { addScreenInStack { SettingsPasscodeLockScreen() } }
                     )
 
                     SectionItem(

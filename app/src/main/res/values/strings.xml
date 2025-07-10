@@ -29,4 +29,5 @@
     <string name="aboutMe">Add a few words about yourself</string>
     <string name="protectYourAccount">Protect your account</string>
     <string name="privacyPolicy">Privacy Policy</string>
+    <string name="passcodeLock">Passcode Lock</string>
 </resources>

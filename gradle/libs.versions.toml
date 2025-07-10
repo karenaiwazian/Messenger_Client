@@ -7,13 +7,10 @@ appcompat = "1.7.1"
 coilCompose = "2.4.0"
 converterGson = "2.9.0"
 datastorePreferences = "1.1.7"
-firebaseMessaging = "24.1.1"
+firebaseMessaging = "24.1.2"
 foundation = "..."
 kotlin = "2.0.21"
 coreKtx = "1.16.0"
-junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
 kotlinxSerializationJson = "1.7.3"
 ktorClientCore = "2.3.0"
 ktorClientWebsockets = "2.3.0"
@@ -26,11 +23,11 @@ lifecycleViewmodelComposeVersion = "2.9.1"
 lottieCompose = "6.0.0"
 material3Version = "..."
 materialIconsExtendedAndroid = "1.7.8"
-materialRipple = "1.8.2"
-navigationCompose = "2.9.0"
+materialRipple = "1.8.3"
+navigationCompose = "2.9.1"
 playServicesAuth = "21.3.0"
 protobufJavalite = "3.25.5"
-retrofit = "2.9.0"
+retrofit = "3.0.0"
 ui = "..."
 
 [libraries]
@@ -60,9 +57,6 @@ material3 = { module = "androidx.compose.material3:material3", version.ref = "ma
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -71,7 +65,6 @@ androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
-androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobufJavalite" }

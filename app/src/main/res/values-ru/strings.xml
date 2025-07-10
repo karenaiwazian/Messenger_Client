@@ -27,4 +27,5 @@
     <string name="aboutMe">Напишите немного о себе</string>
     <string name="protectYourAccount">Защитите свой аккаунт</string>
     <string name="privacyPolicy">Политика конфиденциальности</string>
+    <string name="passcodeLock">Код-пароль</string>
 </resources>
