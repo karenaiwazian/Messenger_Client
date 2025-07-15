@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.aiwazian.messenger.MainActivity
 import com.aiwazian.messenger.viewModels.AuthViewModel
-import com.aiwazian.messenger.Screen
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
 
 @Composable

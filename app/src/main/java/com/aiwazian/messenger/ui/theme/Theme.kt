@@ -24,7 +24,8 @@ private val DarkColorScheme = CustomColors(
     topAppBarBackground = Color(0xFF1E1E1E),
     sendMessageTimeBackground = Color(0x80646464),
     danger = Color(0xFFC85050),
-    dangerBackground = Color(0xFFB43232)
+    dangerBackground = Color(0xFFB43232),
+    horizontalDivider = Color(0x1A646464)
 )
 
 private val LightColorScheme = CustomColors(
@@ -36,7 +37,8 @@ private val LightColorScheme = CustomColors(
     topAppBarBackground = Color(0xFFFFFFFF),
     sendMessageTimeBackground = Color(0x80646464),
     danger = Color(0xFFC80000),
-    dangerBackground = Color(0xFFC83232)
+    dangerBackground = Color(0xFFC83232),
+    horizontalDivider = Color(0x1A646464)
 )
 
 val LocalCustomColors = staticCompositionLocalOf {

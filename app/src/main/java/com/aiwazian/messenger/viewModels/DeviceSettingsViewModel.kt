@@ -3,7 +3,7 @@ package com.aiwazian.messenger.viewModels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aiwazian.messenger.UserManager
+import com.aiwazian.messenger.utils.UserManager
 import com.aiwazian.messenger.api.RetrofitInstance
 import kotlinx.coroutines.launch
 

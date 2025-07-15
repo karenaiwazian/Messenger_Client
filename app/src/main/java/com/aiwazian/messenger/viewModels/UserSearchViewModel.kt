@@ -7,7 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import com.aiwazian.messenger.UserManager
+import com.aiwazian.messenger.utils.UserManager
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.User
 import kotlinx.coroutines.launch

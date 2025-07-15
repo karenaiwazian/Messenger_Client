@@ -1,12 +1,13 @@
 package com.aiwazian.messenger.viewModels
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aiwazian.messenger.DataStoreManager
-import com.aiwazian.messenger.DeviceHelper
+import com.aiwazian.messenger.utils.DataStoreManager
+import com.aiwazian.messenger.utils.DeviceHelper
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.AuthRequest
 import com.aiwazian.messenger.data.CheckVerificationCodeRequest
@@ -91,19 +92,20 @@ class AuthViewModel : ViewModel() {
                     onWrongVerificationCode?.invoke()
                 }
             } catch (e: Exception) {
-
+                Log.e("AuthViewModel", "checkVerificationCode: ${e.message}")
             }
         }
     }
 
-    fun findUserByLogin(success: () -> Unit, error: () -> Unit) {
+    fun findUserByLogin(find: () -> Unit, notFind: () -> Unit, error: () -> Unit) {
         viewModelScope.launch {
             try {
                 val response =
                     RetrofitInstance.api.findUserByLogin(request = FindUserRequest(login = login))
+
                 if (!response.isSuccessful) {
-                    isUserFound = false
                     error()
+                    isUserFound = false
                     return@launch
                 }
 
@@ -111,19 +113,21 @@ class AuthViewModel : ViewModel() {
 
                 if (body == null) {
                     isUserFound = false
+                    notFind()
                     return@launch
                 }
 
                 if (body.success) {
                     isUserFound = true
-                    success()
+                    find()
                 } else {
                     isUserFound = false
-                    error()
+                    notFind()
                 }
 
             } catch (e: Exception) {
-
+                error()
+                Log.e("AuthViewModel", "findUserByLogin: ${e.message}")
             }
         }
     }
@@ -164,6 +168,7 @@ class AuthViewModel : ViewModel() {
                 success()
             } catch (e: Exception) {
                 error()
+                Log.e("AuthViewModel", "onLoginClicked: ${e.message}")
             }
         }
     }
@@ -198,7 +203,7 @@ class AuthViewModel : ViewModel() {
                 loginError = true
                 passwordError = true
             } catch (e: Exception) {
-
+                Log.e("AuthViewModel", "onRegisterClicked: ${e.message}")
             }
         }
     }

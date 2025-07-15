@@ -1,8 +1,7 @@
 package com.aiwazian.messenger.ui
 
-import android.content.Context
 import android.util.Log
-import com.aiwazian.messenger.ClipboardHelper
+import com.aiwazian.messenger.utils.ClipboardHelper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
@@ -32,7 +31,6 @@ import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.EmojiEmotions
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -44,11 +42,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,21 +63,20 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
-import com.aiwazian.messenger.ChatStateManager
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.aiwazian.messenger.utils.ChatStateManager
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.UserManager
-import com.aiwazian.messenger.addScreenInStack
+import com.aiwazian.messenger.utils.UserManager
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.DeleteChatRequest
 import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.data.User
-import com.aiwazian.messenger.removeLastScreenFromStack
-import com.aiwazian.messenger.ui.element.BottomModalSheet
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.viewModels.ChatViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
+import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -91,13 +86,13 @@ private var showDeleteChatDialog by mutableStateOf(false)
 
 @Composable
 fun ChatScreen(userId: String) {
-    var userState = remember { mutableStateOf(User()) }
+    val userState = remember { mutableStateOf(User()) }
     var isLoaded by remember { mutableStateOf(false) }
 
     LaunchedEffect(true) {
         val token = UserManager.token
-        try {
 
+        try {
             val response = RetrofitInstance.api.getUserById(token = "Bearer $token", id = userId)
 
             if (response.isSuccessful) {
@@ -108,7 +103,7 @@ fun ChatScreen(userId: String) {
                 }
             }
         } catch (e: Exception) {
-
+            Log.e("ChatScreen", e.message.toString())
         }
     }
 
@@ -120,14 +115,19 @@ fun ChatScreen(userId: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content(user: User) {
+    val context = LocalContext.current
     val colors = LocalCustomColors.current
+
     val currentUserId = remember { UserManager.user.id }
     val viewModel = remember { ChatViewModel(user.id, currentUserId) }
 
+    val deleteDialogViewModel: DialogViewModel = viewModel()
+
     Scaffold(
         topBar = {
-            TopBar(user)
+            TopBar(user, deleteDialogViewModel)
         },
+        containerColor = colors.secondary
     ) { innerPadding ->
         val chatId = user.id
         val messages = viewModel.messages
@@ -146,8 +146,6 @@ private fun Content(user: User) {
                 ChatStateManager.closeChat()
             }
         }
-
-        val context = LocalContext.current
 
         Column(
             modifier = Modifier
@@ -170,8 +168,7 @@ private fun Content(user: User) {
 
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier
-                        .weight(1f),
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.Bottom,
                 ) {
                     items(messages) { message ->
@@ -180,7 +177,9 @@ private fun Content(user: User) {
                             onDelete = {
                                 Toast.makeText(context, "delete", Toast.LENGTH_SHORT).show()
                             },
-                            onEdit = { Toast.makeText(context, "edit", Toast.LENGTH_SHORT).show() },
+                            onEdit = {
+                                Toast.makeText(context, "edit", Toast.LENGTH_SHORT).show()
+                            },
                             onCopy = {
                                 clipboardHelper.copy(message.text)
                             }
@@ -188,12 +187,6 @@ private fun Content(user: User) {
                     }
                 }
             }
-
-            val sheetState = rememberModalBottomSheetState()
-            val showSheet = remember { mutableStateOf(false) }
-            val scope = rememberCoroutineScope()
-
-            var input = remember { mutableStateOf("") }
 
             val pickMultipleMedia =
                 rememberLauncherForActivityResult(PickMultipleVisualMedia(5)) { uris ->
@@ -205,66 +198,53 @@ private fun Content(user: User) {
                 }
 
             InputMessage(
-                message = input,
+                value = viewModel.messageText,
+                onValueChange = { viewModel.messageText = it },
                 attachFile = {
                     pickMultipleMedia.launch(PickVisualMediaRequest(PickVisualMedia.ImageAndVideo))
-                    showSheet.value = true
-                    scope.launch { sheetState.show() }
                 },
                 onSend = {
-                    viewModel.sendMessage(input.value)
-                    input.value = ""
+                    viewModel.sendMessage()
+                    viewModel.messageText = ""
                 }
             )
 
             val coroutineScope = rememberCoroutineScope()
 
-            DeleteChatDialog(onDelete = {
-                val token = UserManager.token
+            DeleteChatDialog(
+                onDelete = {
+                    val token = UserManager.token
 
-                coroutineScope.launch {
-                    val reqBody = DeleteChatRequest(
-                        chatId = chatId,
-                        deletedBySender = true,
-                        deletedByReceiver = false
-                    )
+                    coroutineScope.launch {
+                        val reqBody = DeleteChatRequest(
+                            chatId = chatId, deletedBySender = true, deletedByReceiver = false
+                        )
 
-                    try {
-                        val deleteChat = RetrofitInstance.api.deleteChat("Bearer $token", reqBody)
+                        try {
+                            val deleteChat =
+                                RetrofitInstance.api.deleteChat("Bearer $token", reqBody)
 
-                        if (deleteChat.isSuccessful) {
-                            viewModel.deleteAllMessages()
-                            hideDeleteChatDialog()
+                            if (deleteChat.isSuccessful) {
+                                viewModel.deleteAllMessages()
+                                deleteDialogViewModel.hideDialog()
+                            }
+                        } catch (e: Exception) {
+                            Log.e("DeleteChat", e.message.toString())
                         }
-                    } catch (e: Exception) {
-
                     }
-                }
-            })
-
-            val bottomSheetController = remember { DialogViewModel() }
-
-            BottomModalSheet(
-                viewModel = bottomSheetController,
-                dragHandle = { BottomSheetDefaults.DragHandle() }) {
-            }
+                },
+                dialogViewModel = deleteDialogViewModel
+            )
         }
     }
 }
 
-private fun showDeleteChatDialog() {
-    showDeleteChatDialog = true
-}
-
-private fun hideDeleteChatDialog() {
-    showDeleteChatDialog = false
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar(user: User) {
+private fun TopBar(user: User, dialogViewModel: DialogViewModel) {
     var menuExpanded by remember { mutableStateOf(false) }
     val colors = LocalCustomColors.current
+    val navViewModel: NavigationViewModel = viewModel()
 
     PageTopBar(
         title = {
@@ -275,15 +255,14 @@ private fun TopBar(user: User) {
                     containerColor = Color.Transparent
                 ),
                 onClick = {
-                    addScreenInStack { ProfileScreen(user.id) }
+                    navViewModel.addScreenInStack { ProfileScreen(user.id) }
                 }
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center
+                    modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center
                 ) {
 
-                    var chatName = if (user.id == (UserManager.user?.id ?: "")) {
+                    val chatName = if (user.id == UserManager.user.id) {
                         stringResource(R.string.saved_messages)
                     } else {
                         "${user.firstName} ${user.lastName}"
@@ -294,9 +273,11 @@ private fun TopBar(user: User) {
             }
         },
         navigationIcon = {
-            IconButton(onClick = {
-                removeLastScreenFromStack()
-            }) {
+            IconButton(
+                onClick = {
+                    navViewModel.removeLastScreenInStack()
+                }
+            ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,
@@ -308,16 +289,13 @@ private fun TopBar(user: User) {
             Box {
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(
-                        Icons.Default.MoreVert,
-                        contentDescription = null,
-                        tint = colors.text
+                        Icons.Default.MoreVert, contentDescription = null, tint = colors.text
                     )
                 }
                 DropdownMenu(
                     modifier = Modifier.background(colors.background),
                     expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false }
-                ) {
+                    onDismissRequest = { menuExpanded = false }) {
                     DropdownMenuItem(
                         leadingIcon = {
                             Icon(
@@ -329,9 +307,8 @@ private fun TopBar(user: User) {
                         text = { Text(stringResource(R.string.delete_chat), color = colors.text) },
                         onClick = {
                             menuExpanded = false
-                            showDeleteChatDialog()
-                        }
-                    )
+                            dialogViewModel.showDialog()
+                        })
                 }
             }
         }
@@ -339,14 +316,17 @@ private fun TopBar(user: User) {
 }
 
 @Composable
-private fun DeleteChatDialog(onDelete: () -> Unit = {}) {
+private fun DeleteChatDialog(onDelete: () -> Unit = {}, dialogViewModel: DialogViewModel) {
     var isChecked by remember { mutableStateOf(false) }
     val colors = LocalCustomColors.current
+
     if (showDeleteChatDialog) {
         CustomDialog(
             title = "Удалить чат",
-            onDismiss = { hideDeleteChatDialog() },
-            onPrimary = {
+            onDismiss = {
+                dialogViewModel.hideDialog()
+            },
+            onConfirm = {
                 onDelete()
             }
         ) {
@@ -368,21 +348,22 @@ private fun DeleteChatDialog(onDelete: () -> Unit = {}) {
 
 @Composable
 private fun InputMessage(
-    message: MutableState<String>,
+    value: String,
+    onValueChange: (String) -> Unit,
     onSend: () -> Unit = { },
     attachFile: () -> Unit = { },
 ) {
     val colors = LocalCustomColors.current
+
     TextField(
         shape = RectangleShape,
-        value = message.value,
-        onValueChange = {
-            message.value = it
-        },
+        value = value,
+        onValueChange = onValueChange,
         maxLines = 5,
-        modifier = Modifier
-            .fillMaxWidth(),
-        placeholder = { Text(stringResource(R.string.message)) },
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = {
+            Text(stringResource(R.string.message))
+        },
         colors = TextFieldDefaults.colors(
             focusedTextColor = colors.text,
             unfocusedTextColor = colors.text,
@@ -418,8 +399,7 @@ private fun InputMessage(
                     )
                 }
             }
-        }
-    )
+        })
 }
 
 @Composable
@@ -429,10 +409,9 @@ fun MessageItem(
     onEdit: () -> Unit,
     onCopy: () -> Unit,
 ) {
-    val currentUserId = remember { UserManager.user?.id ?: "" }
+    val currentUserId = remember { UserManager.user.id }
 
-    val formatter = DateTimeFormatter.ofPattern("HH:mm")
-        .withZone(ZoneId.systemDefault())
+    val formatter = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
 
     val sendMessageTime = formatter.format(Instant.ofEpochMilli(message.timestamp))
 
@@ -464,37 +443,27 @@ fun MessageItem(
             properties = PopupProperties(focusable = true),
             containerColor = colors.background,
         ) {
-            DropdownMenuItem(
-                leadingIcon = {
-                    Row(horizontalArrangement = Arrangement.Center) {
-                        Icon(
-                            Icons.Outlined.ContentCopy,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = colors.textHint
-                        )
-                    }
-                },
-                text = { Text("Копировать", color = colors.text) },
-                onClick = {
-                    expanded = false
-                    onCopy()
-                }
-            )
-            DropdownMenuItem(
-                leadingIcon = {
+            DropdownMenuItem(leadingIcon = {
+                Row(horizontalArrangement = Arrangement.Center) {
                     Icon(
-                        Icons.Outlined.DeleteOutline,
+                        Icons.Outlined.ContentCopy,
                         contentDescription = null,
+                        modifier = Modifier.size(20.dp),
                         tint = colors.textHint
                     )
-                },
-                text = { Text("Удалить", color = colors.text) },
-                onClick = {
-                    expanded = false
-                    onDelete()
                 }
-            )
+            }, text = { Text("Копировать", color = colors.text) }, onClick = {
+                expanded = false
+                onCopy()
+            })
+            DropdownMenuItem(leadingIcon = {
+                Icon(
+                    Icons.Outlined.DeleteOutline, contentDescription = null, tint = colors.textHint
+                )
+            }, text = { Text("Удалить", color = colors.text) }, onClick = {
+                expanded = false
+                onDelete()
+            })
         }
     }
 }
@@ -526,8 +495,7 @@ private fun TextMessage(text: String, time: String, alignment: Alignment, onClic
                     modifier = Modifier.padding(bottom = 20.dp)
                 )
                 Box(
-                    contentAlignment = Alignment.BottomEnd,
-                    modifier = Modifier
+                    contentAlignment = Alignment.BottomEnd, modifier = Modifier
                         .background(
                             color = colors.sendMessageTimeBackground,
                             shape = RoundedCornerShape(16.dp)
@@ -557,10 +525,9 @@ private fun TextMessage(text: String, time: String, alignment: Alignment, onClic
                     .widthIn(max = 280.dp)
             ) {
                 Text(
-                    text = text,
-                    color = Color.White,
-                    modifier = Modifier
-                        .padding(start = 8.dp, top = 4.dp, end = 40.dp, bottom = 4.dp)
+                    text = text, color = Color.White, modifier = Modifier.padding(
+                        start = 8.dp, top = 4.dp, end = 40.dp, bottom = 4.dp
+                    )
                 )
 
                 Text(

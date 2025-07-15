@@ -1,6 +1,7 @@
 package com.aiwazian.messenger.api
 
-import com.aiwazian.messenger.Constants
+import com.aiwazian.messenger.interfaces.ApiService
+import com.aiwazian.messenger.utils.Constants
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

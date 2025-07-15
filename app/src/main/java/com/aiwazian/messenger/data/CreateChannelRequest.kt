@@ -1,6 +1,9 @@
 package com.aiwazian.messenger.data
 
+import androidx.annotation.Keep
+
+@Keep
 data class CreateChannelRequest(
-    val channelName: String,
-    val channelBio: String
+    @Keep val channelName: String,
+    @Keep val channelBio: String
 )

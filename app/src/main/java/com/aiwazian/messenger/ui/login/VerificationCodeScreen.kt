@@ -47,8 +47,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.aiwazian.messenger.VibrateManager
+import com.aiwazian.messenger.utils.VibrateService
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
+import com.aiwazian.messenger.utils.VibrationPattern
 import com.aiwazian.messenger.viewModels.AuthViewModel
 
 @Composable
@@ -78,7 +79,8 @@ private fun Content(navController: NavHostController, viewModel: AuthViewModel) 
                     tint = Color.White
                 )
             }
-        }) {
+        }
+    ) {
         Column(
             modifier = Modifier
                 .padding(it)
@@ -93,7 +95,8 @@ private fun Content(navController: NavHostController, viewModel: AuthViewModel) 
                 onChange = viewModel::onVerificationCodeChanged,
                 onHeightMeasured = { height ->
                     keyboardHeight = height
-                })
+                }
+            )
         }
     }
 }
@@ -186,14 +189,16 @@ private fun Board(value: String, onChange: (String) -> Unit, onHeightMeasured: (
 
     val localDensity = LocalDensity.current
 
-    val vibrateManager = VibrateManager()
+    val vibrateService = VibrateService(context)
 
     Column(
         modifier = Modifier
             .padding(start = 8.dp, end = 8.dp, bottom = 10.dp)
             .onGloballyPositioned { coordinates ->
                 val heightPx = coordinates.size.height
-                val heightDp = with(localDensity) { heightPx.toDp() }
+                val heightDp = with(localDensity) {
+                    heightPx.toDp()
+                }
                 onHeightMeasured(heightDp)
             },
         verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -210,7 +215,9 @@ private fun Board(value: String, onChange: (String) -> Unit, onHeightMeasured: (
                     NumberButton(
                         onClick = {
                             onChange(value + key)
-                            vibrateManager.vibrate(context = context, pattern = longArrayOf(0, 50))
+                            vibrateService.vibrate(
+                                pattern = VibrationPattern.TactileResponse
+                            )
                         },
                         modifier = Modifier
                             .weight(1f)
@@ -233,7 +240,9 @@ private fun Board(value: String, onChange: (String) -> Unit, onHeightMeasured: (
             NumberButton(
                 onClick = {
                     onChange(value + "0")
-                    vibrateManager.vibrate(context = context, pattern = longArrayOf(0, 50))
+                    vibrateService.vibrate(
+                        pattern = VibrationPattern.TactileResponse
+                    )
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -246,7 +255,9 @@ private fun Board(value: String, onChange: (String) -> Unit, onHeightMeasured: (
             NumberButton(
                 onClick = {
                     onChange(value.dropLast(1))
-                    vibrateManager.vibrate(context = context, pattern = longArrayOf(0, 50))
+                    vibrateService.vibrate(
+                        pattern = VibrationPattern.TactileResponse
+                    )
                 },
                 modifier = Modifier
                     .weight(1f)

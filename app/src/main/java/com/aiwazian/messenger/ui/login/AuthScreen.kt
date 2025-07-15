@@ -16,7 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.aiwazian.messenger.viewModels.AuthViewModel
 import androidx.navigation.compose.NavHost
 import com.aiwazian.messenger.MainActivity
-import com.aiwazian.messenger.Screen
+import com.aiwazian.messenger.utils.Screen
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable

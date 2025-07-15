@@ -10,5 +10,11 @@ enum class PrimaryColorOption(val color: Color) {
     Orange(Color(0xFFFF5722)),
     Orange1(Color(0xFFE91E63)),
     Pink(Color(0xFFFF00FF)),
-    Pink1(Color(0xFF673AB7)),
+    Pink1(Color(0xFF673AB7));
+
+    companion object {
+        fun fromString(value: String): PrimaryColorOption {
+            return entries.firstOrNull { it.name.equals(value, ignoreCase = true) } ?: Blue
+        }
+    }
 }

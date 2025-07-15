@@ -10,12 +10,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.DataUsage
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.QuestionMark
 import androidx.compose.material.icons.outlined.Shield
@@ -28,7 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,18 +37,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.aiwazian.messenger.DataStoreManager
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.addScreenInStack
 import com.aiwazian.messenger.customType.Language
-import com.aiwazian.messenger.removeLastScreenFromStack
 import com.aiwazian.messenger.ui.LogoutScreen
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
+import com.aiwazian.messenger.ui.settings.chat.SettingsChatScreen
+import com.aiwazian.messenger.ui.settings.privacy.SettingsPrivacyScreen
+import com.aiwazian.messenger.ui.settings.security.SettingsSecurityScreen
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
+import com.aiwazian.messenger.utils.LanguageService
+import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
 fun SettingsScreen() {
@@ -57,18 +60,13 @@ fun SettingsScreen() {
 
 @Composable
 private fun Content() {
+    val navViewModel: NavigationViewModel = viewModel()
     val customColors = LocalCustomColors.current
 
-    val dataStoreManager = DataStoreManager.getInstance()
-    var language by remember { mutableStateOf("") }
-
-    LaunchedEffect(Unit) {
-        dataStoreManager.getLanguage().collect {
-            language = when (it) {
-                Language.RU -> "Русский"
-                else -> "English"
-            }
-        }
+    val languageService = LanguageService(LocalContext.current)
+    val selectedLanguage = when (languageService.languageCode.collectAsState().value) {
+        Language.RU -> stringResource(R.string.russian_untranslatable)
+        Language.EN -> stringResource(R.string.english_untranslatable)
     }
 
     val scrollState = rememberScrollState()
@@ -76,7 +74,7 @@ private fun Content() {
     val initialTopBarColor = customColors.secondary
     val scrolledTopBarColor = customColors.topAppBarBackground
 
-    val topBarColor = if(scrollState.value > 0) {
+    val topBarColor = if (scrollState.value > 0) {
         scrolledTopBarColor
     } else {
         initialTopBarColor
@@ -97,15 +95,17 @@ private fun Content() {
             SectionContainer {
                 SectionItem(
                     text = stringResource(R.string.profile),
-                    description = stringResource(R.string.aboutMe),
-                    onClick = { addScreenInStack { SettingsProfile() } }
-                )
+                    description = stringResource(R.string.write_about_me),
+                    onClick = {
+                        navViewModel.addScreenInStack { SettingsProfileScreen() }
+                    })
 
                 SectionItem(
                     text = stringResource(R.string.security),
-                    description = stringResource(R.string.protectYourAccount),
-                    onClick = { addScreenInStack { SettingsSecurityScreen() } }
-                )
+                    description = stringResource(R.string.protect_your_account),
+                    onClick = {
+                        navViewModel.addScreenInStack { SettingsSecurityScreen() }
+                    })
             }
 
             SectionHeader(stringResource(R.string.settings))
@@ -114,39 +114,45 @@ private fun Content() {
                 SectionItem(
                     icon = Icons.Outlined.ChatBubbleOutline,
                     text = stringResource(R.string.design),
-                    onClick = { addScreenInStack { ChatSettings() } }
-                )
-
-                SectionItem(
-                    icon = Icons.Outlined.Notifications,
-                    text = stringResource(R.string.notifications),
-                    onClick = { addScreenInStack { SettingsNotificationsScreen() } }
-                )
+                    onClick = {
+                        navViewModel.addScreenInStack { SettingsChatScreen() }
+                    })
 
                 SectionItem(
                     icon = Icons.Outlined.Lock,
                     text = stringResource(R.string.confidentiality),
-                    onClick = { addScreenInStack { SettingsConfidentialityScreen() } }
-                )
+                    onClick = {
+                        navViewModel.addScreenInStack { SettingsPrivacyScreen() }
+                    })
+
+                SectionItem(
+                    icon = Icons.Outlined.Notifications,
+                    text = stringResource(R.string.notifications),
+                    onClick = {
+                        navViewModel.addScreenInStack { SettingsNotificationsScreen() }
+                    })
 
                 SectionItem(
                     icon = Icons.Outlined.DataUsage,
-                    text = stringResource(R.string.dataAndStorage),
-                    onClick = { addScreenInStack { SettingsDataUsageScreen() } }
-                )
+                    text = stringResource(R.string.data_and_storage),
+                    onClick = {
+                        navViewModel.addScreenInStack { SettingsDataUsageScreen() }
+                    })
 
                 SectionItem(
                     icon = Icons.Outlined.Folder,
-                    text = stringResource(R.string.chatFolders),
-                    onClick = { addScreenInStack { ChatFoldersSettings() } }
-                )
+                    text = stringResource(R.string.chat_folders),
+                    onClick = {
+                        navViewModel.addScreenInStack { SettingsChatFoldersScreen() }
+                    })
 
                 SectionItem(
                     icon = Icons.Outlined.Language,
                     text = stringResource(R.string.language),
-                    primaryText = language,
-                    onClick = { addScreenInStack { LanguageSettings() } }
-                )
+                    primaryText = selectedLanguage,
+                    onClick = {
+                        navViewModel.addScreenInStack { SettingsLanguageScreen() }
+                    })
             }
 
             SectionHeader(stringResource(R.string.help))
@@ -159,7 +165,7 @@ private fun Content() {
 
                 SectionItem(
                     icon = Icons.Outlined.Shield,
-                    text = stringResource(R.string.privacyPolicy),
+                    text = stringResource(R.string.privacy_policy),
                 )
             }
 
@@ -182,12 +188,12 @@ private fun Content() {
 private fun TopBar(backgroundColor: Color) {
     val customColors = LocalCustomColors.current
     var menuExpanded by remember { mutableStateOf(false) }
+    val navViewModel: NavigationViewModel = viewModel()
 
     PageTopBar(
-        title = { Text(stringResource(R.string.settings)) },
-        navigationIcon = {
+        title = { Text(stringResource(R.string.settings)) }, navigationIcon = {
             IconButton(onClick = {
-                removeLastScreenFromStack()
+                navViewModel.removeLastScreenInStack()
             }) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
@@ -195,46 +201,42 @@ private fun TopBar(backgroundColor: Color) {
                     tint = customColors.text,
                 )
             }
-        },
-        actions = {
+        }, actions = {
             Box {
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(
-                        Icons.Default.MoreVert,
+                        imageVector = Icons.Outlined.MoreVert,
                         contentDescription = null,
                         tint = customColors.text
                     )
                 }
+
                 DropdownMenu(
-                    modifier = Modifier.background(customColors.background),
+                    modifier = Modifier
+                        .background(customColors.background),
                     expanded = menuExpanded,
                     onDismissRequest = { menuExpanded = false },
                 ) {
-                    DropdownMenuItem(
-                        leadingIcon = {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ExitToApp,
-                                contentDescription = stringResource(R.string.exit),
-                                tint = customColors.textHint
-                            )
-                        },
-                        text = {
-                            Text(
-                                text = stringResource(R.string.exit),
-                                color = customColors.text
-                            )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            addScreenInStack { LogoutScreen() }
+                    DropdownMenuItem(leadingIcon = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = stringResource(R.string.exit),
+                            tint = customColors.textHint
+                        )
+                    }, text = {
+                        Text(
+                            text = stringResource(R.string.exit), color = customColors.text
+                        )
+                    }, onClick = {
+                        menuExpanded = false
+                        navViewModel.addScreenInStack {
+                            LogoutScreen()
                         }
-                    )
+                    })
                 }
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = backgroundColor,
-            titleContentColor = customColors.text
+        }, colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = backgroundColor, titleContentColor = customColors.text
         )
     )
 }

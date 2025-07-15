@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 
 class DialogViewModel : ViewModel() {
     private val _isDialogVisible = mutableStateOf(false)
+
     val isDialogVisible: State<Boolean> get() = _isDialogVisible
 
     var primaryAction: (() -> Unit)? = null

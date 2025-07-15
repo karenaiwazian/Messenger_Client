@@ -34,7 +34,7 @@ import androidx.navigation.NavHostController
 import com.aiwazian.messenger.viewModels.AuthViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.Screen
+import com.aiwazian.messenger.utils.Screen
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
 
@@ -57,15 +57,27 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
                 onClick = {
                     isLoad = false
                     viewModel.findUserByLogin(
-                        success = {
+                        find = {
                             modalText = "Пользователь найден. Продолжить?"
-                            dialogViewModel.primaryAction = { navController.navigate(Screen.Password.route) }
+                            dialogViewModel.primaryAction = {
+                                navController.navigate(Screen.Password.route)
+                            }
+                            dialogViewModel.showDialog()
+                            isLoad = true
+                        },
+                        notFind = {
+                            modalText = "Пользователь не найден. Создать?"
+                            dialogViewModel.primaryAction = {
+                                navController.navigate(Screen.Password.route)
+                            }
                             dialogViewModel.showDialog()
                             isLoad = true
                         },
                         error = {
-                            modalText = "Пользователь не найден. Создать?"
-                            dialogViewModel.primaryAction = { navController.navigate(Screen.Password.route) }
+                            modalText = "Не удалось проверить, поробуйте ещё раз."
+                            dialogViewModel.primaryAction = {
+                                dialogViewModel.hideDialog()
+                            }
                             dialogViewModel.showDialog()
                             isLoad = true
                         }
@@ -118,7 +130,7 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
                     dialogViewModel.hideDialog()
                     dialogViewModel.dismissAction?.invoke()
                 },
-                onPrimary = {
+                onConfirm = {
                     dialogViewModel.hideDialog()
                     dialogViewModel.primaryAction?.invoke()
                 },

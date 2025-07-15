@@ -23,47 +23,49 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.aiwazian.messenger.removeLastScreenFromStack
-import com.aiwazian.messenger.ui.MainScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
-import com.aiwazian.messenger.viewModel
+import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-
 @Composable
-fun NavigationController() {
-    val screenStack = viewModel.screenStack
-    val offsetStack = viewModel.offsetStack
-    val scope = rememberCoroutineScope()
-    val tweenDurationMillis = viewModel.tweenDurationMillis
+fun NavigationController(startScreen: @Composable () -> Unit) {
+    val navViewModel: NavigationViewModel = viewModel()
+    val screenStack = navViewModel.screenStack
+    val offsetStack = navViewModel.offsetStack
+
+    val tweenDurationMillis = navViewModel.tweenDurationMillis
+
     val screenWidthPx = with(LocalDensity.current) {
         LocalConfiguration.current.screenWidthDp.dp.toPx()
     }
 
-    viewModel.screenWidth = screenWidthPx
+    navViewModel.screenWidth = screenWidthPx
+
+    val scope = rememberCoroutineScope()
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val colors = LocalCustomColors.current
 
     Box(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(colors.secondary)
     ) {
-        MainScreen()
+        startScreen()
 
-        screenStack.forEachIndexed { index, screenContent ->
+        screenStack.forEachIndexed { index, screenEntry ->
             val offsetX = offsetStack[index]
             val isTop = index == screenStack.lastIndex
 
-            BackHandler(enabled = screenStack.isNotEmpty()) {
-                if (screenStack.isNotEmpty()) {
-                    removeLastScreenFromStack()
-                }
+            val canGoBackBySwipe = screenEntry.canGoBackBySwipe
+
+            BackHandler(enabled = screenStack.isNotEmpty() && canGoBackBySwipe) {
+                navViewModel.removeLastScreenInStack()
             }
 
-            LaunchedEffect(screenContent) {
+            LaunchedEffect(key1 = screenEntry.content) {
                 offsetX.animateTo(0f, tween(tweenDurationMillis))
             }
 
@@ -74,11 +76,13 @@ fun NavigationController() {
             Box(
                 Modifier
                     .fillMaxSize()
-                    .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+                    .offset {
+                        IntOffset(offsetX.value.roundToInt(), 0)
+                    }
                     .background(colors.secondary)
                     .zIndex(index + 0.2f)
                     .then(
-                        if (isTop) Modifier.draggable(
+                        if (isTop && canGoBackBySwipe) Modifier.draggable(
                             orientation = Orientation.Horizontal,
                             state = rememberDraggableState { delta ->
                                 keyboardController?.hide()
@@ -89,7 +93,7 @@ fun NavigationController() {
                             onDragStopped = {
                                 scope.launch {
                                     if (offsetX.value > screenWidthPx / 4) {
-                                        removeLastScreenFromStack()
+                                        navViewModel.removeLastScreenInStack()
                                     } else {
                                         offsetX.animateTo(0f, tween(tweenDurationMillis))
                                     }
@@ -98,7 +102,7 @@ fun NavigationController() {
                         ) else Modifier
                     )
             ) {
-                screenContent()
+                screenEntry.content()
             }
         }
     }
@@ -110,10 +114,12 @@ private fun BoxShadow(index: Int, backgroundAlpha: Float) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black.copy(alpha = backgroundAlpha))
-            .zIndex(index + 0.1f)
+            .zIndex(zIndex = index + 0.1f)
             .clickable(
                 indication = null,
-                interactionSource = remember { MutableInteractionSource() }
+                interactionSource = remember {
+                    MutableInteractionSource()
+                }
             ) { }
     )
 }

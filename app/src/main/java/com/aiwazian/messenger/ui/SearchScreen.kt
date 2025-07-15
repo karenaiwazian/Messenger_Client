@@ -27,8 +27,6 @@ import com.aiwazian.messenger.viewModels.UserSearchViewModel
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.sp
-import com.aiwazian.messenger.addScreenInStack
-import com.aiwazian.messenger.removeLastScreenFromStack
 import androidx.compose.material3.Text
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -36,9 +34,11 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
+import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
 fun SearchScreen(viewModel: UserSearchViewModel = viewModel()) {
+    val navViewModel: NavigationViewModel = viewModel()
     val customColors = LocalCustomColors.current
 
     val users = viewModel.searchResults
@@ -64,7 +64,9 @@ fun SearchScreen(viewModel: UserSearchViewModel = viewModel()) {
                             shape = RectangleShape,
                             onClick = {
                                 keyboardController?.hide()
-                                addScreenInStack { ChatScreen(user.id) }
+                                navViewModel.addScreenInStack {
+                                    ChatScreen(user.id)
+                                }
                             },
                             colors = CardDefaults.cardColors(
                                 containerColor = Color.Transparent
@@ -83,19 +85,22 @@ fun SearchScreen(viewModel: UserSearchViewModel = viewModel()) {
                                 val startIndex = username.indexOf(query)
                                 val endIndex = startIndex + query.length
 
-                                Text(text = buildAnnotatedString {
-                                    if (startIndex in username.indices) {
-                                        append("@" + username.substring(0, startIndex))
+                                Text(
+                                    text = buildAnnotatedString {
+                                        if (startIndex in username.indices) {
+                                            append("@" + username.substring(0, startIndex))
 
-                                        withStyle(SpanStyle(color = customColors.primary)) {
-                                            append(username.substring(startIndex, endIndex))
+                                            withStyle(SpanStyle(color = customColors.primary)) {
+                                                append(username.substring(startIndex, endIndex))
+                                            }
+
+                                            append(username.substring(endIndex))
+                                        } else {
+                                            append("@$username")
                                         }
-
-                                        append(username.substring(endIndex))
-                                    } else {
-                                        append("@$username")
-                                    }
-                                }, fontSize = 12.sp, color = customColors.text)
+                                    },
+                                    fontSize = 12.sp, color = customColors.text
+                                )
                             }
                         }
                     }
@@ -111,13 +116,19 @@ private fun TopBar(
     userSearch: UserSearchViewModel,
     keyboardController: SoftwareKeyboardController?,
 ) {
+    val navViewModel: NavigationViewModel = viewModel()
     val customColors = LocalCustomColors.current
+
     PageTopBar(
         title = {
             SearchTextField(userSearch, keyboardController)
         },
         navigationIcon = {
-            IconButton(onClick = { removeLastScreenFromStack() }) {
+            IconButton(
+                onClick = {
+                    navViewModel.removeLastScreenInStack()
+                }
+            ) {
                 Icon(
                     Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = null,
@@ -156,7 +167,8 @@ private fun SearchTextField(
         },
         placeholder = {
             Text(
-                text = stringResource(R.string.search), color = customColors.text
+                text = stringResource(R.string.search),
+                color = customColors.text
             )
         },
         colors = TextFieldDefaults.colors(
@@ -170,10 +182,12 @@ private fun SearchTextField(
         ),
         trailingIcon = {
             if (query.isNotEmpty() && query != "") {
-                IconButton(onClick = {
-                    query = ""
-                    userSearch.searchUsersByPrefix(query)
-                }) {
+                IconButton(
+                    onClick = {
+                        query = ""
+                        userSearch.searchUsersByPrefix(query)
+                    }
+                ) {
                     Icon(
                         Icons.Default.Close,
                         contentDescription = null,

@@ -1,52 +1,31 @@
 package com.aiwazian.messenger.ui.settings
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.removeLastScreenFromStack
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionHeader
-import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionToggleItem
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
+import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
 fun SettingsNotificationsScreen() {
@@ -68,7 +47,10 @@ private fun Content() {
         initialTopBarColor
     }
 
-    Scaffold(topBar = { TopBar(topBarColor) }) {
+    Scaffold(
+        topBar = { TopBar(topBarColor) },
+        containerColor = colors.secondary,
+    ) {
         Column(
             modifier = Modifier
                 .padding(it)
@@ -93,13 +75,18 @@ private fun Content() {
 @Composable
 private fun TopBar(backgroundColor: Color) {
     val colors = LocalCustomColors.current
+    val navViewModel: NavigationViewModel = viewModel()
 
     PageTopBar(
-        title = { Text(stringResource(R.string.notifications)) },
+        title = {
+            Text(stringResource(R.string.notifications))
+        },
         navigationIcon = {
-            IconButton(onClick = {
-                removeLastScreenFromStack()
-            }) {
+            IconButton(
+                onClick = {
+                    navViewModel.removeLastScreenInStack()
+                }
+            ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,

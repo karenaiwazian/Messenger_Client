@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.ButtonDefaults
@@ -26,17 +27,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.aiwazian.messenger.AuthManager
+import com.aiwazian.messenger.utils.AuthManager
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.LoginActivity
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.removeLastScreenFromStack
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionHeader
+import com.aiwazian.messenger.ui.settings.SettingsDataUsageScreen
+import com.aiwazian.messenger.ui.settings.security.SettingsPasscodeScreen
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
+import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
 fun LogoutScreen() {
@@ -45,6 +48,7 @@ fun LogoutScreen() {
 
 @Composable
 private fun Content() {
+    val navViewModel: NavigationViewModel = viewModel()
     val colors = LocalCustomColors.current
     val scrollState = rememberScrollState()
 
@@ -57,7 +61,10 @@ private fun Content() {
         initialTopBarColor
     }
 
-    Scaffold(topBar = { TopBar(topBarColor) }) {
+    Scaffold(
+        topBar = { TopBar(topBarColor) },
+        containerColor = colors.secondary,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -65,7 +72,7 @@ private fun Content() {
                 .background(colors.secondary)
                 .verticalScroll(scrollState)
         ) {
-            SectionHeader(title = "Другие возможности")
+            SectionHeader(title = stringResource(R.string.alternative_options))
 
             SectionContainer {
                 SectionItem(
@@ -74,9 +81,24 @@ private fun Content() {
                     description = "Подключите несколько аккаунтов и легко переключайтесь между ними."
                 )
                 SectionItem(
+                    icon = Icons.Outlined.Delete,
+                    text = "Очистить кэш",
+                    description = "Освободите память устройства, файлы останутся в облаке.",
+                    onClick = {
+                        navViewModel.addScreenInStack {
+                            SettingsDataUsageScreen()
+                        }
+                    }
+                )
+                SectionItem(
                     icon = Icons.Outlined.Key,
                     text = "Установить код пароль",
-                    description = "Включите код-пароль для разблокировки приложения на Вашем устройстве."
+                    description = "Включите код-пароль для разблокировки приложения на Вашем устройстве.",
+                    onClick = {
+                        navViewModel.addScreenInStack {
+                            SettingsPasscodeScreen()
+                        }
+                    }
                 )
             }
 
@@ -89,8 +111,7 @@ private fun Content() {
                     colors = ButtonDefaults.textButtonColors(contentColor = colors.danger),
                     onClick = {
                         dialogViewModel.showDialog()
-                    }
-                )
+                    })
             }
 
             LogoutModal(viewModel = dialogViewModel)
@@ -107,19 +128,17 @@ private fun LogoutModal(viewModel: DialogViewModel) {
         CustomDialog(
             title = stringResource(R.string.exit),
             onDismiss = { viewModel.hideDialog() },
-            onPrimary = {
+            onConfirm = {
                 viewModel.hideDialog()
                 AuthManager.logout()
                 val intent = Intent(context, LoginActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
                 context.startActivity(intent)
-            }
-        ) {
+            }) {
             Column(Modifier.padding(horizontal = 16.dp)) {
                 Text(
-                    text = "Вы точно хотите выйти?",
-                    color = LocalCustomColors.current.text
+                    text = "Вы точно хотите выйти?", color = LocalCustomColors.current.text
                 )
             }
         }
@@ -130,20 +149,22 @@ private fun LogoutModal(viewModel: DialogViewModel) {
 @Composable
 private fun TopBar(backgroundColor: Color) {
     val colors = LocalCustomColors.current
+    val navViewModel: NavigationViewModel = viewModel()
 
     PageTopBar(
-        title = { Text(stringResource(R.string.exit)) },
-        navigationIcon = {
-            IconButton(onClick = { removeLastScreenFromStack() }) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = null,
-                    tint = colors.text
-                )
-            }
-        }, colors = TopAppBarDefaults.topAppBarColors(
-            titleContentColor = colors.text,
-            containerColor = backgroundColor
-        )
+        title = { Text(stringResource(R.string.exit)) }, navigationIcon = {
+        IconButton(
+            onClick = {
+                navViewModel.removeLastScreenInStack()
+            }) {
+            Icon(
+                Icons.AutoMirrored.Outlined.ArrowBack,
+                contentDescription = null,
+                tint = colors.text
+            )
+        }
+    }, colors = TopAppBarDefaults.topAppBarColors(
+        titleContentColor = colors.text, containerColor = backgroundColor
+    )
     )
 }

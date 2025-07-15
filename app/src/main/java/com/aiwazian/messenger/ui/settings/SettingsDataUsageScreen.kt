@@ -28,10 +28,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.viewModels.DataUsageViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
-import com.aiwazian.messenger.removeLastScreenFromStack
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
+import com.aiwazian.messenger.viewModels.NavigationViewModel
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -57,7 +57,10 @@ private fun Content(viewModel: DataUsageViewModel = viewModel()) {
 
     val dialogViewModel: DialogViewModel = viewModel()
 
-    Scaffold(topBar = { TopBar() }) {
+    Scaffold(
+        topBar = { TopBar() },
+        containerColor = colors.secondary,
+    ) {
         Column(
             modifier = Modifier
                 .padding(it)
@@ -122,7 +125,7 @@ private fun ClearCacheDialog(
     if (dialogViewModel.isDialogVisible.value) {
         CustomDialog(
             title = "Очистить кеш",
-            onPrimary = {
+            onConfirm = {
                 onPrimary()
             },
             onDismiss = { dialogViewModel.hideDialog() }
@@ -140,17 +143,24 @@ private fun ClearCacheDialog(
 @Composable
 private fun TopBar() {
     val colors = LocalCustomColors.current
+    val navViewModel: NavigationViewModel = viewModel()
 
     PageTopBar(
-        title = { }, navigationIcon = {
-            IconButton(onClick = { removeLastScreenFromStack() }) {
+        title = { },
+        navigationIcon = {
+            IconButton(
+                onClick = {
+                    navViewModel.removeLastScreenInStack()
+                }
+            ) {
                 Icon(
                     Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = null,
                     tint = colors.text
                 )
             }
-        }, colors = TopAppBarDefaults.topAppBarColors(
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = colors.secondary
         )
     )

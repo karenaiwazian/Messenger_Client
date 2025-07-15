@@ -11,5 +11,6 @@ data class CustomColors(
     val topAppBarBackground: Color,
     val sendMessageTimeBackground: Color,
     val danger: Color,
-    val dangerBackground: Color
+    val dangerBackground: Color,
+    val horizontalDivider: Color
 )
