@@ -85,7 +85,7 @@ import java.time.format.DateTimeFormatter
 private var showDeleteChatDialog by mutableStateOf(false)
 
 @Composable
-fun ChatScreen(userId: String) {
+fun ChatScreen(userId: Int) {
     val userState = remember { mutableStateOf(User()) }
     var isLoaded by remember { mutableStateOf(false) }
 
@@ -317,7 +317,6 @@ private fun TopBar(user: User, dialogViewModel: DialogViewModel) {
 
 @Composable
 private fun DeleteChatDialog(onDelete: () -> Unit = {}, dialogViewModel: DialogViewModel) {
-    var isChecked by remember { mutableStateOf(false) }
     val colors = LocalCustomColors.current
 
     if (showDeleteChatDialog) {
@@ -335,13 +334,6 @@ private fun DeleteChatDialog(onDelete: () -> Unit = {}, dialogViewModel: DialogV
                 color = colors.text,
                 modifier = Modifier.padding(start = 16.dp)
             )
-//            SectionCheckBoxItem(
-//                text = "Также удалить для собеседника",
-//                checked = isChecked,
-//                onChecked = {
-//
-//                }
-//            )
         }
     }
 }

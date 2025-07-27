@@ -4,10 +4,11 @@ import androidx.annotation.Keep
 import com.aiwazian.messenger.data.ApiResponse
 import com.aiwazian.messenger.data.AuthRequest
 import com.aiwazian.messenger.data.AuthResponse
+import com.aiwazian.messenger.data.ChatInfo
 import com.aiwazian.messenger.data.CheckVerificationCodeRequest
 import com.aiwazian.messenger.data.CreateChannelRequest
 import com.aiwazian.messenger.data.DeleteChatRequest
-import com.aiwazian.messenger.data.FcmTokenRequest
+import com.aiwazian.messenger.data.NotificationTokenRequest
 import com.aiwazian.messenger.data.FindUserRequest
 import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.data.RegisterRequest
@@ -44,8 +45,23 @@ interface ApiService {
     @Keep
     suspend fun getProfile(@Header("Authorization") token: String): Response<User>
 
-    @GET("contacts")
-    suspend fun getContacts(@Header("Authorization") token: String): Response<List<User>>
+    @GET("unarchivedChat")
+    suspend fun getUnarchivedChats(@Header("Authorization") token: String): Response<List<ChatInfo>>
+
+    @GET("archivedChat")
+    suspend fun getArchivedChats(@Header("Authorization") token: String): Response<List<ChatInfo>>
+
+    @POST("pinChat")
+    suspend fun pinChat(
+        @Header("Authorization") token: String,
+        @Body chatInfo: ChatInfo
+    ): Response<ApiResponse>
+
+    @POST("unpinChat")
+    suspend fun unpinChat(
+        @Header("Authorization") token: String,
+        @Body chatInfo: ChatInfo
+    ): Response<ApiResponse>
 
     @GET("getSessions")
     suspend fun getSessions(@Header("Authorization") token: String): Response<List<Session>>
@@ -53,7 +69,7 @@ interface ApiService {
     @POST("updateFcmToken")
     suspend fun updateFcmToken(
         @Header("Authorization") token: String,
-        @Body newToken: FcmTokenRequest,
+        @Body newToken: NotificationTokenRequest,
     ): Response<ApiResponse>
 
     @POST("terminateAllSessions")
@@ -71,8 +87,8 @@ interface ApiService {
     @GET("messages")
     suspend fun getMessagesBetweenUsers(
         @Header("Authorization") token: String,
-        @Query("user1") user1: String,
-        @Query("user2") user2: String,
+        @Query("user1") user1: Int,
+        @Query("user2") user2: Int,
     ): Response<List<Message>>
 
     @PUT("profileUpdate")
@@ -90,12 +106,21 @@ interface ApiService {
     @GET("users/{id}")
     suspend fun getUserById(
         @Header("Authorization") token: String,
-        @Path("id") id: String,
+        @Path("id") id: Int,
     ): Response<User>
+
+    @POST("addChatToArchive")
+    suspend fun archiveChat(
+        @Header("Authorization") token: String, @Body requestBody: ChatInfo
+    ): Response<ApiResponse>
+
+    @POST("deleteChatFromArchive")
+    suspend fun unarchiveChat(
+        @Header("Authorization") token: String, @Body requestBody: ChatInfo
+    ): Response<ApiResponse>
 
     @POST("createChannel")
     suspend fun createChannel(
-        @Header("Authorization") token: String,
-        @Body requestBody: CreateChannelRequest
+        @Header("Authorization") token: String, @Body requestBody: CreateChannelRequest
     ): Response<ApiResponse>
 }

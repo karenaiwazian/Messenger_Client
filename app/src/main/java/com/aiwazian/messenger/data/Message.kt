@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 @Keep
 @Serializable
 data class Message(
-    @Keep val id: String = "",
-    @Keep val senderId: String = "",
-    @Keep val receiverId: String = "",
+    @Keep val id: Int = 0,
+    @Keep val senderId: Int = 0,
+    @Keep val receiverId: Int = 0,
     @Keep val text: String = "",
     @Keep val timestamp: Long = System.currentTimeMillis(),
 ) : WebSocketData

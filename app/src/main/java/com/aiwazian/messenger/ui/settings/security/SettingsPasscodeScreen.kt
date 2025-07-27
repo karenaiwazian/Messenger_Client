@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,7 +27,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -84,14 +84,12 @@ fun SettingsPasscodeScreen() {
     var startDestination by remember { mutableStateOf(PasscodeScreens.Main) }
 
     LaunchedEffect(Unit) {
-        launch {
-            val dataStore = DataStoreManager.getInstance()
+        val dataStore = DataStoreManager.getInstance()
 
-            startDestination = if (dataStore.getPasscode().first().isNotBlank()) {
-                PasscodeScreens.Settings
-            } else {
-                PasscodeScreens.Main
-            }
+        startDestination = if (dataStore.getPasscode().first().isNotBlank()) {
+            PasscodeScreens.Settings
+        } else {
+            PasscodeScreens.Main
         }
     }
 
@@ -174,12 +172,23 @@ private fun CreatePasscodeScreen(
                 }
 
                 CodeBlocks(
-                    count = passcodeViewModel.MAX_LENGTH_PASSCODE, code = passcodeViewModel.passcode
+                    count = PasscodeViewModel.MAX_LENGTH_PASSCODE,
+                    showInput = false,
+                    code = passcodeViewModel.passcode
                 )
             }
 
+            val boardButtons = listOf(
+                listOf("1", "2", "3"),
+                listOf("4", "5", "6"),
+                listOf("7", "8", "9"),
+                listOf(null, "0", Icons.AutoMirrored.Outlined.Backspace),
+            )
+
             CustomNumberBoard(
-                value = passcodeViewModel.passcode, onChange = passcodeViewModel::onPasscodeChanged
+                value = passcodeViewModel.passcode,
+                buttons = boardButtons,
+                onChange = passcodeViewModel::onPasscodeChanged
             )
         }
     }
@@ -259,12 +268,21 @@ private fun SettingsChangePasscodeLockScreen(
                 }
 
                 CodeBlocks(
-                    count = passcodeViewModel.MAX_LENGTH_PASSCODE, code = passcodeViewModel.passcode
+                    count = PasscodeViewModel.MAX_LENGTH_PASSCODE, code = passcodeViewModel.passcode
                 )
             }
 
+            val boardButtons = listOf(
+                listOf("1", "2", "3"),
+                listOf("4", "5", "6"),
+                listOf("7", "8", "9"),
+                listOf(null, "0", Icons.AutoMirrored.Outlined.Backspace),
+            )
+
             CustomNumberBoard(
-                value = passcodeViewModel.passcode, onChange = passcodeViewModel::onPasscodeChanged
+                value = passcodeViewModel.passcode,
+                buttons = boardButtons,
+                onChange = passcodeViewModel::onPasscodeChanged
             )
         }
     }
@@ -435,7 +453,6 @@ private fun SettingsPasscodeLockScreen(
                 SectionItem(text = "Сменить код-пароль", onClick = {
                     navController.navigate(PasscodeScreens.Create)
                 })
-                SectionToggleItem(text = "Разблокировка отпечатком пальца")
             }
 
             SectionContainer {

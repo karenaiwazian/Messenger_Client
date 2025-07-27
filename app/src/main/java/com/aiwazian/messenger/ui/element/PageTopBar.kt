@@ -14,8 +14,8 @@ import com.aiwazian.messenger.ui.theme.LocalCustomColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PageTopBar(
-    title: @Composable (() -> Unit),
     modifier: Modifier = Modifier,
+    title: @Composable () -> Unit = { },
     navigationIcon: @Composable (() -> Unit) = { },
     actions: @Composable (RowScope.() -> Unit) = { },
     colors: TopAppBarColors? = null,

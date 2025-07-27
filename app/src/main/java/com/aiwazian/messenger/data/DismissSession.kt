@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Keep
 @Serializable
 data class DismissSession(
-    @Keep val sessionId: String,
+    @Keep val sessionId: Int,
 ) : WebSocketData

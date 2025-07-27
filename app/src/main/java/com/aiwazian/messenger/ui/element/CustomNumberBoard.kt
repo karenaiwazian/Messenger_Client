@@ -25,6 +25,7 @@ import com.aiwazian.messenger.utils.VibrationPattern
 @Composable
 fun CustomNumberBoard(
     value: String = "",
+    buttons: List<List<Any?>>,
     onChange: (String) -> Unit = { }
 ) {
     val colors = LocalCustomColors.current
@@ -38,16 +39,10 @@ fun CustomNumberBoard(
             .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        val keys = listOf(
-            listOf("1", "2", "3"),
-            listOf("4", "5", "6"),
-            listOf("7", "8", "9"),
-            listOf(null, "0", Icons.AutoMirrored.Outlined.Backspace),
-        )
-
-        keys.forEach { row ->
+        buttons.forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { key ->
+
                     if (key == null) {
                         Box(modifier = Modifier.weight(1f))
                         return@forEach

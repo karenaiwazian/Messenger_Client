@@ -34,7 +34,6 @@ import androidx.navigation.NavHostController
 import com.aiwazian.messenger.viewModels.AuthViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.utils.Screen
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
 
@@ -60,7 +59,7 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
                         find = {
                             modalText = "Пользователь найден. Продолжить?"
                             dialogViewModel.primaryAction = {
-                                navController.navigate(Screen.Password.route)
+                                navController.navigate(Screen.Password)
                             }
                             dialogViewModel.showDialog()
                             isLoad = true
@@ -68,7 +67,7 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
                         notFind = {
                             modalText = "Пользователь не найден. Создать?"
                             dialogViewModel.primaryAction = {
-                                navController.navigate(Screen.Password.route)
+                                navController.navigate(Screen.Password)
                             }
                             dialogViewModel.showDialog()
                             isLoad = true

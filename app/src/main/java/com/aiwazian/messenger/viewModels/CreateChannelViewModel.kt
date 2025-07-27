@@ -14,7 +14,7 @@ class CreateChannelViewModel : ViewModel() {
     var channelBio by mutableStateOf("")
         private set
 
-    var channelType by mutableStateOf<ChannelType>(ChannelType.PRIVATE)
+    var channelType by mutableStateOf(ChannelType.PRIVATE)
         private set
 
     var onError: (() -> Unit)? = null

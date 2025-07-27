@@ -184,7 +184,12 @@ class AuthViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.api.register(RegisterRequest(login, password))
+                val deviceHelper = DeviceHelper()
+                val device = deviceHelper.getDeviceName()
+                val requestBody =
+                    RegisterRequest(login = login, password = password, deviceName = device)
+
+                val response = RetrofitInstance.api.register(requestBody)
 
                 if (!response.isSuccessful) {
                     loginError = true

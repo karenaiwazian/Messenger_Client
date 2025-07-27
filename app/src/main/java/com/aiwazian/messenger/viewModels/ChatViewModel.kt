@@ -15,8 +15,8 @@ import kotlinx.coroutines.launch
 import com.aiwazian.messenger.data.Message
 
 class ChatViewModel(
-    private val chatId: String,
-    private val currentUserId: String,
+    private val chatId: Int,
+    private val currentUserId: Int,
 ) : ViewModel() {
 
     var messageText by mutableStateOf("")
@@ -26,8 +26,8 @@ class ChatViewModel(
 
     init {
         loadMessages()
-        WebSocketManager.onMessage = { message ->
-            if (ChatStateManager.isChatOpen(message.senderId)) {
+        WebSocketManager.onReceiveMessage = { message ->
+            if (ChatStateManager.isChatOpen(message.senderId) && message.senderId != UserManager.user.id) {
                 messages.add(message)
             }
         }
@@ -39,9 +39,7 @@ class ChatViewModel(
 
             try {
                 val response = RetrofitInstance.api.getMessagesBetweenUsers(
-                    token = "Bearer $token",
-                    user1 = currentUserId,
-                    user2 = chatId
+                    token = "Bearer $token", user1 = currentUserId, user2 = chatId
                 )
 
                 if (response.isSuccessful) {
@@ -61,9 +59,7 @@ class ChatViewModel(
         }
 
         val message = Message(
-            senderId = currentUserId,
-            receiverId = chatId,
-            text = text.trim()
+            senderId = currentUserId, receiverId = chatId, text = text.trim()
         )
 
         messages.add(message)

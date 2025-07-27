@@ -44,4 +44,11 @@
     <string name="last_name">Фамилия</string>
     <string name="enable_passcode">Включить код-пароль</string>
     <string name="alternative_options">Другие возможности</string>
+    <string name="clear_cache">Очистить кэш</string>
+    <string name="archive">Архив</string>
+    <string name="archive_settings">Настройки архива</string>
+    <string name="how_does_it_work">Как это работает?</string>
+    <string name="date_of_birth">Дата рождения</string>
+    <string name="connecting">Соединение</string>
+    <string name="invites">Приглашения</string>
 </resources>

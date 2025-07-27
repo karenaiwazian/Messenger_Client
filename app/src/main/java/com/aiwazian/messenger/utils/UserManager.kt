@@ -9,6 +9,7 @@ import com.aiwazian.messenger.data.User
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -29,7 +30,7 @@ object UserManager {
 
     suspend fun loadUserData() {
         val dataStoreManager = DataStoreManager.getInstance()
-        token = dataStoreManager.getToken().firstOrNull().toString()
+        token = dataStoreManager.getToken().first()
 
         try {
             val response = RetrofitInstance.api.getProfile("Bearer $token")

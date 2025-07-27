@@ -11,7 +11,8 @@ import com.aiwazian.messenger.data.Notification
 import com.aiwazian.messenger.interfaces.NotificationService
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.api.RetrofitInstance
-import com.aiwazian.messenger.data.FcmTokenRequest
+import com.aiwazian.messenger.data.NotificationTokenRequest
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
@@ -27,28 +28,44 @@ class NotificationService : FirebaseMessagingService(), NotificationService {
         sendTokenToServer(token)
     }
 
-    fun sendTokenToServer(token: String) {
-        val userId = UserManager.token
+    fun sendTokenToServer(token: String? = null) {
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val api = RetrofitInstance.api
-                val f = FcmTokenRequest(token = token)
-                val response = api.updateFcmToken("Bearer $userId", f)
+        if (token.isNullOrBlank()) {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
 
-                if (response.isSuccessful) {
-                    Log.d("FCM", "FCM token updated on server")
+                    val notificationService = NotificationService()
+
+                    notificationService.sendTokenToServer(token)
+
+                    Log.e("FCM", "success $token")
                 } else {
-                    Log.e("FCM", "Failed to update token: ${response.code()}")
+                    Log.e("FCM", "Error ${task.exception}")
                 }
-            } catch (e: Exception) {
-                Log.e("FCM", "Error updating token: ${e.message}")
+            }
+        } else {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val userId = UserManager.token
+                    val api = RetrofitInstance.api
+                    val request = NotificationTokenRequest(token = token)
+                    val response = api.updateFcmToken("Bearer $userId", request)
+
+                    if (response.isSuccessful) {
+                        Log.d("FCM", "FCM token updated on server")
+                    } else {
+                        Log.e("FCM", "Failed to update token: ${response.code()}")
+                    }
+                } catch (e: Exception) {
+                    Log.e("FCM", "Error updating token: ${e.message}")
+                }
             }
         }
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        val chatId = remoteMessage.data["chatId"] ?: return
+        val chatId = remoteMessage.data["chatId"]?.toIntOrNull() ?: return
         val title = remoteMessage.data["title"] ?: "Messenger"
         val body = remoteMessage.data["body"] ?: ""
 
@@ -89,7 +106,7 @@ class NotificationService : FirebaseMessagingService(), NotificationService {
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
 
-        val groupKey = notification.chatId
+        val groupKey = notification.chatId.toString()
 
         val inboxStyle = NotificationCompat.InboxStyle()
 

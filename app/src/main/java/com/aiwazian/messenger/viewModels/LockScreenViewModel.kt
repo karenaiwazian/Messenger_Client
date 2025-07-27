@@ -5,13 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aiwazian.messenger.utils.Constants
 import com.aiwazian.messenger.utils.DataStoreManager
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class LockScreenViewModel : ViewModel() {
-    val MAX_LENGTH_PASSCODE = Constants.MAX_LENGTH_PASSCODE
+    val MAX_LENGTH_PASSCODE = PasscodeViewModel.MAX_LENGTH_PASSCODE
 
     var onWrongPasscode: () -> Unit = { }
 

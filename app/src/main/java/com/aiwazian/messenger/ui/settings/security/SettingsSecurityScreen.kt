@@ -54,6 +54,11 @@ private fun Content() {
     var passcodeEnabled by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        val dataStoreManager = DataStoreManager.getInstance()
+        dataStoreManager.getPasscode().collect {
+             passcodeEnabled = it.isNotBlank()
+        }
+
         try {
             val token = UserManager.token
 
@@ -64,11 +69,6 @@ private fun Content() {
             }
         } catch (e: Exception) {
             Log.e("SettingsSecurityScreen", e.message.toString())
-        }
-
-        val dataStoreManager = DataStoreManager.getInstance()
-        dataStoreManager.getPasscode().collect {
-             passcodeEnabled = it.isNotBlank()
         }
     }
 

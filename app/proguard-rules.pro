@@ -22,3 +22,11 @@
 -keep,allowobfuscation,allowshrinking class retrofit2.Response
 
 # Deleting all calls Log.v, Log.d, Log.i, Log.w, Log.e, Log.wtf
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** e(...);
+    public static *** i(...);
+    public static *** v(...);
+    public static *** w(...);
+    public static *** wtf(...);
+}

@@ -1,22 +1,23 @@
 package com.aiwazian.messenger.ui.login
 
-import android.app.Activity
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.aiwazian.messenger.viewModels.AuthViewModel
 import androidx.navigation.compose.NavHost
-import com.aiwazian.messenger.MainActivity
-import com.aiwazian.messenger.utils.Screen
+
+object Screen {
+    const val Login = "login"
+    const val Verification = "verification"
+    const val Password = "password"
+}
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -37,7 +38,7 @@ private fun Content() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route,
+        startDestination = Screen.Login,
         enterTransition = {
             slideInHorizontally(transition) { it }
         },
@@ -51,13 +52,13 @@ private fun Content() {
             slideOutHorizontally(animationSpec = transition) { it }
         }
     ) {
-        composable(route = Screen.Login.route) {
+        composable(route = Screen.Login) {
             LoginScreen(navController = navController, viewModel = authViewModel)
         }
-        composable(route = Screen.Verification.route) {
+        composable(route = Screen.Verification) {
             VerificationCodeScreen(navController = navController, viewModel = authViewModel)
         }
-        composable(route = Screen.Password.route) {
+        composable(route = Screen.Password) {
             PasswordScreen(navController = navController, viewModel = authViewModel)
         }
     }

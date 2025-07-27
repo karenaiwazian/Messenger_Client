@@ -90,6 +90,16 @@ private fun Content() {
                     text = stringResource(R.string.bio),
                     primaryText = stringResource(R.string.everybody)
                 )
+
+                SectionItem(
+                    text = stringResource(R.string.date_of_birth),
+                    primaryText = stringResource(R.string.everybody)
+                )
+
+                SectionItem(
+                    text = stringResource(R.string.invites),
+                    primaryText = stringResource(R.string.everybody)
+                )
             }
 
             val showDialog = remember { mutableStateOf(false) }

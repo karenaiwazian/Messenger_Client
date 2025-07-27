@@ -244,7 +244,10 @@ private fun Content() {
                     }
                 )
 
-                if (sessions.isNotEmpty()) {
+            }
+
+            if (sessions.isNotEmpty()) {
+                SectionContainer {
                     SectionItem(
                         icon = Icons.Outlined.BackHand,
                         iconColor = colors.danger,

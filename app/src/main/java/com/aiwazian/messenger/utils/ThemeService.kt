@@ -1,8 +1,5 @@
 package com.aiwazian.messenger.utils
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import com.aiwazian.messenger.customType.PrimaryColorOption
 import com.aiwazian.messenger.customType.ThemeOption
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +25,7 @@ class ThemeService {
                 _currentTheme.value = ThemeOption.fromString(themeName)
             }
         }
+
         coroutineScope.launch {
             dataStorage.getPrimaryColor().collectLatest { colorName ->
                 _primaryColor.value = PrimaryColorOption.fromString(colorName)

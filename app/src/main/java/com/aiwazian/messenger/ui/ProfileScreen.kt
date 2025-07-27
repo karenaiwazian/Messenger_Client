@@ -41,7 +41,7 @@ import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
-fun ProfileScreen(userId: String) {
+fun ProfileScreen(userId: Int) {
     if (userId == UserManager.user.id) {
         Content(UserManager.user)
         return
@@ -96,7 +96,7 @@ private fun Content(user: User) {
     val clipboardHelper = ClipboardHelper(context = context)
 
     Scaffold(
-        topBar = { AppBar(user, topBarColor) }
+        topBar = { DefaultTopBar(user, topBarColor) }
     ) {
         Column(
             Modifier
@@ -146,7 +146,7 @@ private fun Content(user: User) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AppBar(user: User, backgroundColor: Color) {
+private fun DefaultTopBar(user: User, backgroundColor: Color) {
     val navViewModel: NavigationViewModel = viewModel()
     val customColors = LocalCustomColors.current
 

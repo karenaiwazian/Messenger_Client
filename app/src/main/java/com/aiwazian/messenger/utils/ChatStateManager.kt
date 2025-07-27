@@ -1,9 +1,9 @@
 package com.aiwazian.messenger.utils
 
 object ChatStateManager {
-    private var openChatId: String? = null
+    private var openChatId: Int? = null
 
-    fun openChat(chatId: String) {
+    fun openChat(chatId: Int) {
         openChatId = chatId
     }
 
@@ -11,7 +11,7 @@ object ChatStateManager {
         openChatId = null
     }
 
-    fun isChatOpen(chatId: String?): Boolean {
+    fun isChatOpen(chatId: Int?): Boolean {
         return openChatId == chatId
     }
 }

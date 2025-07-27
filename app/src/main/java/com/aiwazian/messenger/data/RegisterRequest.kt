@@ -5,5 +5,6 @@ import androidx.annotation.Keep
 @Keep
 data class RegisterRequest (
     @Keep val login: String,
-    @Keep val password: String
+    @Keep val password: String,
+    @Keep val deviceName: String
 )

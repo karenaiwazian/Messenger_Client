@@ -1,14 +1,21 @@
 package com.aiwazian.messenger.ui
 
-import android.Manifest
+import android.Manifest.permission.POST_NOTIFICATIONS
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,8 +24,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -38,13 +43,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -60,24 +63,29 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.DropdownMenu
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Reply
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.LockOpen
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -85,18 +93,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.data.Message
+import com.aiwazian.messenger.ui.element.ChatCard
 import com.aiwazian.messenger.utils.UserManager
-import com.aiwazian.messenger.utils.VibrateService
 import com.aiwazian.messenger.utils.WebSocketManager
-import com.aiwazian.messenger.api.RetrofitInstance
-import com.aiwazian.messenger.data.User
 import com.aiwazian.messenger.ui.element.PageTopBar
+import com.aiwazian.messenger.ui.element.SwipeableChatCard
 import com.aiwazian.messenger.ui.settings.SettingsScreen
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
-import com.aiwazian.messenger.utils.DataStoreManager
-import com.aiwazian.messenger.utils.VibrationPattern
+import com.aiwazian.messenger.utils.AppLockService
+import com.aiwazian.messenger.viewModels.ChatsViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,24 +144,23 @@ private fun MainScreenContent() {
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
-                    context, Manifest.permission.POST_NOTIFICATIONS
+                    context, POST_NOTIFICATIONS
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                requestPermissionLauncher.launch(POST_NOTIFICATIONS)
             }
         }
     }
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            DrawerContent(drawerState, scope)
+            DrawerContent(drawerState)
         },
     ) {
-        Content(drawerState, scope)
+        Content(drawerState)
     }
 }
 
@@ -233,106 +239,175 @@ private fun NotificationBottomModal(enable: () -> Unit, disable: () -> Unit) {
 
 @Composable
 private fun Content(
-    drawerState: DrawerState,
-    scope: CoroutineScope,
+    drawerState: DrawerState
 ) {
     val customColors = LocalCustomColors.current
     val navViewModel: NavigationViewModel = viewModel()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = {
-            AppBar(drawerState, scope)
-        },
-        snackbarHost = {
-            SwipeDismissSnackbarHost(snackbarHostState)
-        },
-        content = { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-            ) {
-                val userChats = remember { mutableStateListOf<User>() }
+    val chatsViewModel: ChatsViewModel = viewModel()
 
-                var triggerLoadUserChats by remember { mutableStateOf(false) }
+    val chatList by chatsViewModel.unarchivedChats.collectAsState()
+    val archiveChats by chatsViewModel.archivedChats.collectAsState()
+    val selectedChats by chatsViewModel.selectedChats.collectAsState()
 
-                LaunchedEffect(triggerLoadUserChats) {
-                    val token = UserManager.token
+    var trigger by remember { mutableStateOf(true) }
 
-                    try {
-                        val response = RetrofitInstance.api.getContacts("Bearer $token")
+    val scope = rememberCoroutineScope()
 
-                        if (response.isSuccessful) {
-                            userChats.addAll(response.body() ?: emptyList())
-                        }
-                    } catch (e: Exception) {
-                        Log.e("MainScreen", "Content: ${e.message}")
+    WebSocketManager.onConnect = {
+        scope.launch {
+            trigger = true
+        }
+    }
+
+    LaunchedEffect(trigger) {
+        trigger = false
+        chatsViewModel.loadUnarchiveChats()
+        chatsViewModel.loadArchiveChats()
+    }
+
+    BackHandler(selectedChats.isNotEmpty()) {
+        chatsViewModel.unselectAllChats()
+    }
+
+    Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
+        DefaultTopBar(drawerState)
+
+        AnimatedVisibility(
+            visible = selectedChats.isNotEmpty(),
+            enter = fadeIn(animationSpec = tween(durationMillis = 100)),
+            exit = fadeOut(animationSpec = tween(durationMillis = 100))
+        ) {
+            SelectedChatTopBar(onBack = {
+                chatsViewModel.unselectAllChats()
+            }, selectedCount = selectedChats.size, onClickArchive = {
+                selectedChats.forEach { selectedChat ->
+                    scope.launch {
+                        chatsViewModel.archiveChat(selectedChat)
                     }
                 }
-
-                WebSocketManager.onMessage = {
-                    triggerLoadUserChats = !triggerLoadUserChats
-                }
-
-                LazyColumn {
-                    items(userChats) { chat ->
-                        var chatName = "${chat.firstName} ${chat.lastName}"
-
-                        if (chat.id == UserManager.user.id) {
-                            chatName = stringResource(R.string.saved_messages)
-                        }
-
-                        ChatCard(
-                            chatName = chatName,
-                            lastMessage = "s",
-                            chatId = chat.id,
-                            onDismiss = {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Чат в архиве",
-                                        duration = SnackbarDuration.Short
-                                    )
-                                }
-                            })
+                chatsViewModel.unselectAllChats()
+            }, onClickPin = {
+                selectedChats.forEach { selectedChat ->
+                    scope.launch {
+                        chatsViewModel.pinChat(selectedChat)
                     }
                 }
+            })
+        }
+    }, snackbarHost = {
+        SwipeDismissSnackbarHost(snackbarHostState)
+    }, content = { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+        ) {
+            val onMessageHandler: (Message) -> Unit = { message: Message ->
+                scope.launch {
+                    val hasChat = chatList.firstOrNull { it.id == message.senderId }
+                        ?: archiveChats.firstOrNull { it.id == message.senderId }
 
-                if (userChats.isEmpty()) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Чтобы начать общение нажмите на значок поиска в правом верхнем углу и найдите пользователя по его @username",
-                            textAlign = TextAlign.Center,
-                            color = customColors.text
-                        )
+                    if (hasChat == null) {
+                        chatsViewModel.loadUnarchiveChats()
+                    } else {
+                        chatsViewModel.moveToUp(message.receiverId)
                     }
                 }
             }
-        },
-        containerColor = customColors.secondary,
-        floatingActionButton = {
-            FloatingActionButton(
-                shape = CircleShape,
-                onClick = {
-                    navViewModel.addScreenInStack {
-                        NewMessageScreen()
+
+            LaunchedEffect(Unit) {
+                WebSocketManager.onReceiveMessage = onMessageHandler
+                WebSocketManager.onSendMessage = onMessageHandler
+            }
+
+            if (archiveChats.isNotEmpty()) {
+                ChatCard(
+                    chatName = stringResource(R.string.archive),
+                    lastMessage = "",
+                    onClickChat = {
+                        navViewModel.addScreenInStack {
+                            ArchiveScreen()
+                        }
                     }
-                },
-                containerColor = customColors.primary
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Create,
-                    contentDescription = null,
-                    tint = Color.White
                 )
             }
+
+            if (chatList.isEmpty() && archiveChats.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Чтобы начать общение нажмите на значок поиска в правом верхнем углу и найдите пользователя по его @username",
+                        textAlign = TextAlign.Center,
+                        color = customColors.text
+                    )
+                }
+            }
+
+            LazyColumn {
+                items(chatList) { chat ->
+                    var chatName = chat.chatName
+
+                    if (chat.id == UserManager.user.id) {
+                        chatName = stringResource(R.string.saved_messages)
+                    }
+
+                    SwipeableChatCard(
+                        chatName = chatName,
+                        lastMessage = "",
+                        selected = chat.id in selectedChats,
+                        pinned = chat.isPinned,
+                        enableSwipeabale = selectedChats.isEmpty(),
+                        onClick = {
+                            if (selectedChats.isEmpty()) {
+                                navViewModel.addScreenInStack {
+                                    ChatScreen(userId = chat.id)
+                                }
+                            } else {
+                                chatsViewModel.selectChat(chat.id)
+                            }
+                        },
+                        onLongClick = {
+                            chatsViewModel.selectChat(chat.id)
+                        },
+                        backgroundIcon = Icons.Outlined.Archive,
+                        onDismiss = {
+                            scope.launch {
+                                chatsViewModel.archiveChat(chat.id)
+
+                                val result = snackbarHostState.showSnackbar(
+                                    message = "Чат в архиве",
+                                    actionLabel = "Отменить",
+                                    duration = SnackbarDuration.Short
+                                )
+
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    chatsViewModel.unarchiveChat(chat.id)
+                                }
+                            }
+                        })
+                }
+            }
         }
-    )
+    }, containerColor = customColors.secondary, floatingActionButton = {
+        FloatingActionButton(
+            shape = CircleShape, onClick = {
+                navViewModel.addScreenInStack {
+                    NewMessageScreen()
+                }
+            }, containerColor = customColors.primary
+        ) {
+            Icon(
+                imageVector = Icons.Default.Create,
+                contentDescription = null,
+                tint = Color.White
+            )
+        }
+    })
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -341,8 +416,7 @@ private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
     val colors = LocalCustomColors.current
 
     SnackbarHost(
-        modifier = Modifier.fillMaxWidth(),
-        hostState = snackbarHostState
+        hostState = snackbarHostState, modifier = Modifier.fillMaxWidth()
     ) { data ->
         var dismissed by remember { mutableStateOf(false) }
 
@@ -380,13 +454,12 @@ private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
                             )
 
                             Text(
-                                text = data.visuals.message,
-                                color = colors.text
+                                text = data.visuals.message, color = colors.text
                             )
                         }
 
                         TextButton(
-                            onClick = { },
+                            onClick = { data.performAction() },
                             colors = ButtonDefaults.textButtonColors(
                                 contentColor = colors.primary,
                             ),
@@ -399,36 +472,130 @@ private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
                             )
 
                             Text(
-                                text = "ОТМЕНА",
-                                color = colors.primary
+                                text = "ОТМЕНА", color = colors.primary
                             )
                         }
                     }
                 }
             }
+        } else {
+            data.dismiss()
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AppBar(drawerState: DrawerState, scope: CoroutineScope) {
-    val customColors = LocalCustomColors.current
+private fun SelectedChatTopBar(
+    onBack: () -> Unit, selectedCount: Int, onClickArchive: () -> Unit, onClickPin: () -> Unit
+) {
+    val colors = LocalCustomColors.current
+    var expanded by remember { mutableStateOf(false) }
+
+    PageTopBar(title = {
+        AnimatedContent(
+            targetState = selectedCount, transitionSpec = {
+                if (targetState > initialState) {
+                    slideInVertically(animationSpec = tween(durationMillis = 200)) { height -> height } + fadeIn(
+                        animationSpec = tween(durationMillis = 200)
+                    ) togetherWith slideOutVertically(animationSpec = tween(durationMillis = 200)) { height -> -height } + fadeOut(
+                        animationSpec = tween(durationMillis = 200)
+                    )
+                } else {
+                    slideInVertically(animationSpec = tween(durationMillis = 200)) { height -> -height } + fadeIn(
+                        animationSpec = tween(durationMillis = 200)
+                    ) togetherWith slideOutVertically(animationSpec = tween(durationMillis = 200)) { height -> height } + fadeOut(
+                        animationSpec = tween(durationMillis = 200)
+                    )
+                }
+            }) { count ->
+            Text(text = count.toString())
+        }
+    }, navigationIcon = {
+        IconButton(onClick = onBack) {
+            Icon(
+                imageVector = Icons.Outlined.Close,
+                contentDescription = null,
+                tint = colors.text
+            )
+        }
+    }, actions = {
+        IconButton(onClick = onClickArchive) {
+            Icon(
+                imageVector = Icons.Outlined.Archive,
+                contentDescription = null,
+                tint = colors.text
+            )
+        }
+        IconButton(onClick = { }) {
+            Icon(
+                imageVector = Icons.Outlined.Delete,
+                contentDescription = null,
+                tint = colors.text
+            )
+        }
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                imageVector = Icons.Outlined.MoreVert,
+                contentDescription = null,
+                tint = colors.text
+            )
+        }
+
+        DropdownMenu(
+            modifier = Modifier.background(colors.background),
+            expanded = expanded,
+            onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(text = {
+                Text(text = "Закрепить", color = colors.text)
+            }, onClick = onClickPin, leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.PushPin,
+                    contentDescription = null,
+                    tint = colors.text
+                )
+            })
+        }
+    })
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DefaultTopBar(drawerState: DrawerState) {
+    val colors = LocalCustomColors.current
     val isConnected by WebSocketManager.isConnectedState.collectAsState()
     val navViewModel: NavigationViewModel = viewModel()
-    val dataStoreManager = DataStoreManager.getInstance()
+    val scope = rememberCoroutineScope()
 
-    var showLockIcon by remember { mutableStateOf(false) }
-
-    LaunchedEffect(true) {
-        dataStoreManager.getPasscode().collect {
-            showLockIcon = it.isNotBlank()
-        }
-    }
+    val appLockService = AppLockService()
+    val showLockIcon = appLockService.passcode.collectAsState().value.isNotBlank()
 
     PageTopBar(
         title = {
-            Text(text = if (isConnected) stringResource(R.string.app_name) else "Соединение...")
+            AnimatedContent(
+                targetState = isConnected, transitionSpec = {
+                    if (isConnected) {
+                        slideInVertically(animationSpec = tween(durationMillis = 200)) { height -> height } + fadeIn(
+                            animationSpec = tween(durationMillis = 200)
+                        ) togetherWith slideOutVertically(animationSpec = tween(durationMillis = 200)) { height -> -height } + fadeOut(
+                            animationSpec = tween(durationMillis = 200)
+                        )
+                    } else {
+                        slideInVertically(animationSpec = tween(durationMillis = 200)) { height -> -height } + fadeIn(
+                            animationSpec = tween(durationMillis = 200)
+                        ) togetherWith slideOutVertically(animationSpec = tween(durationMillis = 200)) { height -> height } + fadeOut(
+                            animationSpec = tween(durationMillis = 200)
+                        )
+                    }
+                }) { connected ->
+                Text(
+                    text = if (connected) {
+                        stringResource(R.string.app_name)
+                    } else {
+                        stringResource(R.string.connecting) + "..."
+                    }
+                )
+            }
         },
         navigationIcon = {
             IconButton(
@@ -436,12 +603,9 @@ private fun AppBar(drawerState: DrawerState, scope: CoroutineScope) {
                     scope.launch {
                         drawerState.open()
                     }
-                }
-            ) {
+                }) {
                 Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = null,
-                    tint = customColors.text
+                    imageVector = Icons.Default.Menu, contentDescription = null, tint = colors.text
                 )
             }
         },
@@ -450,14 +614,13 @@ private fun AppBar(drawerState: DrawerState, scope: CoroutineScope) {
                 IconButton(
                     onClick = {
                         scope.launch {
-                            dataStoreManager.saveIsLockApp(true)
+                            appLockService.lockApp()
                         }
-                    }
-                ) {
+                    }) {
                     Icon(
                         imageVector = Icons.Outlined.LockOpen,
                         contentDescription = null,
-                        tint = customColors.text
+                        tint = colors.text
                     )
                 }
             }
@@ -467,12 +630,11 @@ private fun AppBar(drawerState: DrawerState, scope: CoroutineScope) {
                     navViewModel.addScreenInStack {
                         SearchScreen()
                     }
-                }
-            ) {
+                }) {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = null,
-                    tint = customColors.text
+                    tint = colors.text
                 )
             }
         },
@@ -481,11 +643,12 @@ private fun AppBar(drawerState: DrawerState, scope: CoroutineScope) {
 
 @Composable
 private fun DrawerContent(
-    drawerState: DrawerState, scope: CoroutineScope,
+    drawerState: DrawerState
 ) {
     val navViewModel: NavigationViewModel = viewModel()
     val customColors = LocalCustomColors.current
     val user = UserManager.user
+    val scope = rememberCoroutineScope()
 
     ModalDrawerSheet(
         drawerContainerColor = customColors.background,
@@ -494,17 +657,9 @@ private fun DrawerContent(
     ) {
 
         Text(
-            text = "${user.firstName} ${user.lastName}",
-            modifier = Modifier.padding(
-                start = 20.dp,
-                top = 80.dp,
-                end = 20.dp,
-                bottom = 40.dp
-            ),
-            fontSize = 24.sp,
-            maxLines = 1,
-            softWrap = false,
-            color = customColors.text
+            text = "${user.firstName} ${user.lastName}", modifier = Modifier.padding(
+                start = 20.dp, top = 80.dp, end = 20.dp, bottom = 40.dp
+            ), fontSize = 24.sp, maxLines = 1, softWrap = false, color = customColors.text
         )
 
         DrawerItem(
@@ -519,8 +674,7 @@ private fun DrawerContent(
         }
 
         DrawerItem(
-            label = stringResource(R.string.saved_messages),
-            icon = Icons.Outlined.BookmarkBorder
+            label = stringResource(R.string.saved_messages), icon = Icons.Outlined.BookmarkBorder
         ) {
             scope.launch {
                 drawerState.close()
@@ -545,9 +699,7 @@ private fun DrawerContent(
 
 @Composable
 private fun DrawerItem(
-    label: String,
-    icon: ImageVector,
-    onClick: () -> Unit
+    label: String, icon: ImageVector, onClick: () -> Unit
 ) {
     val customColors = LocalCustomColors.current
 
@@ -560,115 +712,4 @@ private fun DrawerItem(
             )
         }, selected = false, onClick = onClick
     )
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-private fun ChatCard(
-    chatName: String,
-    lastMessage: String,
-    chatId: String,
-    onDismiss: () -> Unit
-) {
-    val navViewModel: NavigationViewModel = viewModel()
-
-    val context = LocalContext.current
-    val colors = LocalCustomColors.current
-
-    val openChat = {
-        navViewModel.addScreenInStack {
-            ChatScreen(chatId)
-        }
-    }
-
-    var deleted by remember { mutableStateOf(false) }
-
-    var isBigVibrateTriggered by remember { mutableStateOf(false) }
-
-    val dismissDirection = SwipeToDismissBoxValue.EndToStart
-
-    val scope = rememberCoroutineScope()
-
-    val swipeToDismissBoxState = rememberSwipeToDismissBoxState(
-        confirmValueChange = {
-            if (it == dismissDirection) {
-                scope.launch {
-                    delay(500)
-                    if (!deleted) {
-                        deleted = true
-                        onDismiss()
-                    }
-                }
-            }
-            it != SwipeToDismissBoxValue.StartToEnd
-        }
-    )
-
-    val swipedValueForDelete = 0.5f
-
-    val backgroundColor by animateColorAsState(
-        targetValue = if (swipeToDismissBoxState.progress > swipedValueForDelete) {
-            colors.textHint
-        } else {
-            colors.primary
-        }
-    )
-
-    val vibrateService = VibrateService(context)
-
-    LaunchedEffect(swipeToDismissBoxState.progress) {
-        val isRightDirection = swipeToDismissBoxState.dismissDirection == dismissDirection
-
-        if (isRightDirection && swipeToDismissBoxState.progress > swipedValueForDelete) {
-            if (!isBigVibrateTriggered) {
-                vibrateService.vibrate(VibrationPattern.TactileResponse)
-                isBigVibrateTriggered = true
-            }
-        } else {
-            if (isBigVibrateTriggered) {
-                vibrateService.vibrate(VibrationPattern.TactileResponse)
-                isBigVibrateTriggered = false
-            }
-        }
-    }
-
-    if (!deleted) {
-        SwipeToDismissBox(
-            enableDismissFromStartToEnd = false,
-            state = swipeToDismissBoxState,
-            backgroundContent = {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .background(backgroundColor)
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Archive,
-                        contentDescription = null,
-                        tint = Color.White
-                    )
-                }
-            }
-        ) {
-            Card(
-                shape = RectangleShape,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(colors.background),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.Transparent
-                ),
-                onClick = openChat
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(chatName, color = colors.text, fontSize = 20.sp)
-//                  Text(lastMessage, color = colors.textHint)
-                }
-            }
-        }
-    }
 }

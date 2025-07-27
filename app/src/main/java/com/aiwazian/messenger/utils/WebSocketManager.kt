@@ -31,7 +31,8 @@ object WebSocketManager {
     val isConnectedState = _isConnectedState.asStateFlow()
 
     var onConnect: (() -> Unit)? = null
-    var onMessage: (Message) -> Unit = { }
+    var onReceiveMessage: (Message) -> Unit = { }
+    var onSendMessage: (Message) -> Unit = { }
     var onClose: (() -> Unit)? = null
 
     lateinit var appContext: Context
@@ -63,7 +64,7 @@ object WebSocketManager {
             override fun onMessage(ws: WebSocket, text: String) {
                 try {
                     val message = Json.Default.decodeFromString<Message>(text)
-                    onMessage(message)
+                    onReceiveMessage(message)
                     Log.d("wss", "Получено сообщение: $message")
                 } catch (e: Exception) {
                     Log.e("wss", "Ошибка парсинга: ${e.message}")
@@ -86,12 +87,10 @@ object WebSocketManager {
                         store.saveToken("")
                     }
 
-                    Handler(Looper.getMainLooper()).post {
-                        val intent = Intent(appContext, LoginActivity::class.java).apply {
-                            //TODO Intent.setFlag = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        }
-                        appContext.startActivity(intent)
+                    val intent = Intent(appContext, LoginActivity::class.java).apply {
                     }
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    appContext.startActivity(intent)
                 }
             }
 
@@ -114,6 +113,7 @@ object WebSocketManager {
         try {
             val json = Json.Default.encodeToString(message)
             webSocket?.send(json)
+            onSendMessage(message)
         } catch (e: Exception) {
             Log.e("wss", "Ошибка сериализации: ${e.message}", e)
         }
@@ -126,11 +126,5 @@ object WebSocketManager {
         } catch (e: Exception) {
             Log.e("wss", "Ошибка сериализации: ${e.message}", e)
         }
-    }
-
-    fun disconnect() {
-        webSocket?.close(1000, "Выход")
-        _isConnectedState.value = false
-        onClose?.invoke()
     }
 }

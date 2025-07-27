@@ -5,22 +5,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aiwazian.messenger.utils.Constants
-import com.aiwazian.messenger.utils.DataStoreManager
-import kotlinx.coroutines.flow.first
+import com.aiwazian.messenger.utils.AppLockService
 import kotlinx.coroutines.launch
 
 class PasscodeViewModel : ViewModel() {
-    val MAX_LENGTH_PASSCODE = Constants.MAX_LENGTH_PASSCODE
+
+    companion object {
+        const val MAX_LENGTH_PASSCODE = 4
+    }
 
     var passcode by mutableStateOf("")
         private set
 
     var onSaveNewPasscode: () -> Unit = { }
 
-    init {
-
-    }
+    private val appLockService = AppLockService()
 
     fun onPasscodeChanged(newPasscode: String) {
         if (newPasscode.length <= MAX_LENGTH_PASSCODE) {
@@ -33,17 +32,13 @@ class PasscodeViewModel : ViewModel() {
     }
 
     suspend fun disablePasscode() {
-        val dataStore = DataStoreManager.getInstance()
-
-        dataStore.saveIsLockApp(false)
-        dataStore.savePasscode("")
+        appLockService.changePasscode(passcode)
+        appLockService.unlockApp()
     }
 
     private fun setPasscode() {
-        val dataStore = DataStoreManager.getInstance()
-
         viewModelScope.launch {
-            dataStore.savePasscode(passcode)
+            appLockService.changePasscode(passcode)
             onSaveNewPasscode()
         }
     }

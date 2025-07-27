@@ -1,12 +1,12 @@
 package com.aiwazian.messenger.ui
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -60,11 +60,20 @@ private fun Content() {
 
                 CodeBlocks(
                     count = lockScreenViewModel.MAX_LENGTH_PASSCODE,
+                    showInput = false,
                     code = lockScreenViewModel.passcode
+                )
+
+                val boardButtons = listOf(
+                    listOf("1", "2", "3"),
+                    listOf("4", "5", "6"),
+                    listOf("7", "8", "9"),
+                    listOf(null, "0", Icons.AutoMirrored.Outlined.Backspace),
                 )
 
                 CustomNumberBoard(
                     value = lockScreenViewModel.passcode,
+                    buttons = boardButtons,
                     onChange = lockScreenViewModel::onPasscodeChanged
                 )
             }

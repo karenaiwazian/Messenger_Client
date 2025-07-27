@@ -81,7 +81,9 @@ private fun Content() {
     }
 
     Scaffold(
-        topBar = { TopBar(topBarColor) },
+        topBar = {
+            TopBar(topBarColor)
+        },
         containerColor = customColors.secondary,
     ) { innerPadding ->
         Column(
@@ -187,8 +189,8 @@ private fun Content() {
 @Composable
 private fun TopBar(backgroundColor: Color) {
     val customColors = LocalCustomColors.current
-    var menuExpanded by remember { mutableStateOf(false) }
     val navViewModel: NavigationViewModel = viewModel()
+    var menuExpanded by remember { mutableStateOf(false) }
 
     PageTopBar(
         title = { Text(stringResource(R.string.settings)) }, navigationIcon = {
@@ -212,8 +214,7 @@ private fun TopBar(backgroundColor: Color) {
                 }
 
                 DropdownMenu(
-                    modifier = Modifier
-                        .background(customColors.background),
+                    modifier = Modifier.background(customColors.background),
                     expanded = menuExpanded,
                     onDismissRequest = { menuExpanded = false },
                 ) {

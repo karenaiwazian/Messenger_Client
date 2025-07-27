@@ -11,12 +11,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerFormatter
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -37,7 +43,9 @@ import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -70,6 +78,7 @@ private fun TopBar(onBack: () -> Unit, backgroundColor: Color) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content() {
     val colors = LocalCustomColors.current
@@ -164,12 +173,80 @@ private fun Content() {
                 SectionHeader("Задать имя пользователя")
 
                 SectionContainer {
-                    InputField(placeholder = stringResource(R.string.username), username) { username = it }
+                    InputField(
+                        placeholder = stringResource(R.string.username),
+                        username
+                    ) { username = it }
                 }
 
                 SectionDescription(
                     "Другие пользователи смогут найти Вас по такому имени и связаться.",
                 )
+
+                SectionHeader(title = stringResource(R.string.date_of_birth))
+
+                val openDialog = remember { mutableStateOf(false) }
+
+                SectionContainer {
+                    SectionItem(
+                        text = "Дата Вашего рождения",
+                        primaryText = "Указать",
+                        onClick = {
+                            openDialog.value = true
+                        }
+                    )
+                }
+
+                SectionDescription(
+                    "В настройках можно выбрать, кто будет видеть Ваш день рождения.",
+                )
+
+
+                if (openDialog.value) {
+                    val datePickerState = rememberDatePickerState()
+
+                    DatePickerDialog(
+                        onDismissRequest = {
+                            openDialog.value = false
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    openDialog.value = false
+                                },
+                                colors = ButtonDefaults.textButtonColors(
+                                    contentColor = colors.primary
+                                )
+                            ) {
+                                Text("Ок")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = {
+                                    openDialog.value = false
+                                },
+                                colors = ButtonDefaults.textButtonColors(
+                                    contentColor = colors.primary
+                                )
+                            ) {
+                                Text("Отмена")
+                            }
+                        },
+                        colors = DatePickerDefaults.colors(
+                            containerColor = colors.background,
+                        )
+                    ) {
+                        DatePicker(
+                            state = datePickerState,
+                            colors = DatePickerDefaults.colors(
+                                containerColor = colors.background,
+                                selectedDayContainerColor = colors.primary,
+                                selectedYearContainerColor = colors.primary,
+                            ),
+                        )
+                    }
+                }
             }
         }
     }

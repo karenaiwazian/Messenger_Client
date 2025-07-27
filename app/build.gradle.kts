@@ -52,7 +52,6 @@ android {
 dependencies {
 
     implementation(libs.firebase.messaging)
-    implementation(libs.play.services.auth)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
@@ -71,11 +70,8 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.material)
     implementation(libs.androidx.activity)
-
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.material)
 
     implementation(libs.ui)
     implementation(libs.material3)
@@ -98,4 +94,8 @@ dependencies {
     implementation(libs.lottie.compose)
 
     implementation(libs.foundation)
+
+    implementation("com.google.zxing:core:3.4.1")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("androidx.compose.ui:ui-graphics:1.8.3")
 }

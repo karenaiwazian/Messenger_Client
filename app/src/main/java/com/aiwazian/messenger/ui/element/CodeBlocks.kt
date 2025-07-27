@@ -12,18 +12,25 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -31,7 +38,9 @@ import androidx.compose.ui.unit.sp
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
 
 @Composable
-fun CodeBlocks(count: Int, code: String) {
+fun CodeBlocks(
+    count: Int, showInput: Boolean = true, code: String
+) {
     val colors = LocalCustomColors.current
 
     var borderColor by remember { mutableStateOf(colors.textHint) }
@@ -63,10 +72,8 @@ fun CodeBlocks(count: Int, code: String) {
             val isCurrent = index == code.length && char.isEmpty()
 
             val cellBorderColor by animateColorAsState(
-                targetValue = if (isCurrent) colors.primary else borderColor,
-                animationSpec = tween(
-                    durationMillis = 200,
-                    easing = FastOutSlowInEasing
+                targetValue = if (isCurrent) colors.primary else borderColor, animationSpec = tween(
+                    durationMillis = 200, easing = FastOutSlowInEasing
                 )
             )
 
@@ -75,30 +82,40 @@ fun CodeBlocks(count: Int, code: String) {
                     .width(44.dp)
                     .height(48.dp)
                     .border(
-                        width = 2.dp,
-                        color = cellBorderColor,
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                verticalArrangement = Arrangement.Center
+                        width = 2.dp, color = cellBorderColor, shape = RoundedCornerShape(8.dp)
+                    ), verticalArrangement = Arrangement.Center
             ) {
                 AnimatedContent(
-                    targetState = char,
-                    transitionSpec = {
+                    targetState = char, transitionSpec = {
                         if (targetState > initialState) {
                             inputAnimation
                         } else {
                             outputAnimation
                         }.using(SizeTransform(clip = true))
+                    }) {
+                    if (showInput) {
+                        Text(
+                            text = it,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            color = colors.text,
+                            lineHeight = 40.sp,
+                            fontSize = 20.sp
+                        )
+                    } else if (it.isNotBlank()) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Circle,
+                                contentDescription = null,
+                                modifier = Modifier.size(10.dp),
+                                tint = colors.text
+                            )
+                        }
                     }
-                ) {
-                    Text(
-                        text = it,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        color = colors.text,
-                        lineHeight = 40.sp,
-                        fontSize = 20.sp
-                    )
                 }
             }
         }

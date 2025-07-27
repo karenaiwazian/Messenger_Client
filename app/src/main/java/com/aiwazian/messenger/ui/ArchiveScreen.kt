@@ -1,0 +1,233 @@
+package com.aiwazian.messenger.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.QuestionMark
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Unarchive
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.aiwazian.messenger.R
+import com.aiwazian.messenger.ui.element.BottomModalSheet
+import com.aiwazian.messenger.ui.element.PageTopBar
+import com.aiwazian.messenger.ui.element.SwipeableChatCard
+import com.aiwazian.messenger.ui.theme.LocalCustomColors
+import com.aiwazian.messenger.utils.UserManager
+import com.aiwazian.messenger.viewModels.ChatsViewModel
+import com.aiwazian.messenger.viewModels.DialogViewModel
+import com.aiwazian.messenger.viewModels.NavigationViewModel
+import kotlinx.coroutines.launch
+
+@Composable
+fun ArchiveScreen() {
+    Content()
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun Content() {
+    val navViewModel: NavigationViewModel = viewModel()
+    val colors = LocalCustomColors.current
+    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+
+    val initialTopBarColor = colors.secondary
+    val scrolledTopBarColor = colors.topAppBarBackground
+
+    val topBarColor = if (scrollState.value > 0) {
+        scrolledTopBarColor
+    } else {
+        initialTopBarColor
+    }
+
+    val chatsViewModel: ChatsViewModel = viewModel()
+    val initialChats = chatsViewModel.archivedChats.collectAsState().value
+    val chatList = remember { initialChats.toMutableStateList() }
+
+    val dialogViewModel: DialogViewModel = viewModel()
+
+    Scaffold(
+        topBar = {
+            PageTopBar(
+                title = {
+                    Text(text = stringResource(R.string.archive))
+                }, navigationIcon = {
+                    IconButton(onClick = {
+                        navViewModel.removeLastScreenInStack()
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = null,
+                            tint = colors.text
+                        )
+                    }
+                }, colors = TopAppBarDefaults.topAppBarColors(
+                    titleContentColor = colors.text,
+                    containerColor = topBarColor,
+                ), actions = {
+                    var menuExpanded by remember { mutableStateOf(false) }
+
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Outlined.MoreVert,
+                                contentDescription = null,
+                                tint = colors.text
+                            )
+                        }
+
+                        DropdownMenu(
+                            modifier = Modifier.background(colors.background),
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                        ) {
+                            DropdownMenuItem(leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Settings,
+                                    contentDescription = null,
+                                    tint = colors.textHint
+                                )
+                            }, text = {
+                                Text(
+                                    text = stringResource(R.string.archive_settings),
+                                    color = colors.text
+                                )
+                            }, onClick = {
+                                menuExpanded = false
+                                navViewModel.addScreenInStack {
+
+                                }
+                            })
+                            DropdownMenuItem(leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.QuestionMark,
+                                    contentDescription = null,
+                                    tint = colors.textHint
+                                )
+                            }, text = {
+                                Text(
+                                    text = stringResource(R.string.how_does_it_work),
+                                    color = colors.text
+                                )
+                            }, onClick = {
+                                menuExpanded = false
+                                dialogViewModel.showDialog()
+                            })
+                        }
+                    }
+                })
+        }, containerColor = colors.secondary
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
+            LazyColumn {
+                items(chatList) { chat ->
+                    var chatName = chat.chatName
+
+                    if (chat.id == UserManager.user.id) {
+                        chatName = stringResource(R.string.saved_messages)
+                    }
+
+                    SwipeableChatCard(chatName = chatName, lastMessage = "", onClick = {
+                        navViewModel.addScreenInStack {
+                            ChatScreen(userId = chat.id)
+                        }
+                    }, backgroundIcon = Icons.Outlined.Unarchive, onDismiss = {
+                        scope.launch {
+                            chatsViewModel.unarchiveChat(chat.id)
+                            if (chatsViewModel.archivedChats.value.isEmpty()) {
+                                navViewModel.removeLastScreenInStack()
+                            }
+                        }
+                    })
+                }
+            }
+        }
+
+        BottomModal(dialogViewModel)
+    }
+}
+
+@Composable
+private fun BottomModal(viewModel: DialogViewModel) {
+    val colors = LocalCustomColors.current
+
+    BottomModalSheet(viewModel = viewModel, dragHandle = null) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(colors.primary)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Archive,
+                    modifier = Modifier
+                        .padding(14.dp)
+                        .size(40.dp),
+                    contentDescription = null,
+                    tint = Color.White,
+                )
+            }
+
+            Button(
+                onClick = {
+                    viewModel.hideDialog()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(15.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.primary
+                ),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text(text = "ОК", modifier = Modifier.padding(8.dp))
+            }
+        }
+    }
+}

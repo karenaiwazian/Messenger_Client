@@ -46,6 +46,7 @@ import com.aiwazian.messenger.R
 import com.aiwazian.messenger.utils.UserManager
 import com.aiwazian.messenger.utils.VibrateService
 import com.aiwazian.messenger.api.RetrofitInstance
+import com.aiwazian.messenger.data.ChatInfo
 import com.aiwazian.messenger.ui.element.BottomModalSheet
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionCheckBoxItem
@@ -185,14 +186,14 @@ private fun Content() {
                             ),
                         )
 
-                        val userChats = remember { mutableStateListOf(UserManager.user) }
+                        val userChats = remember { mutableStateListOf<ChatInfo>() }
 
                         LaunchedEffect(Unit) {
 
                             val token = UserManager.token
 
                             try {
-                                val response = RetrofitInstance.api.getContacts("Bearer $token")
+                                val response = RetrofitInstance.api.getUnarchivedChats("Bearer $token")
 
                                 if (response.isSuccessful) {
                                     userChats.addAll(response.body() ?: emptyList())
@@ -204,7 +205,7 @@ private fun Content() {
 
                         LazyColumn {
                             items(userChats) { item ->
-                                val user = item.firstName + item.lastName
+                                val user = item.chatName
 
                                 SectionCheckBoxItem(text = user, checked = false, onChecked = { })
                             }

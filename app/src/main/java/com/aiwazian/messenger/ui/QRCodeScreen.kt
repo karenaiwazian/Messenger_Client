@@ -1,10 +1,15 @@
 package com.aiwazian.messenger.ui
 
+import android.graphics.Bitmap
+import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -17,14 +22,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.theme.LocalCustomColors
+import com.aiwazian.messenger.utils.Constants
+import com.aiwazian.messenger.utils.QrCodeService
+import com.aiwazian.messenger.utils.UserManager
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -44,10 +56,33 @@ private fun Content() {
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Bottom
+                .fillMaxSize()
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val url = "${Constants.DOMAIN_NAME}/${UserManager.user.username}"
+
+            val qrCodeService = QrCodeService()
+
+            val qrBitmap: Bitmap? = remember(url) {
+                qrCodeService.createQrCode(url, 500)
+            }
+
+            Box {}
+
+            qrBitmap?.let {
+                Image(
+                    bitmap = it.asImageBitmap(),
+                    contentDescription = "QR Code for $url",
+                    modifier = Modifier
+                        .size(250.dp)
+                        .clip(RoundedCornerShape(20.dp)),
+                )
+            } ?: run {
+                Log.e("QRCodeScreen", "QR code generation failed")
+            }
+
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -75,20 +110,23 @@ private fun TopBar() {
     val navViewModel: NavigationViewModel = viewModel()
 
     PageTopBar(
-        title = {},
+        title = { },
         navigationIcon = {
             IconButton(
                 onClick = {
-                    navViewModel.removeLastScreenInStack() }
+                    navViewModel.removeLastScreenInStack()
+                }
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = colors.text
                 )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = colors.secondary
+            titleContentColor = colors.text,
+            containerColor = colors.secondary,
         )
     )
 }
