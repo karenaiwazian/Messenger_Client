@@ -15,6 +15,8 @@ class ThemeService {
 
     private var _primaryColor = MutableStateFlow(PrimaryColorOption.Blue)
     var primaryColor = _primaryColor.asStateFlow()
+    private var _dynamicColor = MutableStateFlow(false)
+    var dynamicColor = _dynamicColor.asStateFlow()
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val dataStorage = DataStoreManager.getInstance()
@@ -31,13 +33,23 @@ class ThemeService {
                 _primaryColor.value = PrimaryColorOption.fromString(colorName)
             }
         }
+
+        coroutineScope.launch {
+            dataStorage.getDynamicColor().collectLatest { dynamicColor ->
+                _dynamicColor.value = dynamicColor
+            }
+        }
     }
 
-    suspend fun changeTheme(theme: ThemeOption) {
+    suspend fun setDynamicColor(dynamicColor: Boolean) {
+        dataStorage.saveDynamicColor(dynamicColor)
+    }
+
+    suspend fun setTheme(theme: ThemeOption) {
         dataStorage.saveTheme(theme)
     }
 
-    suspend fun changePrimaryColor(color: PrimaryColorOption) {
+    suspend fun setPrimaryColor(color: PrimaryColorOption) {
         dataStorage.savePrimaryColor(color.name)
     }
 }

@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -18,8 +17,7 @@ import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemColors
-import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,7 +26,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 
 @Composable
 fun ChatCard(
@@ -41,8 +38,6 @@ fun ChatCard(
     onLongClickChat: () -> Unit = {},
     onLongClickChatLogo: () -> Unit = {}
 ) {
-    val colors = LocalCustomColors.current
-
     ListItem(
         modifier = Modifier.combinedClickable(onClick = {
             onClickChat()
@@ -80,7 +75,7 @@ fun ChatCard(
         }, trailingContent = {
             if (unreadMessageCount > 0) {
                 Badge(
-                    containerColor = colors.primary, contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White
                 ) {
                     Text(
                         text = unreadMessageCount.toString(),
@@ -95,15 +90,9 @@ fun ChatCard(
                     Icon(
                         imageVector = Icons.Outlined.PushPin,
                         contentDescription = null,
-                        tint = colors.text
                     )
                 }
             }
-        }, colors = ListItemDefaults.colors(
-            containerColor = colors.background,
-            headlineColor = colors.text,
-            leadingIconColor = colors.text,
-            supportingColor = colors.textHint
-        )
+        }
     )
 }

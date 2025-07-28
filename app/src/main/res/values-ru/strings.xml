@@ -51,4 +51,5 @@
     <string name="date_of_birth">Дата рождения</string>
     <string name="connecting">Соединение</string>
     <string name="invites">Приглашения</string>
+    <string name="dynamic_color">Динамичные цвета</string>
 </resources>

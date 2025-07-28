@@ -18,10 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.ui.element.CodeBlocks
 import com.aiwazian.messenger.ui.element.CustomNumberBoard
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.utils.VibrateService
 import com.aiwazian.messenger.utils.VibrationPattern
 import com.aiwazian.messenger.viewModels.LockScreenViewModel
+import com.aiwazian.messenger.viewModels.PasscodeViewModel
 
 @Composable
 fun LockScreen() {
@@ -30,7 +30,6 @@ fun LockScreen() {
 
 @Composable
 private fun Content() {
-    val colors = LocalCustomColors.current
     val lockScreenViewModel: LockScreenViewModel = viewModel()
     val vibrateService = VibrateService(LocalContext.current)
 
@@ -39,7 +38,7 @@ private fun Content() {
         lockScreenViewModel.clearPasscode()
     }
 
-    Scaffold(containerColor = colors.secondary) { innerPadding ->
+    Scaffold { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -55,11 +54,10 @@ private fun Content() {
                     imageVector = Icons.Filled.Lock,
                     contentDescription = "Lock",
                     modifier = Modifier.size(40.dp),
-                    tint = colors.text
                 )
 
                 CodeBlocks(
-                    count = lockScreenViewModel.MAX_LENGTH_PASSCODE,
+                    count = PasscodeViewModel.MAX_LENGTH_PASSCODE,
                     showInput = false,
                     code = lockScreenViewModel.passcode
                 )

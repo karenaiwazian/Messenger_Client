@@ -11,7 +11,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -22,7 +21,6 @@ import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionRadioItem
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -34,18 +32,8 @@ fun SettingsLastSeenScreen() {
 @Composable
 private fun Content() {
     val navViewModel: NavigationViewModel = viewModel()
-    val colors = LocalCustomColors.current
 
     val scrollState = rememberScrollState()
-
-    val initialTopBarColor = colors.secondary
-    val scrolledTopBarColor = colors.topAppBarBackground
-
-    val topBarColor = if (scrollState.value > 0) {
-        scrolledTopBarColor
-    } else {
-        initialTopBarColor
-    }
 
     Scaffold(
         topBar = {
@@ -62,17 +50,11 @@ private fun Content() {
                         Icon(
                             Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = null,
-                            tint = colors.text
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = topBarColor,
-                    titleContentColor = colors.text
-                )
+                }
             )
-        },
-        containerColor = colors.secondary
+        }
     ) {
         Column(
             modifier = Modifier

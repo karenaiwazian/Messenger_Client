@@ -9,6 +9,8 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -20,7 +22,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 
 @Composable
 fun SectionItem(
@@ -36,13 +37,11 @@ fun SectionItem(
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
 ) {
-    val customColors = LocalCustomColors.current
-
     TextButton(
         shape = RectangleShape,
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
-        colors = colors ?: ButtonDefaults.textButtonColors(contentColor = customColors.textHint),
+        colors = colors ?: ButtonDefaults.textButtonColors(),
     ) {
         Row(
             modifier = Modifier
@@ -55,7 +54,7 @@ fun SectionItem(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = iconColor ?: customColors.textHint,
+                    tint = iconColor ?: LocalContentColor.current,
                     modifier = Modifier.padding(end = 16.dp)
                 )
             }
@@ -63,7 +62,7 @@ fun SectionItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = text,
-                    color = textColor ?: customColors.text,
+                    color = textColor ?: MaterialTheme.colorScheme.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal
                 )
@@ -71,7 +70,6 @@ fun SectionItem(
                 if (description != null) {
                     Text(
                         text = description,
-                        color = customColors.textHint,
                         fontSize = 12.sp,
                         lineHeight = 14.sp,
                         fontWeight = FontWeight.Normal
@@ -82,7 +80,7 @@ fun SectionItem(
             if (primaryText != null) {
                 Text(
                     text = primaryText,
-                    color = customColors.primary,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal
                 )
@@ -91,7 +89,7 @@ fun SectionItem(
                     Icon(
                         imageVector = primaryIcon,
                         contentDescription = null,
-                        tint = customColors.primary
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }

@@ -14,9 +14,9 @@ import com.aiwazian.messenger.viewModels.AuthViewModel
 import androidx.navigation.compose.NavHost
 
 object Screen {
-    const val Login = "login"
-    const val Verification = "verification"
-    const val Password = "password"
+    const val LOGIN = "login"
+    const val VERIFICATION = "verification"
+    const val PASSWORD = "password"
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -38,7 +38,7 @@ private fun Content() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Login,
+        startDestination = Screen.LOGIN,
         enterTransition = {
             slideInHorizontally(transition) { it }
         },
@@ -52,13 +52,13 @@ private fun Content() {
             slideOutHorizontally(animationSpec = transition) { it }
         }
     ) {
-        composable(route = Screen.Login) {
+        composable(route = Screen.LOGIN) {
             LoginScreen(navController = navController, viewModel = authViewModel)
         }
-        composable(route = Screen.Verification) {
+        composable(route = Screen.VERIFICATION) {
             VerificationCodeScreen(navController = navController, viewModel = authViewModel)
         }
-        composable(route = Screen.Password) {
+        composable(route = Screen.PASSWORD) {
             PasswordScreen(navController = navController, viewModel = authViewModel)
         }
     }

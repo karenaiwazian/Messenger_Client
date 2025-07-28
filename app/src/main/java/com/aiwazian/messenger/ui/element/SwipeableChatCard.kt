@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -24,27 +24,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.utils.VibrateService
 import com.aiwazian.messenger.utils.VibrationPattern
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SwipeableChatCard(
     chatName: String,
     lastMessage: String,
     selected: Boolean = false,
     pinned: Boolean = false,
-    enableSwipeabale: Boolean = true,
+    enableSwipeable: Boolean = true,
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
     onDismiss: () -> Unit,
     backgroundIcon: ImageVector? = null
 ) {
     val context = LocalContext.current
-    val colors = LocalCustomColors.current
     var deleted by remember { mutableStateOf(false) }
 
     val dismissDirection = SwipeToDismissBoxValue.EndToStart
@@ -75,9 +72,9 @@ fun SwipeableChatCard(
 
     val backgroundColor by animateColorAsState(
         targetValue = if (canArchive) {
-            colors.textHint
+            MaterialTheme.colorScheme.surface
         } else {
-            colors.primary
+            MaterialTheme.colorScheme.primary
         }
     )
 
@@ -93,13 +90,13 @@ fun SwipeableChatCard(
         leftVibration = false
     }
 
-    if(deleted) {
+    if (deleted) {
         return
     }
 
     SwipeToDismissBox(
         enableDismissFromStartToEnd = false,
-        enableDismissFromEndToStart = enableSwipeabale,
+        enableDismissFromEndToStart = enableSwipeable,
         state = swipeToDismissBoxState,
         backgroundContent = {
             Column(

@@ -10,19 +10,17 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class LockScreenViewModel : ViewModel() {
-    val MAX_LENGTH_PASSCODE = PasscodeViewModel.MAX_LENGTH_PASSCODE
-
     var onWrongPasscode: () -> Unit = { }
 
     var passcode by mutableStateOf("")
         private set
 
     fun onPasscodeChanged(newPasscode: String) {
-        if (newPasscode.length <= MAX_LENGTH_PASSCODE) {
+        if (newPasscode.length <= PasscodeViewModel.MAX_LENGTH_PASSCODE) {
             passcode = newPasscode
         }
 
-        if (passcode.length == MAX_LENGTH_PASSCODE) {
+        if (passcode.length == PasscodeViewModel.MAX_LENGTH_PASSCODE) {
             checkPasscode()
         }
     }

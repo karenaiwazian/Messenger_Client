@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.aiwazian.messenger.R
 import androidx.compose.runtime.*
-import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -33,34 +32,29 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import com.aiwazian.messenger.ui.element.PageTopBar
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
 fun SearchScreen(viewModel: UserSearchViewModel = viewModel()) {
     val navViewModel: NavigationViewModel = viewModel()
-    val customColors = LocalCustomColors.current
-
     val users = viewModel.searchResults
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold(topBar = {
         TopBar(viewModel, keyboardController)
-    }) { innerPadding ->
+    }, ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(customColors.secondary)
         ) {
             if (users.isNotEmpty()) {
                 LazyColumn {
                     items(users) { user ->
                         Card(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .background(customColors.background),
+                                .fillMaxWidth(),
                             shape = RectangleShape,
                             onClick = {
                                 keyboardController?.hide()
@@ -76,7 +70,6 @@ fun SearchScreen(viewModel: UserSearchViewModel = viewModel()) {
                                 Text(
                                     text = user.firstName,
                                     modifier = Modifier.padding(bottom = 4.dp),
-                                    color = customColors.text
                                 )
 
                                 val username = user.username
@@ -90,7 +83,7 @@ fun SearchScreen(viewModel: UserSearchViewModel = viewModel()) {
                                         if (startIndex in username.indices) {
                                             append("@" + username.substring(0, startIndex))
 
-                                            withStyle(SpanStyle(color = customColors.primary)) {
+                                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
                                                 append(username.substring(startIndex, endIndex))
                                             }
 
@@ -99,7 +92,7 @@ fun SearchScreen(viewModel: UserSearchViewModel = viewModel()) {
                                             append("@$username")
                                         }
                                     },
-                                    fontSize = 12.sp, color = customColors.text
+                                    fontSize = 12.sp
                                 )
                             }
                         }
@@ -117,7 +110,6 @@ private fun TopBar(
     keyboardController: SoftwareKeyboardController?,
 ) {
     val navViewModel: NavigationViewModel = viewModel()
-    val customColors = LocalCustomColors.current
 
     PageTopBar(
         title = {
@@ -132,7 +124,6 @@ private fun TopBar(
                 Icon(
                     Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = null,
-                    tint = customColors.text
                 )
             }
         }
@@ -144,7 +135,6 @@ private fun SearchTextField(
     userSearch: UserSearchViewModel,
     keyboardController: SoftwareKeyboardController?,
 ) {
-    val customColors = LocalCustomColors.current
     val focusRequester = remember { FocusRequester() }
 
     var query by remember { mutableStateOf("") }
@@ -168,13 +158,9 @@ private fun SearchTextField(
         placeholder = {
             Text(
                 text = stringResource(R.string.search),
-                color = customColors.text
             )
         },
         colors = TextFieldDefaults.colors(
-            cursorColor = customColors.text,
-            focusedTextColor = customColors.text,
-            unfocusedTextColor = customColors.text,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             focusedContainerColor = Color.Transparent,
@@ -191,7 +177,6 @@ private fun SearchTextField(
                     Icon(
                         Icons.Default.Close,
                         contentDescription = null,
-                        tint = customColors.text,
                     )
                 }
             }

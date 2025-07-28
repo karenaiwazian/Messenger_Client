@@ -19,6 +19,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -39,12 +40,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.aiwazian.messenger.MainActivity
 import com.aiwazian.messenger.viewModels.AuthViewModel
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 
 @Composable
 fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
-    val colors = LocalCustomColors.current
-
     val context = LocalContext.current
 
     var isLoad by remember { mutableStateOf(true) }
@@ -52,7 +50,7 @@ fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
-        containerColor = colors.secondary,
+        
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -97,7 +95,7 @@ fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
                     }
                 },
                 modifier = Modifier.imePadding(),
-                containerColor = colors.primary,
+                containerColor = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             ) {
                 if (isLoad) {
@@ -125,7 +123,6 @@ fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
             Text(
                 text = "Пароль аккаунта",
                 modifier = Modifier.padding(vertical = 40.dp),
-                color = colors.text,
                 fontSize = 28.sp
             )
             Column(Modifier.width(300.dp)) {
@@ -148,22 +145,16 @@ private fun PasswordField(
 ) {
     val passwordVisible = remember { mutableStateOf(false) }
 
-    val colors = LocalCustomColors.current
-
     OutlinedTextField(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = colors.primary,
-            focusedTextColor = colors.text,
-            unfocusedTextColor = colors.text,
-            focusedPlaceholderColor = colors.textHint,
-            unfocusedPlaceholderColor = colors.textHint,
-            focusedLabelColor = colors.primary,
-            cursorColor = colors.primary,
-            errorLabelColor = colors.danger,
-            errorBorderColor = colors.danger,
-            errorTextColor = colors.danger
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            cursorColor = MaterialTheme.colorScheme.primary,
+            errorLabelColor = MaterialTheme.colorScheme.error,
+            errorBorderColor = MaterialTheme.colorScheme.error,
+            errorTextColor = MaterialTheme.colorScheme.error
         ),
         value = value,
         onValueChange = onValueChange,
@@ -181,7 +172,7 @@ private fun PasswordField(
                     else
                         Icons.Outlined.VisibilityOff,
                     contentDescription = null,
-                    tint = if (isError) colors.danger else colors.textHint
+                    tint = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                 )
             }
         }

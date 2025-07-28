@@ -25,6 +25,7 @@ private object Keys {
     val PRIMARY_COLOR = stringPreferencesKey("primary_color")
     val PASSCODE = stringPreferencesKey("passcode")
     val IS_LOCK_APP = booleanPreferencesKey("is_lock_app")
+    val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
 }
 
 class DataStoreManager private constructor(private val context: Context) {
@@ -48,7 +49,7 @@ class DataStoreManager private constructor(private val context: Context) {
         }
     }
 
-    private suspend fun <T> saveValue(key: Preferences.Key<T>, value: T) {
+    private suspend fun <T> setValue(key: Preferences.Key<T>, value: T) {
         context.dataStore.edit { settings ->
             settings[key] = value
         }
@@ -60,12 +61,13 @@ class DataStoreManager private constructor(private val context: Context) {
         }
     }
 
-    suspend fun saveToken(token: String)  = saveValue(Keys.TOKEN, token)
-    suspend fun savePasscode(passcode: String) = saveValue(Keys.PASSCODE, passcode)
-    suspend fun saveIsLockApp(isLock: Boolean) = saveValue(Keys.IS_LOCK_APP, isLock)
-    suspend fun savePrimaryColor(colorName: String) = saveValue(Keys.PRIMARY_COLOR, colorName)
-    suspend fun saveLanguage(language: Language) = saveValue(Keys.LANGUAGE, language.toString())
-    suspend fun saveTheme(theme: ThemeOption) = saveValue(Keys.THEME, theme.toString())
+    suspend fun saveToken(token: String) = setValue(Keys.TOKEN, token)
+    suspend fun savePasscode(passcode: String) = setValue(Keys.PASSCODE, passcode)
+    suspend fun saveIsLockApp(isLock: Boolean) = setValue(Keys.IS_LOCK_APP, isLock)
+    suspend fun savePrimaryColor(colorName: String) = setValue(Keys.PRIMARY_COLOR, colorName)
+    suspend fun saveLanguage(language: Language) = setValue(Keys.LANGUAGE, language.toString())
+    suspend fun saveTheme(theme: ThemeOption) = setValue(Keys.THEME, theme.toString())
+    suspend fun saveDynamicColor(dynamicColor: Boolean) = setValue(Keys.DYNAMIC_COLOR, dynamicColor)
 
     fun getToken() = getValue(Keys.TOKEN, "")
     fun getPasscode() = getValue(Keys.PASSCODE, "")
@@ -73,4 +75,5 @@ class DataStoreManager private constructor(private val context: Context) {
     fun getPrimaryColor() = getValue(Keys.PRIMARY_COLOR, PrimaryColorOption.Blue.name)
     fun getLanguage() = getValue(Keys.LANGUAGE, Language.EN.toString())
     fun getTheme() = getValue(Keys.THEME, ThemeOption.SYSTEM.name)
+    fun getDynamicColor() = getValue(Keys.DYNAMIC_COLOR, false)
 }

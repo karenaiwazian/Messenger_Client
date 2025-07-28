@@ -12,7 +12,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,15 +35,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 
 @Composable
 fun CodeBlocks(
     count: Int, showInput: Boolean = true, code: String
 ) {
-    val colors = LocalCustomColors.current
-
-    var borderColor by remember { mutableStateOf(colors.textHint) }
+    val color = MaterialTheme.colorScheme.outline
+    var borderColor by remember { mutableStateOf(color) }
 
     val durationMills = 150
 
@@ -72,7 +70,7 @@ fun CodeBlocks(
             val isCurrent = index == code.length && char.isEmpty()
 
             val cellBorderColor by animateColorAsState(
-                targetValue = if (isCurrent) colors.primary else borderColor, animationSpec = tween(
+                targetValue = if (isCurrent) MaterialTheme.colorScheme.primary else borderColor, animationSpec = tween(
                     durationMillis = 200, easing = FastOutSlowInEasing
                 )
             )
@@ -98,7 +96,6 @@ fun CodeBlocks(
                             text = it,
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
-                            color = colors.text,
                             lineHeight = 40.sp,
                             fontSize = 20.sp
                         )
@@ -112,7 +109,6 @@ fun CodeBlocks(
                                 imageVector = Icons.Filled.Circle,
                                 contentDescription = null,
                                 modifier = Modifier.size(10.dp),
-                                tint = colors.text
                             )
                         }
                     }

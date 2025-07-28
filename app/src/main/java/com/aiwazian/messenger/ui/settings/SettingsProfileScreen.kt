@@ -1,6 +1,5 @@
 package com.aiwazian.messenger.ui.settings
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,11 +14,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePickerFormatter
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -41,9 +40,8 @@ import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -55,9 +53,7 @@ fun SettingsProfileScreen() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar(onBack: () -> Unit, backgroundColor: Color) {
-    val colors = LocalCustomColors.current
-
+private fun TopBar(onBack: () -> Unit) {
     PageTopBar(
         title = { Text(stringResource(R.string.profile)) },
         navigationIcon = {
@@ -67,23 +63,16 @@ private fun TopBar(onBack: () -> Unit, backgroundColor: Color) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = colors.text,
                 )
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            titleContentColor = colors.text,
-            containerColor = backgroundColor,
-        )
+        }
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content() {
-    val colors = LocalCustomColors.current
-
-    var id by remember { mutableStateOf(UserManager.user.id) }
+    var id by remember { mutableIntStateOf(UserManager.user.id) }
     var firstName by remember { mutableStateOf(UserManager.user.firstName) }
     var lastName by remember { mutableStateOf(UserManager.user.lastName) }
     var username by remember { mutableStateOf(UserManager.user.username) }
@@ -91,14 +80,6 @@ private fun Content() {
 
     val scrollState = rememberScrollState()
 
-    val initialTopBarColor = colors.secondary
-    val scrolledTopBarColor = colors.topAppBarBackground
-
-    val topBarColor = if (scrollState.value > 0) {
-        scrolledTopBarColor
-    } else {
-        initialTopBarColor
-    }
     val navViewModel: NavigationViewModel = viewModel()
 
     Scaffold(
@@ -119,18 +100,16 @@ private fun Content() {
                     }
 
                     navViewModel.removeLastScreenInStack()
-                },
-                backgroundColor = topBarColor
+                }
             )
         },
-        containerColor = colors.secondary,
+        
         modifier = Modifier.imePadding()
     ) { innerPadding ->
         Box(Modifier.padding(innerPadding)) {
             Column(
                 Modifier
                     .fillMaxSize()
-                    .background(colors.secondary)
                     .verticalScroll(scrollState)
             ) {
 
@@ -147,7 +126,6 @@ private fun Content() {
                     HorizontalDivider(
                         modifier = Modifier.padding(start = 16.dp),
                         thickness = 1.dp,
-                        color = colors.horizontalDivider
                     )
 
                     InputField(
@@ -215,7 +193,7 @@ private fun Content() {
                                     openDialog.value = false
                                 },
                                 colors = ButtonDefaults.textButtonColors(
-                                    contentColor = colors.primary
+                                    contentColor = MaterialTheme.colorScheme.primary
                                 )
                             ) {
                                 Text("Ок")
@@ -227,22 +205,18 @@ private fun Content() {
                                     openDialog.value = false
                                 },
                                 colors = ButtonDefaults.textButtonColors(
-                                    contentColor = colors.primary
+                                    contentColor = MaterialTheme.colorScheme.primary
                                 )
                             ) {
                                 Text("Отмена")
                             }
-                        },
-                        colors = DatePickerDefaults.colors(
-                            containerColor = colors.background,
-                        )
+                        }
                     ) {
                         DatePicker(
                             state = datePickerState,
                             colors = DatePickerDefaults.colors(
-                                containerColor = colors.background,
-                                selectedDayContainerColor = colors.primary,
-                                selectedYearContainerColor = colors.primary,
+                                selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedYearContainerColor = MaterialTheme.colorScheme.primary,
                             ),
                         )
                     }
@@ -254,18 +228,14 @@ private fun Content() {
 
 @Composable
 private fun InputField(placeholder: String, value: String, onValueChange: (String) -> Unit) {
-    val customColors = LocalCustomColors.current
-
     TextField(
         modifier = Modifier.fillMaxWidth(),
         value = value,
         singleLine = true,
-        placeholder = { Text(placeholder, color = customColors.textHint) },
+        placeholder = { Text(placeholder) },
         onValueChange = onValueChange,
         colors = TextFieldDefaults.colors(
-            cursorColor = customColors.primary,
-            focusedTextColor = customColors.text,
-            unfocusedTextColor = customColors.text,
+            cursorColor = MaterialTheme.colorScheme.primary,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             focusedContainerColor = Color.Transparent,

@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Archive
@@ -26,9 +27,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -48,7 +49,6 @@ import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.BottomModalSheet
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SwipeableChatCard
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.utils.UserManager
 import com.aiwazian.messenger.viewModels.ChatsViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
@@ -64,18 +64,8 @@ fun ArchiveScreen() {
 @Composable
 private fun Content() {
     val navViewModel: NavigationViewModel = viewModel()
-    val colors = LocalCustomColors.current
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
-
-    val initialTopBarColor = colors.secondary
-    val scrolledTopBarColor = colors.topAppBarBackground
-
-    val topBarColor = if (scrollState.value > 0) {
-        scrolledTopBarColor
-    } else {
-        initialTopBarColor
-    }
 
     val chatsViewModel: ChatsViewModel = viewModel()
     val initialChats = chatsViewModel.archivedChats.collectAsState().value
@@ -94,40 +84,32 @@ private fun Content() {
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = null,
-                            tint = colors.text
+                            contentDescription = null
                         )
                     }
-                }, colors = TopAppBarDefaults.topAppBarColors(
-                    titleContentColor = colors.text,
-                    containerColor = topBarColor,
-                ), actions = {
+                }, actions = {
                     var menuExpanded by remember { mutableStateOf(false) }
 
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
                             Icon(
                                 imageVector = Icons.Outlined.MoreVert,
-                                contentDescription = null,
-                                tint = colors.text
+                                contentDescription = null
                             )
                         }
 
                         DropdownMenu(
-                            modifier = Modifier.background(colors.background),
                             expanded = menuExpanded,
                             onDismissRequest = { menuExpanded = false },
                         ) {
                             DropdownMenuItem(leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Outlined.Settings,
-                                    contentDescription = null,
-                                    tint = colors.textHint
+                                    contentDescription = null
                                 )
                             }, text = {
                                 Text(
                                     text = stringResource(R.string.archive_settings),
-                                    color = colors.text
                                 )
                             }, onClick = {
                                 menuExpanded = false
@@ -138,13 +120,11 @@ private fun Content() {
                             DropdownMenuItem(leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Outlined.QuestionMark,
-                                    contentDescription = null,
-                                    tint = colors.textHint
+                                    contentDescription = null
                                 )
                             }, text = {
                                 Text(
-                                    text = stringResource(R.string.how_does_it_work),
-                                    color = colors.text
+                                    text = stringResource(R.string.how_does_it_work)
                                 )
                             }, onClick = {
                                 menuExpanded = false
@@ -153,12 +133,13 @@ private fun Content() {
                         }
                     }
                 })
-        }, containerColor = colors.secondary
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
             LazyColumn {
                 items(chatList) { chat ->
@@ -190,8 +171,6 @@ private fun Content() {
 
 @Composable
 private fun BottomModal(viewModel: DialogViewModel) {
-    val colors = LocalCustomColors.current
-
     BottomModalSheet(viewModel = viewModel, dragHandle = null) {
         Column(
             modifier = Modifier
@@ -202,7 +181,7 @@ private fun BottomModal(viewModel: DialogViewModel) {
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(colors.primary)
+                    .background(MaterialTheme.colorScheme.primary)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Archive,
@@ -222,7 +201,7 @@ private fun BottomModal(viewModel: DialogViewModel) {
                     .fillMaxWidth()
                     .padding(15.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colors.primary
+                    containerColor = MaterialTheme.colorScheme.primary
                 ),
                 shape = RoundedCornerShape(10.dp)
             ) {

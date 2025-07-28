@@ -1,7 +1,6 @@
 package com.aiwazian.messenger.ui
 
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,13 +15,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -37,7 +34,6 @@ import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionToggleItem
 import com.aiwazian.messenger.ui.settings.SettingsProfileScreen
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -80,29 +76,18 @@ fun ProfileScreen(userId: Int) {
 private fun Content(user: User) {
     val navViewModel: NavigationViewModel = viewModel()
     val context = LocalContext.current
-    val colors = LocalCustomColors.current
 
     val scrollState = rememberScrollState()
-
-    val initialTopBarColor = colors.secondary
-    val scrolledTopBarColor = colors.topAppBarBackground
-
-    val topBarColor = if (scrollState.value > 0) {
-        scrolledTopBarColor
-    } else {
-        initialTopBarColor
-    }
 
     val clipboardHelper = ClipboardHelper(context = context)
 
     Scaffold(
-        topBar = { DefaultTopBar(user, topBarColor) }
+        topBar = { DefaultTopBar(user) },
     ) {
         Column(
             Modifier
                 .padding(it)
                 .fillMaxSize()
-                .background(colors.secondary)
                 .verticalScroll(scrollState)
         ) {
             SectionHeader(title = stringResource(R.string.information))
@@ -146,9 +131,8 @@ private fun Content(user: User) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DefaultTopBar(user: User, backgroundColor: Color) {
+private fun DefaultTopBar(user: User) {
     val navViewModel: NavigationViewModel = viewModel()
-    val customColors = LocalCustomColors.current
 
     PageTopBar(
         title = {
@@ -167,7 +151,6 @@ private fun DefaultTopBar(user: User, backgroundColor: Color) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = null,
-                    tint = customColors.text
                 )
             }
         },
@@ -181,14 +164,9 @@ private fun DefaultTopBar(user: User, backgroundColor: Color) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = null,
-                        tint = customColors.text
                     )
                 }
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            titleContentColor = customColors.text,
-            containerColor = backgroundColor
-        )
+        }
     )
 }

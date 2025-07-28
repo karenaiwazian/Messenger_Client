@@ -11,6 +11,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -24,7 +25,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -46,12 +46,10 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
     val scope = rememberCoroutineScope()
 
     val keyboardController = LocalSoftwareKeyboardController.current
-    val colors = LocalCustomColors.current
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colors.secondary)
     ) {
         startScreen()
 
@@ -79,7 +77,7 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
                     .offset {
                         IntOffset(offsetX.value.roundToInt(), 0)
                     }
-                    .background(colors.secondary)
+                    .background(MaterialTheme.colorScheme.background)
                     .zIndex(index + 0.2f)
                     .then(
                         if (isTop && canGoBackBySwipe) Modifier.draggable(

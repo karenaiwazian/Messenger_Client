@@ -1,7 +1,6 @@
 package com.aiwazian.messenger.ui
 
 import android.content.Intent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,22 +15,16 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.app.AppLocalesStorageHelper
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.utils.AuthService
 import com.aiwazian.messenger.viewModels.DialogViewModel
@@ -42,15 +35,10 @@ import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionHeader
-import com.aiwazian.messenger.ui.login.AuthScreen
 import com.aiwazian.messenger.ui.settings.SettingsDataUsageScreen
 import com.aiwazian.messenger.ui.settings.security.SettingsPasscodeScreen
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.utils.AppLockService
-import com.aiwazian.messenger.utils.DataStoreManager
 import com.aiwazian.messenger.viewModels.NavigationViewModel
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
 
 @Composable
 fun LogoutScreen() {
@@ -60,27 +48,15 @@ fun LogoutScreen() {
 @Composable
 private fun Content() {
     val navViewModel: NavigationViewModel = viewModel()
-    val colors = LocalCustomColors.current
     val scrollState = rememberScrollState()
 
-    val initialTopBarColor = colors.secondary
-    val scrolledTopBarColor = colors.topAppBarBackground
-
-    val topBarColor = if (scrollState.value > 0) {
-        scrolledTopBarColor
-    } else {
-        initialTopBarColor
-    }
-
     Scaffold(
-        topBar = { TopBar(topBarColor) },
-        containerColor = colors.secondary,
+        topBar = { TopBar() },
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
-                .background(colors.secondary)
                 .verticalScroll(scrollState)
         ) {
             SectionHeader(title = stringResource(R.string.alternative_options))
@@ -122,8 +98,8 @@ private fun Content() {
             SectionContainer {
                 SectionItem(
                     text = stringResource(R.string.exit),
-                    textColor = colors.danger,
-                    colors = ButtonDefaults.textButtonColors(contentColor = colors.danger),
+                    textColor = MaterialTheme.colorScheme.error,
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     onClick = {
                         dialogViewModel.showDialog()
                     })
@@ -153,7 +129,7 @@ private fun LogoutModal(viewModel: DialogViewModel) {
         }) {
             Column(Modifier.padding(horizontal = 16.dp)) {
                 Text(
-                    text = "Вы точно хотите выйти?", color = LocalCustomColors.current.text
+                    text = "Вы точно хотите выйти?"
                 )
             }
         }
@@ -162,8 +138,7 @@ private fun LogoutModal(viewModel: DialogViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar(backgroundColor: Color) {
-    val colors = LocalCustomColors.current
+private fun TopBar() {
     val navViewModel: NavigationViewModel = viewModel()
 
     PageTopBar(
@@ -175,11 +150,8 @@ private fun TopBar(backgroundColor: Color) {
                 Icon(
                     Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = null,
-                    tint = colors.text
                 )
             }
-        }, colors = TopAppBarDefaults.topAppBarColors(
-            titleContentColor = colors.text, containerColor = backgroundColor
-        )
+        }
     )
 }

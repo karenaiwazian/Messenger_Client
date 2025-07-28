@@ -50,7 +50,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.firebase.messaging)
 
     implementation(platform(libs.androidx.compose.bom))
@@ -60,21 +59,14 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.animation)
-    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.material)
     implementation(libs.androidx.material.icons.extended.android)
-    implementation(libs.androidx.material.ripple)
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.activity)
-    implementation(libs.material)
 
-    implementation(libs.ui)
-    implementation(libs.material3)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.navigation.material)
     implementation(libs.accompanist.navigation.animation)
@@ -92,10 +84,5 @@ dependencies {
     implementation(libs.coil.compose)
 
     implementation(libs.lottie.compose)
-
-    implementation(libs.foundation)
-
-    implementation("com.google.zxing:core:3.4.1")
-    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
-    implementation("androidx.compose.ui:ui-graphics:1.8.3")
+    implementation(libs.zxing.android.embedded)
 }

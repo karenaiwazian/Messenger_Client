@@ -1,6 +1,5 @@
 package com.aiwazian.messenger.ui.settings
 
-import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Column
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,7 +18,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -43,7 +41,6 @@ fun SettingsDataUsageScreen() {
 @Composable
 private fun Content(viewModel: DataUsageViewModel = viewModel()) {
     val context = LocalContext.current
-    val colors = LocalCustomColors.current
 
     viewModel.reload(context)
 
@@ -59,13 +56,12 @@ private fun Content(viewModel: DataUsageViewModel = viewModel()) {
 
     Scaffold(
         topBar = { TopBar() },
-        containerColor = colors.secondary,
+        
     ) {
         Column(
             modifier = Modifier
                 .padding(it)
                 .fillMaxSize()
-                .background(colors.secondary)
         ) {
 
             Column(
@@ -76,11 +72,10 @@ private fun Content(viewModel: DataUsageViewModel = viewModel()) {
             ) {
                 Text(
                     text = "Использование памяти",
-                    color = colors.text,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.W500
                 )
-                Text(text = "$sizeMbRounded MB", color = colors.text)
+                Text(text = "$sizeMbRounded MB")
             }
 
             SectionContainer {
@@ -92,7 +87,7 @@ private fun Content(viewModel: DataUsageViewModel = viewModel()) {
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(
                             contentColor = Color.White,
-                            containerColor = colors.primary
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
                         Text(
@@ -120,8 +115,6 @@ private fun ClearCacheDialog(
     dialogViewModel: DialogViewModel,
     onPrimary: () -> Unit,
 ) {
-    val colors = LocalCustomColors.current
-
     if (dialogViewModel.isDialogVisible.value) {
         CustomDialog(
             title = "Очистить кеш",
@@ -132,7 +125,6 @@ private fun ClearCacheDialog(
         ) {
             Text(
                 text = "Все медиа останутся в облаке, при необходимости Вы сможете заново загрузить их снова.",
-                color = colors.text,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
@@ -142,7 +134,6 @@ private fun ClearCacheDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val colors = LocalCustomColors.current
     val navViewModel: NavigationViewModel = viewModel()
 
     PageTopBar(
@@ -156,12 +147,8 @@ private fun TopBar() {
                 Icon(
                     Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = null,
-                    tint = colors.text
                 )
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = colors.secondary
-        )
+        }
     )
 }

@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,32 +14,30 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.BackHand
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.DismissDirection
-import androidx.compose.material.DismissValue
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.BackHand
 import androidx.compose.material.icons.outlined.QrCode
-import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,27 +61,26 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.aiwazian.messenger.utils.JsonAnimation
-import com.aiwazian.messenger.utils.DeviceHelper
-import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.utils.UserManager
-import com.aiwazian.messenger.utils.WebSocketManager
 import com.aiwazian.messenger.api.RetrofitInstance
+import com.aiwazian.messenger.customType.WebSocketAction
 import com.aiwazian.messenger.data.DismissSession
 import com.aiwazian.messenger.data.Session
 import com.aiwazian.messenger.data.WebSocketMessage
-import com.aiwazian.messenger.customType.WebSocketAction
-import com.aiwazian.messenger.ui.element.PageTopBar
-import com.aiwazian.messenger.ui.element.SectionContainer
-import com.aiwazian.messenger.ui.element.SectionHeader
-import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.BottomModalSheet
 import com.aiwazian.messenger.ui.element.CustomDialog
+import com.aiwazian.messenger.ui.element.PageTopBar
+import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
+import com.aiwazian.messenger.ui.element.SectionHeader
+import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionRadioItem
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
+import com.aiwazian.messenger.utils.DeviceHelper
+import com.aiwazian.messenger.utils.JsonAnimation
+import com.aiwazian.messenger.utils.UserManager
+import com.aiwazian.messenger.utils.WebSocketManager
 import com.aiwazian.messenger.viewModels.DeviceSettingsViewModel
+import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 
@@ -92,7 +89,7 @@ fun SettingsDevicesScreen() {
     Content()
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content() {
     val viewModel: DeviceSettingsViewModel = viewModel()
@@ -116,22 +113,12 @@ private fun Content() {
         }
     }
 
-    val colors = LocalCustomColors.current
-
     val scope = rememberCoroutineScope()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
     val scrollState = rememberScrollState()
 
-    val initialTopBarColor = colors.secondary
-    val scrolledTopBarColor = colors.topAppBarBackground
-
-    val topBarColor = if (scrollState.value > 0) {
-        scrolledTopBarColor
-    } else {
-        initialTopBarColor
-    }
     val navViewModel: NavigationViewModel = viewModel()
 
     Scaffold(
@@ -147,17 +134,12 @@ private fun Content() {
                         Icon(
                             Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = null,
-                            tint = colors.text
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    titleContentColor = colors.text,
-                    containerColor = topBarColor
-                )
+                }
             )
         },
-        containerColor = colors.secondary,
+        
         snackbarHost = {
             SwipeDismissSnackbarHost(snackbarHostState)
         }
@@ -166,7 +148,6 @@ private fun Content() {
             Modifier
                 .padding(it)
                 .fillMaxSize()
-                .background(colors.secondary)
                 .verticalScroll(scrollState)
         ) {
 
@@ -189,7 +170,7 @@ private fun Content() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val composition by rememberLottieComposition(
-                    spec = LottieCompositionSpec.Asset(JsonAnimation.Apple_Phone)
+                    spec = LottieCompositionSpec.Asset(JsonAnimation.APPLE_PHONE)
                 )
 
                 LottieAnimation(
@@ -201,7 +182,6 @@ private fun Content() {
 
                 Text(
                     text = "Вы можете зайти в приложение с помощью QR-кода.",
-                    color = colors.text,
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
                     textAlign = TextAlign.Center
@@ -215,7 +195,7 @@ private fun Content() {
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         contentColor = Color.White,
-                        containerColor = colors.primary
+                        containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
                     Icon(
@@ -250,11 +230,11 @@ private fun Content() {
                 SectionContainer {
                     SectionItem(
                         icon = Icons.Outlined.BackHand,
-                        iconColor = colors.danger,
+                        iconColor = MaterialTheme.colorScheme.error,
                         text = "Завершить все другие сеансы",
-                        textColor = colors.danger,
+                        textColor = MaterialTheme.colorScheme.error,
                         colors = ButtonDefaults.textButtonColors(
-                            contentColor = colors.danger
+                            contentColor = MaterialTheme.colorScheme.error
                         ),
                         onClick = {
                             onDismissClick = {
@@ -378,7 +358,7 @@ private fun Content() {
                             )
 
                             Text(
-                                text = modalSessionCreatedTime, color = colors.textHint
+                                text = modalSessionCreatedTime
                             )
                         }
 
@@ -393,7 +373,7 @@ private fun Content() {
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     contentColor = Color.White,
-                                    containerColor = colors.dangerBackground
+                                    containerColor = MaterialTheme.colorScheme.error
                                 )
                             ) {
                                 Text(
@@ -410,35 +390,28 @@ private fun Content() {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
-    val colors = LocalCustomColors.current
-
     SnackbarHost(hostState = snackbarHostState) { data ->
         var dismissed by remember { mutableStateOf(false) }
 
         if (!dismissed) {
-            val dismissState = rememberDismissState(
-                confirmStateChange = {
-                    if (it == DismissValue.DismissedToStart || it == DismissValue.DismissedToEnd) {
-                        dismissed = true
-                        true
-                    } else false
+            val swipeToDismissBoxState = rememberSwipeToDismissBoxState(
+                confirmValueChange = {
+                    it == SwipeToDismissBoxValue.EndToStart || it == SwipeToDismissBoxValue.StartToEnd
                 }
             )
 
-            SwipeToDismiss(
-                state = dismissState,
-                background = {},
-                directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart)
+            SwipeToDismissBox(
+                state = swipeToDismissBoxState,
+                enableDismissFromEndToStart = true,
+                enableDismissFromStartToEnd = true,
+                backgroundContent = { }
             ) {
                 Snackbar(
                     modifier = Modifier
                         .padding(12.dp)
-                        .clip(RoundedCornerShape(16.dp)),
-                    containerColor = colors.background,
-                    contentColor = colors.text,
+                        .clip(RoundedCornerShape(16.dp))
                 ) {
                     Text(data.visuals.message)
                 }
@@ -449,8 +422,6 @@ private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
 
 @Composable
 private fun DeviceCard(text: String, onClick: () -> Unit) {
-    val colors = LocalCustomColors.current
-
     Card(
         shape = RectangleShape,
         modifier = Modifier.fillMaxWidth(),
@@ -482,7 +453,7 @@ private fun DeviceCard(text: String, onClick: () -> Unit) {
                 )
             }
             Text(
-                text = text, modifier = Modifier.padding(start = 16.dp), color = colors.text
+                text = text, modifier = Modifier.padding(start = 16.dp)
             )
         }
     }
@@ -502,7 +473,6 @@ private fun DismissSessionDialog(viewModel: DialogViewModel, dismiss: () -> Unit
         }
     }
 }
-
 
 @Composable
 private fun DismissSessionFromTimeDialog(

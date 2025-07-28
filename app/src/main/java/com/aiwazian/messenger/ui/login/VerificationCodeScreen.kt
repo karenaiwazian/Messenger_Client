@@ -25,9 +25,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.Backspace
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.aiwazian.messenger.utils.VibrateService
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.utils.VibrationPattern
 import com.aiwazian.messenger.viewModels.AuthViewModel
 
@@ -59,18 +58,16 @@ fun VerificationCodeScreen(navController: NavHostController, viewModel: AuthView
 
 @Composable
 private fun Content(navController: NavHostController, viewModel: AuthViewModel) {
-    val colors = LocalCustomColors.current
-
     var keyboardHeight by remember { mutableStateOf(0.dp) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = colors.secondary,
+        
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { },
                 modifier = Modifier.padding(bottom = keyboardHeight + 16.dp),
-                containerColor = colors.primary,
+                containerColor = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             ) {
                 Icon(
@@ -103,9 +100,8 @@ private fun Content(navController: NavHostController, viewModel: AuthViewModel) 
 
 @Composable
 private fun CodeBlocks(viewModel: AuthViewModel) {
-    val colors = LocalCustomColors.current
-
-    var borderColor by remember { mutableStateOf(colors.textHint) }
+    val color = Color.Red
+    var borderColor by remember { mutableStateOf(color) }
 
     viewModel.onCorrectVerificationCode = {
         borderColor = Color.Green
@@ -116,7 +112,7 @@ private fun CodeBlocks(viewModel: AuthViewModel) {
     }
 
     viewModel.onClearError = {
-        borderColor = colors.textHint
+
     }
 
     Row(
@@ -129,7 +125,7 @@ private fun CodeBlocks(viewModel: AuthViewModel) {
             val isCurrent = index == viewModel.verificationCode.length && char.isEmpty()
 
             val cellBorderColor by animateColorAsState(
-                targetValue = if (isCurrent) colors.primary else borderColor,
+                targetValue = if (isCurrent) MaterialTheme.colorScheme.primary else borderColor,
                 animationSpec = tween(
                     durationMillis = 200,
                     easing = FastOutSlowInEasing
@@ -171,7 +167,6 @@ private fun CodeBlocks(viewModel: AuthViewModel) {
                         text = it,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        color = colors.text,
                         lineHeight = 40.sp,
                         fontSize = 20.sp
                     )
@@ -183,8 +178,6 @@ private fun CodeBlocks(viewModel: AuthViewModel) {
 
 @Composable
 private fun Board(value: String, onChange: (String) -> Unit, onHeightMeasured: (Dp) -> Unit) {
-    val colors = LocalCustomColors.current
-
     val context = LocalContext.current
 
     val localDensity = LocalDensity.current
@@ -224,7 +217,7 @@ private fun Board(value: String, onChange: (String) -> Unit, onHeightMeasured: (
                             .padding(vertical = 2.dp)
                     ) {
                         Text(
-                            text = key, color = colors.text, fontSize = 18.sp, lineHeight = 30.sp
+                            text = key, fontSize = 18.sp, lineHeight = 30.sp
                         )
                     }
                 }
@@ -248,7 +241,7 @@ private fun Board(value: String, onChange: (String) -> Unit, onHeightMeasured: (
                     .weight(1f)
             ) {
                 Text(
-                    text = "0", color = colors.text, fontSize = 18.sp, lineHeight = 30.sp
+                    text = "0", fontSize = 18.sp, lineHeight = 30.sp
                 )
             }
 
@@ -266,7 +259,6 @@ private fun Board(value: String, onChange: (String) -> Unit, onHeightMeasured: (
                 Icon(
                     Icons.AutoMirrored.Outlined.Backspace,
                     contentDescription = null,
-                    tint = colors.text
                 )
             }
         }
@@ -279,18 +271,10 @@ private fun NumberButton(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val colors = LocalCustomColors.current
-
-    val clickedColor = colors.textHint
-
     TextButton(
         onClick = onClick,
         modifier = modifier,
-        shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.textButtonColors(
-            contentColor = clickedColor,
-            containerColor = colors.background
-        )
+        shape = RoundedCornerShape(10.dp)
     ) {
         content()
     }

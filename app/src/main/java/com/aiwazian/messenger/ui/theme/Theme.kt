@@ -1,66 +1,52 @@
 package com.aiwazian.messenger.ui.theme
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.aiwazian.messenger.data.CustomColors
 import com.aiwazian.messenger.customType.PrimaryColorOption
 import com.aiwazian.messenger.customType.ThemeOption
 
-private val DarkColorScheme = CustomColors(
-    secondary = Color(0xFF000000),
-    background = Color(0xFF191919),
-    primary = Color(0xFF0096E6),
-    text = Color(0xFFFFFFFF),
-    textHint = Color(0xFF646464),
-    topAppBarBackground = Color(0xFF1E1E1E),
-    sendMessageTimeBackground = Color(0x80646464),
-    danger = Color(0xFFC85050),
-    dangerBackground = Color(0xFFB43232),
-    horizontalDivider = Color(0x1A646464)
+private fun darkColorSchemeMaterial(customPrimaryColor: Color) = darkColorScheme(
+    primary = customPrimaryColor,
+    onPrimary = Color.White,
+    background = Color.Black,
+    onBackground = Color.White,
+    surface = Color.Black,
+    error = Color(0xFFFF3232),
 )
 
-private val LightColorScheme = CustomColors(
-    secondary = Color(0xFFF0F0F0),
-    background = Color(0xFFFFFFFF),
-    primary = Color(0xFF0096E6),
-    text = Color(0xFF000000),
-    textHint = Color(0xFF646464),
-    topAppBarBackground = Color(0xFFFFFFFF),
-    sendMessageTimeBackground = Color(0x80646464),
-    danger = Color(0xFFC80000),
-    dangerBackground = Color(0xFFC83232),
-    horizontalDivider = Color(0x1A646464)
+private fun lightColorSchemeMaterial(customPrimaryColor: Color) = lightColorScheme(
+    primary = customPrimaryColor,
+    onPrimary = Color.White,
+    background = Color.White,
+    onBackground = Color.Black,
+    surface = Color.White,
+    error = Color(0xFFFF3232),
 )
-
-val LocalCustomColors = staticCompositionLocalOf {
-    LightColorScheme
-}
 
 @Composable
 fun ApplicationTheme(
     theme: ThemeOption = ThemeOption.SYSTEM,
     primaryColor: Color = PrimaryColorOption.Blue.color,
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val isDark = when (theme) {
         ThemeOption.DARK -> true
         ThemeOption.LIGHT -> false
         ThemeOption.SYSTEM -> isSystemInDarkTheme()
-    }
-
-    val customColors = if (isDark) {
-        DarkColorScheme.copy(primary = primaryColor)
-    } else {
-        LightColorScheme.copy(primary = primaryColor)
     }
 
     val view = LocalView.current
@@ -75,9 +61,18 @@ fun ApplicationTheme(
         insetsController.isAppearanceLightStatusBars = !isDark
     }
 
-    CompositionLocalProvider(LocalCustomColors provides customColors) {
-        MaterialTheme(
-            content = content
-        )
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+
+        isDark -> darkColorSchemeMaterial(primaryColor)
+        else -> lightColorSchemeMaterial(primaryColor)
     }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        content = content
+    )
 }

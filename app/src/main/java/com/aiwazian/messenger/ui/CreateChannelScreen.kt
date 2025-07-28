@@ -1,7 +1,5 @@
 package com.aiwazian.messenger.ui
 
-import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,22 +15,22 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.utils.VibrateService
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
+import com.aiwazian.messenger.utils.VibrateService
 import com.aiwazian.messenger.viewModels.CreateChannelViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
@@ -46,8 +44,6 @@ fun CreateChannelScreen() {
 private fun Content() {
     val context = LocalContext.current
 
-    val colors = LocalCustomColors.current
-
     val createChannelViewModel: CreateChannelViewModel = viewModel()
 
     createChannelViewModel.onError = {
@@ -57,26 +53,18 @@ private fun Content() {
 
     val scrollState = rememberScrollState()
 
-    val initialTopBarColor = colors.secondary
-    val scrolledTopBarColor = colors.topAppBarBackground
-
-    val topBarColor = if (scrollState.value > 0) {
-        scrolledTopBarColor
-    } else {
-        initialTopBarColor
-    }
-
     Scaffold(
         topBar = {
-            TopBar(topBarColor)
+            TopBar()
         },
+        
         floatingActionButton = {
             FloatingActionButton(
                 modifier = Modifier.imePadding(),
                 onClick = {
                     createChannelViewModel.createChannel()
                 },
-                containerColor = colors.primary,
+                containerColor = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             ) {
                 Icon(
@@ -86,21 +74,20 @@ private fun Content() {
                 )
             }
         }
-    ) {
+    ) { it ->
         Column(
             Modifier
                 .padding(it)
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .background(colors.secondary)
         ) {
             SectionContainer {
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     value = createChannelViewModel.channelName,
-                    onValueChange = {
-                        createChannelViewModel.changeChannelName(it)
+                    onValueChange = { newName ->
+                        createChannelViewModel.changeChannelName(newName)
                     },
                     placeholder = {
                         Text("Название канала")
@@ -110,10 +97,6 @@ private fun Content() {
                         unfocusedContainerColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        focusedPlaceholderColor = colors.textHint,
-                        unfocusedPlaceholderColor = colors.textHint,
-                        focusedTextColor = colors.text,
-                        unfocusedTextColor = colors.text
                     )
                 )
 
@@ -121,8 +104,8 @@ private fun Content() {
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     value = createChannelViewModel.channelBio,
-                    onValueChange = {
-                        createChannelViewModel.changeChannelBio(it)
+                    onValueChange = { newBio ->
+                        createChannelViewModel.changeChannelBio(newBio)
                     },
                     placeholder = {
                         Text("Описание")
@@ -132,10 +115,6 @@ private fun Content() {
                         unfocusedContainerColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        focusedPlaceholderColor = colors.textHint,
-                        unfocusedPlaceholderColor = colors.textHint,
-                        focusedTextColor = colors.text,
-                        unfocusedTextColor = colors.text
                     )
                 )
             }
@@ -148,8 +127,7 @@ private fun Content() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar(backgroundColor: Color) {
-    val colors = LocalCustomColors.current
+private fun TopBar() {
     val navViewModel: NavigationViewModel = viewModel()
 
     PageTopBar(
@@ -163,13 +141,8 @@ private fun TopBar(backgroundColor: Color) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = null,
-                    tint = colors.text
                 )
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            titleContentColor = colors.text,
-            containerColor = backgroundColor
-        )
+        }
     )
 }

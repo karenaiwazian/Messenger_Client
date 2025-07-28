@@ -63,8 +63,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Reply
 import androidx.compose.material.icons.filled.Notifications
@@ -77,6 +76,7 @@ import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -100,7 +100,6 @@ import com.aiwazian.messenger.utils.WebSocketManager
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SwipeableChatCard
 import com.aiwazian.messenger.ui.settings.SettingsScreen
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.utils.AppLockService
 import com.aiwazian.messenger.viewModels.ChatsViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -167,13 +166,9 @@ private fun MainScreenContent() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NotificationBottomModal(enable: () -> Unit, disable: () -> Unit) {
-    val colors = LocalCustomColors.current
-
     ModalBottomSheet(
         onDismissRequest = disable,
         dragHandle = null,
-        containerColor = colors.background,
-        contentColor = colors.text
     ) {
         Column(
             modifier = Modifier
@@ -186,7 +181,7 @@ private fun NotificationBottomModal(enable: () -> Unit, disable: () -> Unit) {
                 modifier = Modifier
                     .size(70.dp)
                     .clip(CircleShape)
-                    .background(colors.primary)
+                    .background(MaterialTheme.colorScheme.primary)
                     .fillMaxWidth(), contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -227,7 +222,7 @@ private fun NotificationBottomModal(enable: () -> Unit, disable: () -> Unit) {
                 .fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = colors.primary
+                containerColor = MaterialTheme.colorScheme.primary
             )
         ) {
             Text(
@@ -241,7 +236,6 @@ private fun NotificationBottomModal(enable: () -> Unit, disable: () -> Unit) {
 private fun Content(
     drawerState: DrawerState
 ) {
-    val customColors = LocalCustomColors.current
     val navViewModel: NavigationViewModel = viewModel()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -343,7 +337,6 @@ private fun Content(
                     Text(
                         text = "Чтобы начать общение нажмите на значок поиска в правом верхнем углу и найдите пользователя по его @username",
                         textAlign = TextAlign.Center,
-                        color = customColors.text
                     )
                 }
             }
@@ -361,7 +354,7 @@ private fun Content(
                         lastMessage = "",
                         selected = chat.id in selectedChats,
                         pinned = chat.isPinned,
-                        enableSwipeabale = selectedChats.isEmpty(),
+                        enableSwipeable = selectedChats.isEmpty(),
                         onClick = {
                             if (selectedChats.isEmpty()) {
                                 navViewModel.addScreenInStack {
@@ -393,13 +386,13 @@ private fun Content(
                 }
             }
         }
-    }, containerColor = customColors.secondary, floatingActionButton = {
+    }, floatingActionButton = {
         FloatingActionButton(
             shape = CircleShape, onClick = {
                 navViewModel.addScreenInStack {
                     NewMessageScreen()
                 }
-            }, containerColor = customColors.primary
+            }, containerColor = MaterialTheme.colorScheme.primary
         ) {
             Icon(
                 imageVector = Icons.Default.Create,
@@ -410,11 +403,8 @@ private fun Content(
     })
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
-    val colors = LocalCustomColors.current
-
     SnackbarHost(
         hostState = snackbarHostState, modifier = Modifier.fillMaxWidth()
     ) { data ->
@@ -432,8 +422,7 @@ private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
                     modifier = Modifier
                         .padding(12.dp)
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(colors.background),
+                        .clip(RoundedCornerShape(16.dp)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
@@ -450,29 +439,28 @@ private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
                             Icon(
                                 imageVector = Icons.Outlined.Archive,
                                 contentDescription = null,
-                                tint = colors.text
                             )
 
                             Text(
-                                text = data.visuals.message, color = colors.text
+                                text = data.visuals.message
                             )
                         }
 
                         TextButton(
                             onClick = { data.performAction() },
                             colors = ButtonDefaults.textButtonColors(
-                                contentColor = colors.primary,
+                                contentColor = MaterialTheme.colorScheme.primary,
                             ),
                             shape = RoundedCornerShape(10.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Outlined.Reply,
                                 contentDescription = null,
-                                tint = colors.primary
+                                tint = MaterialTheme.colorScheme.primary
                             )
 
                             Text(
-                                text = "ОТМЕНА", color = colors.primary
+                                text = "ОТМЕНА", color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -489,7 +477,6 @@ private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
 private fun SelectedChatTopBar(
     onBack: () -> Unit, selectedCount: Int, onClickArchive: () -> Unit, onClickPin: () -> Unit
 ) {
-    val colors = LocalCustomColors.current
     var expanded by remember { mutableStateOf(false) }
 
     PageTopBar(title = {
@@ -516,7 +503,6 @@ private fun SelectedChatTopBar(
             Icon(
                 imageVector = Icons.Outlined.Close,
                 contentDescription = null,
-                tint = colors.text
             )
         }
     }, actions = {
@@ -524,35 +510,30 @@ private fun SelectedChatTopBar(
             Icon(
                 imageVector = Icons.Outlined.Archive,
                 contentDescription = null,
-                tint = colors.text
             )
         }
         IconButton(onClick = { }) {
             Icon(
                 imageVector = Icons.Outlined.Delete,
                 contentDescription = null,
-                tint = colors.text
             )
         }
         IconButton(onClick = { expanded = true }) {
             Icon(
                 imageVector = Icons.Outlined.MoreVert,
                 contentDescription = null,
-                tint = colors.text
             )
         }
 
         DropdownMenu(
-            modifier = Modifier.background(colors.background),
             expanded = expanded,
             onDismissRequest = { expanded = false }) {
             DropdownMenuItem(text = {
-                Text(text = "Закрепить", color = colors.text)
+                Text(text = "Закрепить")
             }, onClick = onClickPin, leadingIcon = {
                 Icon(
                     imageVector = Icons.Outlined.PushPin,
                     contentDescription = null,
-                    tint = colors.text
                 )
             })
         }
@@ -562,7 +543,6 @@ private fun SelectedChatTopBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DefaultTopBar(drawerState: DrawerState) {
-    val colors = LocalCustomColors.current
     val isConnected by WebSocketManager.isConnectedState.collectAsState()
     val navViewModel: NavigationViewModel = viewModel()
     val scope = rememberCoroutineScope()
@@ -605,7 +585,7 @@ private fun DefaultTopBar(drawerState: DrawerState) {
                     }
                 }) {
                 Icon(
-                    imageVector = Icons.Default.Menu, contentDescription = null, tint = colors.text
+                    imageVector = Icons.Default.Menu, contentDescription = null
                 )
             }
         },
@@ -620,7 +600,6 @@ private fun DefaultTopBar(drawerState: DrawerState) {
                     Icon(
                         imageVector = Icons.Outlined.LockOpen,
                         contentDescription = null,
-                        tint = colors.text
                     )
                 }
             }
@@ -634,7 +613,6 @@ private fun DefaultTopBar(drawerState: DrawerState) {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = null,
-                    tint = colors.text
                 )
             }
         },
@@ -646,12 +624,10 @@ private fun DrawerContent(
     drawerState: DrawerState
 ) {
     val navViewModel: NavigationViewModel = viewModel()
-    val customColors = LocalCustomColors.current
     val user = UserManager.user
     val scope = rememberCoroutineScope()
 
     ModalDrawerSheet(
-        drawerContainerColor = customColors.background,
         drawerShape = RectangleShape,
         modifier = Modifier.fillMaxWidth(0.7f)
     ) {
@@ -659,7 +635,7 @@ private fun DrawerContent(
         Text(
             text = "${user.firstName} ${user.lastName}", modifier = Modifier.padding(
                 start = 20.dp, top = 80.dp, end = 20.dp, bottom = 40.dp
-            ), fontSize = 24.sp, maxLines = 1, softWrap = false, color = customColors.text
+            ), fontSize = 24.sp, maxLines = 1, softWrap = false
         )
 
         DrawerItem(
@@ -701,14 +677,12 @@ private fun DrawerContent(
 private fun DrawerItem(
     label: String, icon: ImageVector, onClick: () -> Unit
 ) {
-    val customColors = LocalCustomColors.current
-
     NavigationDrawerItem(
         shape = RectangleShape, label = {
-            Text(text = label, color = customColors.text)
+            Text(text = label)
         }, icon = {
             Icon(
-                imageVector = icon, contentDescription = null, tint = customColors.textHint
+                imageVector = icon, contentDescription = null
             )
         }, selected = false, onClick = onClick
     )

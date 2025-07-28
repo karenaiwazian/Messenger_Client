@@ -18,9 +18,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.PageTopBar
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.utils.Constants
 import com.aiwazian.messenger.utils.QrCodeService
 import com.aiwazian.messenger.utils.UserManager
@@ -46,13 +45,11 @@ fun QRCodeScreen() {
 
 @Composable
 private fun Content() {
-    val colors = LocalCustomColors.current
-
     Scaffold(
         topBar = {
             TopBar()
         },
-        containerColor = colors.secondary
+        
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -89,7 +86,7 @@ private fun Content() {
                     .padding(20.dp),
                 onClick = {},
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colors.primary
+                    containerColor = MaterialTheme.colorScheme.primary
                 ),
                 shape = RoundedCornerShape(10.dp)
             ) {
@@ -106,7 +103,6 @@ private fun Content() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val colors = LocalCustomColors.current
     val navViewModel: NavigationViewModel = viewModel()
 
     PageTopBar(
@@ -120,13 +116,8 @@ private fun TopBar() {
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = null,
-                    tint = colors.text
                 )
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            titleContentColor = colors.text,
-            containerColor = colors.secondary,
-        )
+        }
     )
 }

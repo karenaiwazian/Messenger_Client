@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Backspace
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -18,7 +17,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.utils.VibrateService
 import com.aiwazian.messenger.utils.VibrationPattern
 
@@ -28,8 +26,6 @@ fun CustomNumberBoard(
     buttons: List<List<Any?>>,
     onChange: (String) -> Unit = { }
 ) {
-    val colors = LocalCustomColors.current
-
     val context = LocalContext.current
 
     val vibrateService = VibrateService(context)
@@ -70,12 +66,10 @@ fun CustomNumberBoard(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Outlined.Backspace,
                                 contentDescription = null,
-                                tint = colors.text
                             )
                         } else if (key is String) {
                             Text(
                                 text = key,
-                                color = colors.text,
                                 fontSize = 18.sp,
                                 lineHeight = 30.sp
                             )
@@ -93,18 +87,10 @@ private fun NumberButton(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val colors = LocalCustomColors.current
-
-    val clickedColor = colors.textHint
-
     TextButton(
         onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.textButtonColors(
-            contentColor = clickedColor,
-            containerColor = colors.background
-        )
     ) {
         content()
     }

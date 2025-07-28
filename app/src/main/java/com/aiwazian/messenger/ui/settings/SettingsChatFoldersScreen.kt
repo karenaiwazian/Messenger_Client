@@ -12,7 +12,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -31,7 +30,6 @@ import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionHeader
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -41,17 +39,14 @@ fun SettingsChatFoldersScreen() {
 
 @Composable
 private fun Content() {
-    val customColors = LocalCustomColors.current
-
     Scaffold(
         topBar = {
             TopBar()
         },
-        containerColor = customColors.secondary
+        
     ) { innerPadding ->
 
         Column(modifier = Modifier.padding(innerPadding)) {
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -60,7 +55,7 @@ private fun Content() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val composition by rememberLottieComposition(
-                    spec = LottieCompositionSpec.Asset(JsonAnimation.Folders)
+                    spec = LottieCompositionSpec.Asset(JsonAnimation.FOLDERS)
                 )
 
                 LottieAnimation(
@@ -72,7 +67,6 @@ private fun Content() {
 
                 Text(
                     text = "Вы можете создать папки с нужными чатами и переключаться между ними.",
-                    color = customColors.textHint,
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
                     textAlign = TextAlign.Center
@@ -91,7 +85,6 @@ private fun Content() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val customColors = LocalCustomColors.current
     val navViewModel: NavigationViewModel = viewModel()
 
     PageTopBar(
@@ -103,13 +96,8 @@ private fun TopBar() {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = customColors.text,
                 )
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = customColors.secondary,
-            titleContentColor = customColors.text
-        )
+        }
     )
 }

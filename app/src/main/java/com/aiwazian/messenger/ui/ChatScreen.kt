@@ -38,6 +38,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -73,7 +74,6 @@ import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.data.User
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.viewModels.ChatViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -116,7 +116,6 @@ fun ChatScreen(userId: Int) {
 @Composable
 private fun Content(user: User) {
     val context = LocalContext.current
-    val colors = LocalCustomColors.current
 
     val currentUserId = remember { UserManager.user.id }
     val viewModel = remember { ChatViewModel(user.id, currentUserId) }
@@ -127,7 +126,7 @@ private fun Content(user: User) {
         topBar = {
             TopBar(user, deleteDialogViewModel)
         },
-        containerColor = colors.secondary
+        
     ) { innerPadding ->
         val chatId = user.id
         val messages = viewModel.messages
@@ -150,8 +149,7 @@ private fun Content(user: User) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .background(colors.secondary),
+                .padding(innerPadding),
         ) {
             if (messages.isEmpty()) {
                 Column(
@@ -161,7 +159,7 @@ private fun Content(user: User) {
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Напишите сообщение или отправьте стикер", color = colors.text)
+                    Text("Напишите сообщение или отправьте стикер")
                 }
             } else {
                 val clipboardHelper = ClipboardHelper(context = context)
@@ -243,7 +241,6 @@ private fun Content(user: User) {
 @Composable
 private fun TopBar(user: User, dialogViewModel: DialogViewModel) {
     var menuExpanded by remember { mutableStateOf(false) }
-    val colors = LocalCustomColors.current
     val navViewModel: NavigationViewModel = viewModel()
 
     PageTopBar(
@@ -281,7 +278,6 @@ private fun TopBar(user: User, dialogViewModel: DialogViewModel) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,
-                    tint = colors.text
                 )
             }
         },
@@ -289,11 +285,10 @@ private fun TopBar(user: User, dialogViewModel: DialogViewModel) {
             Box {
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(
-                        Icons.Default.MoreVert, contentDescription = null, tint = colors.text
+                        Icons.Default.MoreVert, contentDescription = null
                     )
                 }
                 DropdownMenu(
-                    modifier = Modifier.background(colors.background),
                     expanded = menuExpanded,
                     onDismissRequest = { menuExpanded = false }) {
                     DropdownMenuItem(
@@ -301,10 +296,9 @@ private fun TopBar(user: User, dialogViewModel: DialogViewModel) {
                             Icon(
                                 Icons.Outlined.DeleteOutline,
                                 contentDescription = "Delete chat",
-                                tint = colors.text
                             )
                         },
-                        text = { Text(stringResource(R.string.delete_chat), color = colors.text) },
+                        text = { Text(stringResource(R.string.delete_chat)) },
                         onClick = {
                             menuExpanded = false
                             dialogViewModel.showDialog()
@@ -317,8 +311,6 @@ private fun TopBar(user: User, dialogViewModel: DialogViewModel) {
 
 @Composable
 private fun DeleteChatDialog(onDelete: () -> Unit = {}, dialogViewModel: DialogViewModel) {
-    val colors = LocalCustomColors.current
-
     if (showDeleteChatDialog) {
         CustomDialog(
             title = "Удалить чат",
@@ -331,7 +323,6 @@ private fun DeleteChatDialog(onDelete: () -> Unit = {}, dialogViewModel: DialogV
         ) {
             Text(
                 "Удалить чат без возможности восстановления?",
-                color = colors.text,
                 modifier = Modifier.padding(start = 16.dp)
             )
         }
@@ -345,8 +336,6 @@ private fun InputMessage(
     onSend: () -> Unit = { },
     attachFile: () -> Unit = { },
 ) {
-    val colors = LocalCustomColors.current
-
     TextField(
         shape = RectangleShape,
         value = value,
@@ -357,10 +346,6 @@ private fun InputMessage(
             Text(stringResource(R.string.message))
         },
         colors = TextFieldDefaults.colors(
-            focusedTextColor = colors.text,
-            unfocusedTextColor = colors.text,
-            focusedContainerColor = colors.background,
-            unfocusedContainerColor = colors.background,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
         ),
@@ -369,7 +354,6 @@ private fun InputMessage(
                 Icon(
                     imageVector = Icons.Outlined.EmojiEmotions,
                     contentDescription = null,
-                    tint = colors.text
                 )
             }
         },
@@ -379,7 +363,6 @@ private fun InputMessage(
                     Icon(
                         imageVector = Icons.Outlined.AttachFile,
                         contentDescription = null,
-                        tint = colors.text,
                         modifier = Modifier.rotate(45f)
                     )
                 }
@@ -387,7 +370,6 @@ private fun InputMessage(
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.Send,
                         contentDescription = null,
-                        tint = colors.text
                     )
                 }
             }
@@ -415,8 +397,6 @@ fun MessageItem(
         Alignment.CenterStart
     }
 
-    val colors = LocalCustomColors.current
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -433,7 +413,6 @@ fun MessageItem(
             onDismissRequest = { expanded = false },
             offset = DpOffset(20.dp, 8.dp),
             properties = PopupProperties(focusable = true),
-            containerColor = colors.background,
         ) {
             DropdownMenuItem(leadingIcon = {
                 Row(horizontalArrangement = Arrangement.Center) {
@@ -441,18 +420,17 @@ fun MessageItem(
                         Icons.Outlined.ContentCopy,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
-                        tint = colors.textHint
                     )
                 }
-            }, text = { Text("Копировать", color = colors.text) }, onClick = {
+            }, text = { Text("Копировать") }, onClick = {
                 expanded = false
                 onCopy()
             })
             DropdownMenuItem(leadingIcon = {
                 Icon(
-                    Icons.Outlined.DeleteOutline, contentDescription = null, tint = colors.textHint
+                    Icons.Outlined.DeleteOutline, contentDescription = null
                 )
-            }, text = { Text("Удалить", color = colors.text) }, onClick = {
+            }, text = { Text("Удалить") }, onClick = {
                 expanded = false
                 onDelete()
             })
@@ -462,8 +440,6 @@ fun MessageItem(
 
 @Composable
 private fun TextMessage(text: String, time: String, alignment: Alignment, onClick: () -> Unit) {
-    val colors = LocalCustomColors.current
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -489,7 +465,7 @@ private fun TextMessage(text: String, time: String, alignment: Alignment, onClic
                 Box(
                     contentAlignment = Alignment.BottomEnd, modifier = Modifier
                         .background(
-                            color = colors.sendMessageTimeBackground,
+                            color = Color(0x66646464),
                             shape = RoundedCornerShape(16.dp)
                         )
                         .align(Alignment.BottomEnd)
@@ -511,7 +487,7 @@ private fun TextMessage(text: String, time: String, alignment: Alignment, onClic
             Box(
                 modifier = Modifier
                     .background(
-                        color = if (alignment == Alignment.CenterEnd) colors.primary else colors.sendMessageTimeBackground,
+                        color = if (alignment == Alignment.CenterEnd) MaterialTheme.colorScheme.primary else Color(0x66646464),
                         shape = RoundedCornerShape(16.dp)
                     )
                     .widthIn(max = 280.dp)

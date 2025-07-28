@@ -1,9 +1,9 @@
 package com.aiwazian.messenger.utils
 
 object JsonAnimation {
-    const val Apple_Phone = "phone_apple.json"
-    const val Folders = "folders.json"
-    const val Key_Gold = "key_gold.json"
-    const val Key_Iron = "key_iron.json"
-    const val Key_Lock = "key_lock.json"
+    const val APPLE_PHONE = "phone_apple.json"
+    const val FOLDERS = "folders.json"
+    const val KEY_GOLD = "key_gold.json"
+    const val KEY_IRON = "key_iron.json"
+    const val KEY_LOCK = "key_lock.json"
 }

@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.aiwazian.messenger.viewModels.DialogViewModel
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,7 +19,6 @@ fun BottomModalSheet(
     val isVisible by viewModel.isDialogVisible
 
     if (isVisible) {
-        val colors = LocalCustomColors.current
         ModalBottomSheet(
             modifier = Modifier
                 .wrapContentHeight(),
@@ -28,8 +26,6 @@ fun BottomModalSheet(
                 viewModel.hideDialog()
             },
             dragHandle = dragHandle,
-            containerColor = colors.background,
-            contentColor = colors.text
         ) {
             content()
         }

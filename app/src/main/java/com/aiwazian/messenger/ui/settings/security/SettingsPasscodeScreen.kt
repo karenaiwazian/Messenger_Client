@@ -21,9 +21,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,8 +56,6 @@ import com.aiwazian.messenger.ui.element.CustomNumberBoard
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionItem
-import com.aiwazian.messenger.ui.element.SectionToggleItem
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 import com.aiwazian.messenger.utils.DataStoreManager
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -66,10 +64,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 private object PasscodeScreens {
-    const val Main = "PasscodeMain"
-    const val Settings = "PasscodeSettings"
-    const val Create = "CreatePasscode"
-    const val Change = "ChangePasscode"
+    const val MAIN = "PasscodeMain"
+    const val SETTINGS = "PasscodeSettings"
+    const val CREATE = "CreatePasscode"
+    const val CHANGE = "ChangePasscode"
 }
 
 @Composable
@@ -81,15 +79,15 @@ fun SettingsPasscodeScreen() {
         durationMillis = 500, easing = FastOutSlowInEasing
     )
 
-    var startDestination by remember { mutableStateOf(PasscodeScreens.Main) }
+    var startDestination by remember { mutableStateOf(PasscodeScreens.MAIN) }
 
     LaunchedEffect(Unit) {
         val dataStore = DataStoreManager.getInstance()
 
         startDestination = if (dataStore.getPasscode().first().isNotBlank()) {
-            PasscodeScreens.Settings
+            PasscodeScreens.SETTINGS
         } else {
-            PasscodeScreens.Main
+            PasscodeScreens.MAIN
         }
     }
 
@@ -102,16 +100,16 @@ fun SettingsPasscodeScreen() {
     }, popExitTransition = {
         slideOutHorizontally(animationSpec = transition) { it }
     }) {
-        composable(route = PasscodeScreens.Main) {
+        composable(route = PasscodeScreens.MAIN) {
             PasscodeLockMainScreen(navController, navViewModel)
         }
-        composable(route = PasscodeScreens.Create) {
+        composable(route = PasscodeScreens.CREATE) {
             CreatePasscodeScreen(navController, navViewModel)
         }
-        composable(route = PasscodeScreens.Settings) {
+        composable(route = PasscodeScreens.SETTINGS) {
             SettingsPasscodeLockScreen(navController, navViewModel)
         }
-        composable(route = PasscodeScreens.Change) {
+        composable(route = PasscodeScreens.CHANGE) {
             SettingsChangePasscodeLockScreen(navController)
         }
     }
@@ -121,16 +119,14 @@ fun SettingsPasscodeScreen() {
 private fun CreatePasscodeScreen(
     navController: NavHostController, navViewModel: NavigationViewModel
 ) {
-    val colors = LocalCustomColors.current
-
     val passcodeViewModel: PasscodeViewModel = viewModel()
 
     passcodeViewModel.onSaveNewPasscode = {
-        navController.navigate(route = PasscodeScreens.Settings) {
-            popUpTo(PasscodeScreens.Main) {
+        navController.navigate(route = PasscodeScreens.SETTINGS) {
+            popUpTo(PasscodeScreens.MAIN) {
                 inclusive = true
             }
-            popUpTo(PasscodeScreens.Create) {
+            popUpTo(PasscodeScreens.CREATE) {
                 inclusive = true
             }
         }
@@ -141,7 +137,7 @@ private fun CreatePasscodeScreen(
             TopBar(navViewModel)
         },
         modifier = Modifier.fillMaxSize(),
-        containerColor = colors.secondary
+        
     ) {
         Column(
             modifier = Modifier
@@ -160,12 +156,11 @@ private fun CreatePasscodeScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
 
-                    Text(text = "Создание код-пароля", color = colors.text, fontSize = 24.sp)
+                    Text(text = "Создание код-пароля", fontSize = 24.sp)
 
                     Text(
                         text = "Введите 4 цифры, которые хотите использовать для разблокировки приложения.",
                         textAlign = TextAlign.Center,
-                        color = colors.textHint,
                         fontSize = 14.sp,
                         lineHeight = 16.sp
                     )
@@ -199,16 +194,14 @@ private fun CreatePasscodeScreen(
 private fun SettingsChangePasscodeLockScreen(
     navController: NavHostController
 ) {
-    val colors = LocalCustomColors.current
-
     val passcodeViewModel: PasscodeViewModel = viewModel()
 
     passcodeViewModel.onSaveNewPasscode = {
-        navController.navigate(route = PasscodeScreens.Settings) {
-            popUpTo(PasscodeScreens.Main) {
+        navController.navigate(route = PasscodeScreens.SETTINGS) {
+            popUpTo(PasscodeScreens.MAIN) {
                 inclusive = true
             }
-            popUpTo(PasscodeScreens.Create) {
+            popUpTo(PasscodeScreens.CREATE) {
                 inclusive = true
             }
         }
@@ -226,18 +219,13 @@ private fun SettingsChangePasscodeLockScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = null,
-                            tint = colors.text,
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    titleContentColor = colors.text,
-                    containerColor = colors.secondary,
-                )
+                }
             )
         },
         modifier = Modifier.fillMaxSize(),
-        containerColor = colors.secondary
+        
     ) {
         Column(
             modifier = Modifier
@@ -256,12 +244,11 @@ private fun SettingsChangePasscodeLockScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
 
-                    Text(text = "Введите новый код-пароль", color = colors.text, fontSize = 24.sp)
+                    Text(text = "Введите новый код-пароль", fontSize = 24.sp)
 
                     Text(
                         text = "Введите 4 цифры, которые хотите использовать для разблокировки приложения.",
                         textAlign = TextAlign.Center,
-                        color = colors.textHint,
                         fontSize = 14.sp,
                         lineHeight = 16.sp
                     )
@@ -292,12 +279,10 @@ private fun SettingsChangePasscodeLockScreen(
 private fun PasscodeLockMainScreen(
     navController: NavHostController, navViewModel: NavigationViewModel
 ) {
-    val colors = LocalCustomColors.current
-
     Scaffold(
         topBar = {
-            TopBar(navViewModel)
-        }, containerColor = colors.secondary
+            TopBarMain(navViewModel)
+        }, 
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -312,7 +297,7 @@ private fun PasscodeLockMainScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val composition by rememberLottieComposition(
-                    spec = LottieCompositionSpec.Asset(JsonAnimation.Key_Lock)
+                    spec = LottieCompositionSpec.Asset(JsonAnimation.KEY_LOCK)
                 )
 
                 LottieAnimation(
@@ -324,7 +309,6 @@ private fun PasscodeLockMainScreen(
 
                 Text(
                     text = stringResource(R.string.passcode_lock),
-                    color = colors.text,
                     fontSize = 24.sp,
                     modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                 )
@@ -332,7 +316,6 @@ private fun PasscodeLockMainScreen(
                 Text(
                     text = "После установки кода-пароля над списком чатов появится значок замка для блокировки и разблокировки приложения.",
                     textAlign = TextAlign.Center,
-                    color = colors.textHint,
                     fontSize = 14.sp,
                     lineHeight = 16.sp
                 )
@@ -340,15 +323,15 @@ private fun PasscodeLockMainScreen(
 
             Button(
                 onClick = {
-                    navController.navigate(route = PasscodeScreens.Create) {
-                        popUpTo(PasscodeScreens.Main) {
+                    navController.navigate(route = PasscodeScreens.CREATE) {
+                        popUpTo(PasscodeScreens.MAIN) {
                             inclusive = true
                         }
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
                     contentColor = Color.White,
-                    containerColor = colors.primary,
+                    containerColor = MaterialTheme.colorScheme.primary,
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -367,8 +350,6 @@ private fun PasscodeLockMainScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(navigationViewModel: NavigationViewModel) {
-    val colors = LocalCustomColors.current
-
     PageTopBar(
         title = {},
         navigationIcon = {
@@ -379,14 +360,9 @@ private fun TopBar(navigationViewModel: NavigationViewModel) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,
-                    tint = colors.text,
                 )
             }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            titleContentColor = colors.text,
-            containerColor = colors.secondary,
-        )
+        }
     )
 }
 
@@ -395,26 +371,16 @@ private fun SettingsPasscodeLockScreen(
     navController: NavHostController,
     navViewModel: NavigationViewModel
 ) {
-    val colors = LocalCustomColors.current
     val passcodeViewModel: PasscodeViewModel = viewModel()
 
     val dialogViewModel: DialogViewModel = viewModel()
 
     val scrollState = rememberScrollState()
 
-    val initialTopBarColor = colors.secondary
-    val scrolledTopBarColor = colors.topAppBarBackground
-
-    val topBarColor = if (scrollState.value > 0) {
-        scrolledTopBarColor
-    } else {
-        initialTopBarColor
-    }
-
     Scaffold(
         topBar = {
-            TopBar(topBarColor, navViewModel)
-        }, containerColor = colors.secondary
+            TopBar(navViewModel)
+        }, 
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -429,7 +395,7 @@ private fun SettingsPasscodeLockScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val composition by rememberLottieComposition(
-                    spec = LottieCompositionSpec.Asset(JsonAnimation.Key_Lock)
+                    spec = LottieCompositionSpec.Asset(JsonAnimation.KEY_LOCK)
                 )
 
                 LottieAnimation(
@@ -441,7 +407,6 @@ private fun SettingsPasscodeLockScreen(
 
                 Text(
                     text = "Для блокировки и разблокировки приложения нажмите на значок замка над списком чатов.",
-                    color = colors.text,
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
                     textAlign = TextAlign.Center
@@ -451,16 +416,16 @@ private fun SettingsPasscodeLockScreen(
 
             SectionContainer {
                 SectionItem(text = "Сменить код-пароль", onClick = {
-                    navController.navigate(PasscodeScreens.Create)
+                    navController.navigate(PasscodeScreens.CREATE)
                 })
             }
 
             SectionContainer {
                 SectionItem(
                     text = "Выключить код-пароль",
-                    textColor = colors.danger,
+                    textColor = MaterialTheme.colorScheme.error,
                     colors = ButtonDefaults.textButtonColors(
-                        contentColor = colors.danger
+                        contentColor = MaterialTheme.colorScheme.error
                     ),
                     onClick = {
                         dialogViewModel.showDialog()
@@ -492,16 +457,13 @@ private fun DisablePasscodeDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) 
         Text(
             text = "Вы точно хотите отключить пароль?",
             modifier = Modifier.padding(horizontal = 16.dp),
-            color = LocalCustomColors.current.text
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar(backgroundColor: Color, navViewModel: NavigationViewModel) {
-    val colors = LocalCustomColors.current
-
+private fun TopBarMain(navViewModel: NavigationViewModel) {
     PageTopBar(
         title = { Text(stringResource(R.string.passcode_lock)) }, navigationIcon = {
             IconButton(
@@ -511,12 +473,8 @@ private fun TopBar(backgroundColor: Color, navViewModel: NavigationViewModel) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,
-                    tint = colors.text,
                 )
             }
-        }, colors = TopAppBarDefaults.topAppBarColors(
-            titleContentColor = colors.text,
-            containerColor = backgroundColor,
-        )
+        }
     )
 }

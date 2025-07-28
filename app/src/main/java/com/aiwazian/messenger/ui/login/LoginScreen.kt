@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -35,12 +36,9 @@ import com.aiwazian.messenger.viewModels.AuthViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.CustomDialog
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
 
 @Composable
 fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
-    val colors = LocalCustomColors.current
-
     var isLoad by remember { mutableStateOf(true) }
 
     val dialogViewModel: DialogViewModel = viewModel()
@@ -50,7 +48,7 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
-        containerColor = colors.secondary,
+        
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -59,7 +57,7 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
                         find = {
                             modalText = "Пользователь найден. Продолжить?"
                             dialogViewModel.primaryAction = {
-                                navController.navigate(Screen.Password)
+                                navController.navigate(Screen.PASSWORD)
                             }
                             dialogViewModel.showDialog()
                             isLoad = true
@@ -67,7 +65,7 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
                         notFind = {
                             modalText = "Пользователь не найден. Создать?"
                             dialogViewModel.primaryAction = {
-                                navController.navigate(Screen.Password)
+                                navController.navigate(Screen.PASSWORD)
                             }
                             dialogViewModel.showDialog()
                             isLoad = true
@@ -83,7 +81,7 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
                     )
                 },
                 modifier = Modifier.imePadding(),
-                containerColor = colors.primary,
+                containerColor = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             ) {
                 if (isLoad) {
@@ -111,7 +109,6 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
             Text(
                 text = "Логин пользователя",
                 modifier = Modifier.padding(vertical = 40.dp),
-                color = colors.text,
                 fontSize = 28.sp
             )
             Column(Modifier.width(300.dp)) {
@@ -138,7 +135,6 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
             ) {
                 Text(
                     text = modalText,
-                    color = colors.text,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
@@ -152,22 +148,16 @@ private fun LoginField(
     onValueChange: (String) -> Unit,
     label: String = "Логин",
 ) {
-    val colors = LocalCustomColors.current
-
     OutlinedTextField(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = colors.primary,
-            focusedTextColor = colors.text,
-            unfocusedTextColor = colors.text,
-            focusedPlaceholderColor = colors.textHint,
-            unfocusedPlaceholderColor = colors.textHint,
-            focusedLabelColor = colors.primary,
-            cursorColor = colors.primary,
-            errorLabelColor = colors.danger,
-            errorBorderColor = colors.danger,
-            errorTextColor = colors.danger
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            cursorColor = MaterialTheme.colorScheme.primary,
+            errorLabelColor = MaterialTheme.colorScheme.error,
+            errorBorderColor = MaterialTheme.colorScheme.error,
+            errorTextColor = MaterialTheme.colorScheme.error
         ),
         value = value,
         onValueChange = onValueChange,

@@ -1,17 +1,16 @@
 package com.aiwazian.messenger.ui.settings.chat
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -22,18 +21,13 @@ import androidx.compose.material.icons.outlined.ChatBubble
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DisabledVisible
 import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material.icons.outlined.VolumeOff
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -58,7 +51,7 @@ import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
-import com.aiwazian.messenger.ui.theme.LocalCustomColors
+import com.aiwazian.messenger.ui.element.SectionToggleItem
 import com.aiwazian.messenger.utils.ThemeService
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
@@ -71,33 +64,22 @@ fun SettingsChatScreen() {
 @Composable
 private fun Content() {
     val navViewModel: NavigationViewModel = viewModel()
-    val colors = LocalCustomColors.current
 
     val scrollState = rememberScrollState()
 
-    val initialTopBarColor = colors.secondary
-    val scrolledTopBarColor = colors.topAppBarBackground
-
-    val topBarColor = if (scrollState.value > 0) {
-        scrolledTopBarColor
-    } else {
-        initialTopBarColor
-    }
-
     Scaffold(
         topBar = {
-            TopBar(topBarColor)
-        }, containerColor = colors.secondary
+            TopBar()
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(innerPadding)
-                .background(colors.secondary)
+                .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
             val themeService = ThemeService()
-            val primaryColor = themeService.primaryColor.collectAsState().value
+            val primaryColor by themeService.primaryColor.collectAsState()
             val theme = when (themeService.currentTheme.collectAsState().value) {
                 ThemeOption.DARK -> "Включена"
                 ThemeOption.LIGHT -> "Отключена"
@@ -109,9 +91,23 @@ private fun Content() {
             SectionContainer {
                 val coroutineScope = rememberCoroutineScope()
 
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val isDynamicColorEnable by themeService.dynamicColor.collectAsState()
+
+                    SectionToggleItem(
+                        text = stringResource(R.string.dynamic_color),
+                        isChecked = isDynamicColorEnable,
+                        onCheckedChange = {
+                            coroutineScope.launch {
+                                themeService.setDynamicColor(!isDynamicColorEnable)
+                            }
+                        }
+                    )
+                }
+
                 Row(
                     modifier = Modifier
-                        .padding(vertical = 8.dp)
+                        .padding(8.dp)
                         .horizontalScroll(rememberScrollState())
                 ) {
                     PrimaryColorOption.entries.forEach { option ->
@@ -120,7 +116,7 @@ private fun Content() {
                             selected = primaryColor == option,
                             onClick = {
                                 coroutineScope.launch {
-                                    themeService.changePrimaryColor(option)
+                                    themeService.setPrimaryColor(option)
                                 }
                             },
                             colors = RadioButtonDefaults.colors(
@@ -161,25 +157,19 @@ private fun Content() {
                 ) {
 
                     Boxic(
-                        selected = selected == 1,
-                        icon = Icons.Outlined.Archive,
-                        onClick = {
+                        selected = selected == 1, icon = Icons.Outlined.Archive, onClick = {
                             vds = "Архивировать"
                             selected = 1
                         })
 
                     Boxic(
-                        selected = selected == 2,
-                        icon = Icons.Outlined.PushPin,
-                        onClick = {
+                        selected = selected == 2, icon = Icons.Outlined.PushPin, onClick = {
                             vds = "Закрепить"
                             selected = 2
                         })
 
                     Boxic(
-                        selected = selected == 5,
-                        icon = Icons.Outlined.ChatBubble,
-                        onClick = {
+                        selected = selected == 5, icon = Icons.Outlined.ChatBubble, onClick = {
                             vds = "Прочитать"
                             selected = 5
                         })
@@ -193,19 +183,13 @@ private fun Content() {
                         })
 
                     Boxic(
-                        selected = selected == 3,
-                        icon = Icons.Outlined.DisabledVisible,
-                        backgroundColor = colors.textHint,
-                        onClick = {
+                        selected = selected == 3, icon = Icons.Outlined.DisabledVisible, onClick = {
                             vds = "Сменить папку"
                             selected = 3
                         })
 
                     Boxic(
-                        selected = selected == 4,
-                        icon = Icons.Outlined.Delete,
-                        backgroundColor = colors.dangerBackground,
-                        onClick = {
+                        selected = selected == 4, icon = Icons.Outlined.Delete, onClick = {
                             vds = "Удалить"
                             selected = 4
                         })
@@ -222,22 +206,14 @@ private fun Boxic(
     selected: Boolean,
     icon: ImageVector,
     onClick: () -> Unit,
-    backgroundColor: Color = LocalCustomColors.current.primary
 ) {
-    val colors = LocalCustomColors.current
-
-    val back by animateColorAsState(
-        targetValue = if (!selected) colors.background else backgroundColor
-    )
-
     Box(
         modifier = Modifier
             .padding(4.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable {
                 onClick()
-            }
-            .background(back)) {
+            }) {
         Box(
             modifier = Modifier
             //.padding(4.dp)
@@ -248,12 +224,10 @@ private fun Boxic(
                 modifier = Modifier
                     .padding(4.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(backgroundColor)
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = Color.White,
                     modifier = Modifier.padding(10.dp)
                 )
             }
@@ -263,26 +237,20 @@ private fun Boxic(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar(backgroundColor: Color) {
+private fun TopBar() {
     val navViewModel: NavigationViewModel = viewModel()
-    val colors = LocalCustomColors.current
 
-    PageTopBar(
-        title = {
-            Text(stringResource(R.string.design))
-        }, navigationIcon = {
-            IconButton(
-                onClick = {
-                    navViewModel.removeLastScreenInStack()
-                }) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = colors.text,
-                )
-            }
-        }, colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = backgroundColor, titleContentColor = colors.text
-        )
-    )
+    PageTopBar(title = {
+        Text(stringResource(R.string.design))
+    }, navigationIcon = {
+        IconButton(
+            onClick = {
+                navViewModel.removeLastScreenInStack()
+            }) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+            )
+        }
+    })
 }
