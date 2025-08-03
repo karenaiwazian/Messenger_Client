@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -117,6 +116,9 @@ fun SearchScreen(viewModel: UserSearchViewModel = viewModel()) {
                             )
 
                             val username = user.username
+                            if (username == null) {
+                                return@Column
+                            }
                             val query = viewModel.query
 
                             val startIndex = username.indexOf(query)

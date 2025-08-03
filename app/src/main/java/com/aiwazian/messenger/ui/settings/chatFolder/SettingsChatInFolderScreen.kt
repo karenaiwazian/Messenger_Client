@@ -1,5 +1,6 @@
 package com.aiwazian.messenger.ui.settings.chatFolder
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,16 +27,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.ChatInfo
-import com.aiwazian.messenger.services.TokenManager
 import com.aiwazian.messenger.ui.element.InputField
 import com.aiwazian.messenger.ui.element.MinimizeChatCard
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
-import com.aiwazian.messenger.utils.DataStoreManager
 import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.viewModels.FolderViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
-import kotlinx.coroutines.flow.first
 
 @Composable
 fun SettingsChatInFolderScreen(
@@ -61,14 +59,12 @@ private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit = { }) {
 
     LaunchedEffect(Unit) {
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            val request = RetrofitInstance.api.getAllChats("Bearer $token")
+            val request = RetrofitInstance.api.getAllChats()
             if (request.isSuccessful) {
                 allChats = request.body() ?: emptyList()
             }
         } catch (e: Exception) {
-            // Handle exception
+            Log.e("SettingsChatInFolderScreen", "Error get all chats" + e.message)
         }
     }
 

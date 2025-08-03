@@ -7,9 +7,7 @@ import com.aiwazian.messenger.data.ChatInfo
 class FolderService {
 
     suspend fun getFolders(): List<ChatFolder> {
-        val tokenManager = TokenManager()
-        val token = tokenManager.getToken()
-        val request = RetrofitInstance.api.getFolders("Bearer $token")
+        val request = RetrofitInstance.api.getFolders()
 
         if (request.isSuccessful) {
             return request.body() ?: emptyList()
@@ -19,9 +17,7 @@ class FolderService {
     }
 
     suspend fun getFolderChats(folderId: Int): List<ChatInfo> {
-        val tokenManager = TokenManager()
-        val token = tokenManager.getToken()
-        val request = RetrofitInstance.api.getFolderChats("Bearer $token",folderId)
+        val request = RetrofitInstance.api.getFolderChats(folderId)
 
         if (request.isSuccessful) {
             return request.body() ?: emptyList()
@@ -31,16 +27,12 @@ class FolderService {
     }
 
     suspend fun saveFolder(folder: ChatFolder): Boolean {
-        val tokenManager = TokenManager()
-        val token = tokenManager.getToken()
-        val request = RetrofitInstance.api.saveFolder(token,folder)
+        val request = RetrofitInstance.api.saveFolder(folder)
         return request.isSuccessful
     }
 
     suspend fun removeFolder(folderId: Int): Boolean {
-        val tokenManager = TokenManager()
-        val token = tokenManager.getToken()
-        val request = RetrofitInstance.api.deleteFolder(token,folderId)
+        val request = RetrofitInstance.api.deleteFolder(folderId)
         return request.isSuccessful
     }
 }

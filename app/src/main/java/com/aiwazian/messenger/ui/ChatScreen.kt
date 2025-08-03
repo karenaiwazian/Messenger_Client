@@ -73,7 +73,6 @@ import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.DeleteChatRequest
 import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.data.User
-import com.aiwazian.messenger.services.TokenManager
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.viewModels.ChatViewModel
@@ -92,9 +91,7 @@ fun ChatScreen(userId: Int) {
 
     LaunchedEffect(true) {
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            val response = RetrofitInstance.api.getUserById("Bearer $token",userId)
+            val response = RetrofitInstance.api.getUserById(userId)
 
             if (response.isSuccessful) {
                 val getUser = response.body()
@@ -224,10 +221,8 @@ private fun Content(user: User) {
                         )
 
                         try {
-                            val tokenManager = TokenManager()
-                            val token = tokenManager.getToken()
                             val deleteChat =
-                                RetrofitInstance.api.deleteChat(token,reqBody)
+                                RetrofitInstance.api.deleteChat(reqBody)
 
                             if (deleteChat.isSuccessful) {
                                 chatViewModel.deleteAllMessages()

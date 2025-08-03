@@ -7,12 +7,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aiwazian.messenger.api.RetrofitInstance
-import com.aiwazian.messenger.utils.DataStoreManager
 import com.aiwazian.messenger.data.AuthRequest
 import com.aiwazian.messenger.data.CheckVerificationCodeRequest
 import com.aiwazian.messenger.data.FindUserRequest
 import com.aiwazian.messenger.data.RegisterRequest
 import com.aiwazian.messenger.services.DeviceHelper
+import com.aiwazian.messenger.services.TokenManager
 import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
@@ -33,9 +33,6 @@ class AuthViewModel : ViewModel() {
         private set
 
     var verificationCode by mutableStateOf("")
-        private set
-
-    var isAuthSuccessful by mutableStateOf(false)
         private set
 
     var isUserFound by mutableStateOf(false)
@@ -162,9 +159,7 @@ class AuthViewModel : ViewModel() {
                     return@launch
                 }
 
-                val store = DataStoreManager.Companion.getInstance()
-                store.saveToken(token)
-                isAuthSuccessful = true
+                TokenManager.saveToken(token)
                 success()
             } catch (e: Exception) {
                 error()

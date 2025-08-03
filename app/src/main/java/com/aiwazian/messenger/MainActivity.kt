@@ -17,7 +17,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.services.AppLockService
 import com.aiwazian.messenger.services.NotificationService
 import com.aiwazian.messenger.services.ThemeService
@@ -32,6 +31,7 @@ import com.aiwazian.messenger.utils.DataStoreManager
 import com.aiwazian.messenger.utils.WebSocketManager
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import com.google.firebase.FirebaseApp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -46,6 +46,7 @@ class MainActivity : ComponentActivity() {
         val dataStoreManager = DataStoreManager.getInstance()
 
         val savedLanguageCode = runBlocking {
+            TokenManager.init()
             dataStoreManager.getLanguage().first().lowercase()
         }
 
@@ -66,6 +67,12 @@ class MainActivity : ComponentActivity() {
 
         FirebaseApp.initializeApp(this)
 
+        TokenManager.setUnauthorizedCallback {
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            this@MainActivity.startActivity(intent)
+        }
+
         appLockService = AppLockService()
         themeService = ThemeService()
 
@@ -77,24 +84,9 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(Unit) {
                 try {
-                    val tokenManager = TokenManager()
-                    val token = tokenManager.getToken()
-
-                    if (token.isBlank()) {
-                        tokenManager.saveToken("")
-
-                        val intent = Intent(this@MainActivity, LoginActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        startActivity(intent)
-                        finish()
-                    }
-                } catch (e: Exception) {
-                    Log.e("MainActivity", e.message.toString())
-                }
-
-                try {
-                    //val notificationService = NotificationService()
-                    //notificationService.sendTokenToServer()
+                    val notificationService = NotificationService()
+                    val token = notificationService.getFirebaseToken()
+                    notificationService.sendTokenToServer(token)
                 } catch (e: Exception) {
                     Log.e(
                         "MainActivity",
@@ -108,12 +100,24 @@ class MainActivity : ComponentActivity() {
                             UserService.loadUserData()
                         }
                     }
-                    WebSocketManager.onClose = {
-                        val intent = Intent(this@MainActivity, LoginActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        startActivity(intent)
-                        finish()
+                    WebSocketManager.onClose = { code ->
+                        if (code == 1008) {
+                            TokenManager.getUnauthorizedCallback()?.invoke()
+                        } else {
+                            lifecycleScope.launch {
+                                delay(1000)
+                                WebSocketManager.connect()
+                            }
+                        }
                     }
+
+                    WebSocketManager.onFailure = {
+                        lifecycleScope.launch {
+                            delay(1000)
+                            WebSocketManager.connect()
+                        }
+                    }
+
                     WebSocketManager.connect()
                 } catch (e: Exception) {
                     Log.e("MainActivity", e.message.toString())

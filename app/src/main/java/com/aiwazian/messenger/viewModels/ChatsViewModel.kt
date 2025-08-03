@@ -4,14 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aiwazian.messenger.api.RetrofitInstance
-import com.aiwazian.messenger.data.ChatFolder
 import com.aiwazian.messenger.data.ChatInfo
-import com.aiwazian.messenger.services.TokenManager
-import com.aiwazian.messenger.utils.DataStoreManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -46,9 +42,7 @@ class ChatsViewModel : ViewModel() {
 
     suspend fun loadUnarchiveChats() {
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            val response = RetrofitInstance.api.getUnarchivedChats("Bearer $token")
+            val response = RetrofitInstance.api.getUnarchivedChats()
 
             val responseBody = response.body()
 
@@ -64,9 +58,7 @@ class ChatsViewModel : ViewModel() {
 
     suspend fun loadArchiveChats() {
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            val response = RetrofitInstance.api.getArchivedChats("Bearer $token")
+            val response = RetrofitInstance.api.getArchivedChats()
 
             val responseBody = response.body()
 
@@ -112,9 +104,8 @@ class ChatsViewModel : ViewModel() {
         _unarchivedChats.value = currentList.toList()
 
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            RetrofitInstance.api.pinChat(token, ChatInfo(id = chatId))
+            val chat = ChatInfo(chatId)
+            RetrofitInstance.api.pinChat(chat)
         } catch (e: Exception) {
             Log.e("ChatsViewModel", "Error while pin chat " + e.message)
         }
@@ -136,9 +127,8 @@ class ChatsViewModel : ViewModel() {
         _unarchivedChats.value = currentList.toList()
 
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            RetrofitInstance.api.unpinChat(token,ChatInfo(id = chatId))
+            val chat = ChatInfo(chatId)
+            RetrofitInstance.api.unpinChat(chat)
         } catch (e: Exception) {
             Log.e("ChatsViewModel", "Error while unpin chat " + e.message)
         }
@@ -176,9 +166,7 @@ class ChatsViewModel : ViewModel() {
         val requestBody = ChatInfo(id = chatId)
 
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            RetrofitInstance.api.archiveChat("Bearer $token", requestBody)
+            RetrofitInstance.api.archiveChat(requestBody)
         } catch (e: Exception) {
             Log.e("ChatsViewModel", "Error while adding chat to archive: " + e.message)
         }
@@ -216,9 +204,7 @@ class ChatsViewModel : ViewModel() {
         val requestBody = ChatInfo(id = chatId)
 
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            RetrofitInstance.api.unarchiveChat("Bearer $token", requestBody)
+            RetrofitInstance.api.unarchiveChat(requestBody)
         } catch (e: Exception) {
             Log.e("ChatsViewModel", "Error while deleting chat from archive: " + e.message)
         }

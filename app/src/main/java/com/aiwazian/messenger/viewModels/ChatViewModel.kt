@@ -10,7 +10,6 @@ import com.aiwazian.messenger.utils.ChatStateManager
 import com.aiwazian.messenger.utils.WebSocketManager
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.Message
-import com.aiwazian.messenger.services.TokenManager
 
 class ChatViewModel(
     private val chatId: Int,
@@ -37,9 +36,7 @@ class ChatViewModel(
 
     suspend fun loadMessages() {
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            val response = RetrofitInstance.api.getMessagesBetweenUsers("Bearer $token",chatId)
+            val response = RetrofitInstance.api.getMessagesBetweenUsers(chatId)
 
             if (response.isSuccessful) {
                 messages.addAll(response.body().orEmpty())
@@ -66,10 +63,8 @@ class ChatViewModel(
         messageText = ""
 
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
             val response =
-                RetrofitInstance.api.sendMessage("Bearer $token", message)
+                RetrofitInstance.api.sendMessage(message)
 
             if (response.isSuccessful) {
 

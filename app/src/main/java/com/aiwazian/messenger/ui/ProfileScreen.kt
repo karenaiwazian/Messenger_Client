@@ -36,7 +36,6 @@ import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionToggleItem
 import com.aiwazian.messenger.ui.settings.SettingsProfileScreen
-import com.aiwazian.messenger.services.TokenManager
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -52,9 +51,7 @@ fun ProfileScreen(userId: Int) {
 
     LaunchedEffect(true) {
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            val response = RetrofitInstance.api.getUserById(token, userId)
+            val response = RetrofitInstance.api.getUserById(userId)
 
             if (response.isSuccessful) {
                 val getUser = response.body()
@@ -112,7 +109,7 @@ private fun Content(user: User) {
 
                 val username = user.username
 
-                if (username.isNotEmpty()) {
+                if (!username.isNullOrBlank()) {
                     SectionItem(
                         text = ("@$username"),
                         description = stringResource(R.string.username),

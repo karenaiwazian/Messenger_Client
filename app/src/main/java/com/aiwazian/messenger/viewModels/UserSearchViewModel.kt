@@ -6,12 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.viewModelScope
-import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.User
-import com.aiwazian.messenger.services.TokenManager
-import kotlinx.coroutines.launch
 
 class UserSearchViewModel : ViewModel() {
 
@@ -31,9 +27,7 @@ class UserSearchViewModel : ViewModel() {
         query = prefix.trim()
 
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            val response = RetrofitInstance.api.searchUser(token, query)
+            val response = RetrofitInstance.api.searchUser(query)
 
             if (response.isSuccessful) {
                 searchResults.clear()

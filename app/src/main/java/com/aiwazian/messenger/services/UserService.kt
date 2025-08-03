@@ -17,9 +17,7 @@ object UserService {
 
     suspend fun loadUserData() {
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            val response = RetrofitInstance.api.getMe("Bearer $token")
+            val response = RetrofitInstance.api.getMe()
 
             if (response.isSuccessful) {
                 val responseBody = response.body()
@@ -37,9 +35,7 @@ object UserService {
 
     suspend fun saveUserData() {
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            val response = RetrofitInstance.api.updateProfile(token,_user.value)
+            val response = RetrofitInstance.api.updateProfile(_user.value)
             if (response.isSuccessful) {
                 Log.d("UserManager", "change is success $user")
             }

@@ -27,9 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.api.RetrofitInstance
-import com.aiwazian.messenger.services.TokenManager
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
@@ -56,9 +54,7 @@ private fun Content() {
         }
 
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            val getDevices = RetrofitInstance.api.getDeviceCount(token)
+            val getDevices = RetrofitInstance.api.getDeviceCount()
 
             if (getDevices.isSuccessful) {
                 deviceCount = getDevices.body() ?: 1

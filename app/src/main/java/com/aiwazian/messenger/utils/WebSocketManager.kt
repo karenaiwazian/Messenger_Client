@@ -7,8 +7,6 @@ import com.aiwazian.messenger.data.WebSocketMessage
 import com.aiwazian.messenger.services.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -39,10 +37,8 @@ object WebSocketManager {
             return
         }
 
-        val tokenManager = TokenManager()
-        val token = runBlocking {
-            tokenManager.getToken()
-        }
+        val token = TokenManager.getToken()
+
 
         val request = Request.Builder()
             .url("$SOCKET_URL?token=$token")
@@ -104,9 +100,5 @@ object WebSocketManager {
                 onFailure?.invoke()
             }
         })
-    }
-
-    fun retryConnection() {
-        connect()
     }
 }

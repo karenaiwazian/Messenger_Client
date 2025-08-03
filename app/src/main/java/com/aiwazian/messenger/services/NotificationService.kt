@@ -45,9 +45,7 @@ class NotificationService : FirebaseMessagingService(), NotificationService {
     suspend fun sendTokenToServer(token: String) {
         try {
             val request = NotificationTokenRequest(token)
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            val response = RetrofitInstance.api.updateFcmToken(token,request)
+            val response = RetrofitInstance.api.updateFcmToken(request)
 
             if (response.isSuccessful) {
                 Log.d("FCM", "FCM token updated on server")

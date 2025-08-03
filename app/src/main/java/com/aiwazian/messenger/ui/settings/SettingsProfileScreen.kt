@@ -38,7 +38,6 @@ import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.ui.element.InputField
@@ -154,7 +153,7 @@ private fun Content() {
                 SectionContainer {
                     InputField(
                         placeholder = stringResource(R.string.username),
-                        username
+                        username ?: ""
                     ) { username = it }
                 }
 

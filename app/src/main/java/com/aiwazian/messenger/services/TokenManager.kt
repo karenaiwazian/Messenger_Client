@@ -1,28 +1,31 @@
 package com.aiwazian.messenger.services
 
-import androidx.lifecycle.ViewModel
 import com.aiwazian.messenger.utils.DataStoreManager
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 
-class TokenManager {
+object TokenManager {
 
-    private val _token = MutableStateFlow<String?>(null)
-    val token = _token.asStateFlow()
+    private val _token = MutableStateFlow("")
 
+    private var unauthorizedCallback: (() -> Unit)? = null
 
-    suspend fun getToken(): String {
+    suspend fun init() {
         val dataStore = DataStoreManager.getInstance()
-        return dataStore.getToken().first()
+        _token.value = dataStore.getToken().first()
     }
 
+    fun getToken(): String = _token.value
+
     suspend fun saveToken(token: String) {
+        _token.value = token
         val dataStore = DataStoreManager.getInstance()
         dataStore.saveToken(token)
     }
 
-    suspend fun removeToken() {
-        //dataStore.saveToken("")
+    fun setUnauthorizedCallback(callback: () -> Unit) {
+        unauthorizedCallback = callback
     }
+
+    fun getUnauthorizedCallback(): (() -> Unit)? = unauthorizedCallback
 }

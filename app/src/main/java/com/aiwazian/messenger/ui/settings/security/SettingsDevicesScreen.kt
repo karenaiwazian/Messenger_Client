@@ -73,9 +73,7 @@ import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionRadioItem
 import com.aiwazian.messenger.services.DeviceHelper
-import com.aiwazian.messenger.services.TokenManager
 import com.aiwazian.messenger.utils.LottieAnimation
-import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.viewModels.DeviceSettingsViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -97,9 +95,7 @@ private fun Content() {
 
     LaunchedEffect(triggerForReloadUserSessions) {
         try {
-            val tokenManager = TokenManager()
-            val token = tokenManager.getToken()
-            val getDevices = RetrofitInstance.api.getSessions(token)
+            val getDevices = RetrofitInstance.api.getSessions()
 
             if (getDevices.isSuccessful) {
                 sessions = getDevices.body() ?: emptyList()

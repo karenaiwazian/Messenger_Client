@@ -19,7 +19,6 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -41,113 +40,71 @@ interface ApiService {
     suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
 
     @POST(Route.LOGOUT)
-    suspend fun logout(@Header("Authorization") token: String)
+    suspend fun logout()
 
     @GET(Route.ME)
-    suspend fun getMe(@Header("Authorization") token: String): Response<User>
+    suspend fun getMe(): Response<User>
 
     @GET(Route.UNARCHIVED_CHATS)
-    suspend fun getUnarchivedChats(@Header("Authorization") token: String): Response<List<ChatInfo>>
+    suspend fun getUnarchivedChats(): Response<List<ChatInfo>>
 
     @GET(Route.ARCHIVED_CHATS)
-    suspend fun getArchivedChats(@Header("Authorization") token: String): Response<List<ChatInfo>>
+    suspend fun getArchivedChats(): Response<List<ChatInfo>>
 
     @POST(Route.PIN_CHAT)
-    suspend fun pinChat(
-        @Header("Authorization") token: String,
-        @Body chatInfo: ChatInfo
-    ): Response<ApiResponse>
+    suspend fun pinChat(@Body chatInfo: ChatInfo): Response<ApiResponse>
 
     @POST(Route.UNPIN_CHAT)
-    suspend fun unpinChat(
-        @Header("Authorization") token: String,
-        @Body chatInfo: ChatInfo
-    ): Response<ApiResponse>
+    suspend fun unpinChat(@Body chatInfo: ChatInfo): Response<ApiResponse>
 
     @GET(Route.GET_SESSIONS)
-    suspend fun getSessions(@Header("Authorization") token: String): Response<List<Session>>
+    suspend fun getSessions(): Response<List<Session>>
 
     @POST(Route.UPDATE_FCM_TOKEN)
-    suspend fun updateFcmToken(
-        @Header("Authorization") token: String,
-        @Body newToken: NotificationTokenRequest
-    ): Response<ApiResponse>
+    suspend fun updateFcmToken(@Body newToken: NotificationTokenRequest): Response<ApiResponse>
 
     @POST(Route.TERMINATE_ALL_SESSIONS)
-    suspend fun terminateAllSessions(@Header("Authorization") token: String): Response<ApiResponse>
+    suspend fun terminateAllSessions(): Response<ApiResponse>
 
     @GET(Route.GET_DEVICE_COUNT)
-    suspend fun getDeviceCount(@Header("Authorization") token: String): Response<Int>
+    suspend fun getDeviceCount(): Response<Int>
 
     @POST(Route.DELETE_CHAT)
-    suspend fun deleteChat(
-        @Header("Authorization") token: String,
-        @Body request: DeleteChatRequest
-    ): Response<ApiResponse>
+    suspend fun deleteChat(@Body request: DeleteChatRequest): Response<ApiResponse>
 
     @GET(Route.MESSAGES)
-    suspend fun getMessagesBetweenUsers(
-        @Header("Authorization") token: String,
-        @Query("user") user: Int
-    ): Response<List<Message>>
+    suspend fun getMessagesBetweenUsers(@Query("user") user: Int): Response<List<Message>>
 
     @PUT(Route.PROFILE_UPDATE)
-    suspend fun updateProfile(
-        @Header("Authorization") token: String,
-        @Body profile: User
-    ): Response<Unit>
+    suspend fun updateProfile(@Body profile: User): Response<Unit>
 
     @GET(Route.SEARCH_USER)
-    suspend fun searchUser(
-        @Header("Authorization") token: String,
-        @Query("search") search: String
-    ): Response<List<User>>
+    suspend fun searchUser(@Query("search") search: String): Response<List<User>>
 
     @GET(Route.GE_USER_BY_ID)
-    suspend fun getUserById(
-        @Header("Authorization") token: String,
-        @Path("id") id: Int
-    ): Response<User>
+    suspend fun getUserById(@Path("id") id: Int): Response<User>
 
     @POST(Route.ADD_CHAT_TO_ARCHIVE)
-    suspend fun archiveChat(
-        @Header("Authorization") token: String,
-        @Body requestBody: ChatInfo
-    ): Response<ApiResponse>
+    suspend fun archiveChat(@Body requestBody: ChatInfo): Response<ApiResponse>
 
     @POST(Route.DELETE_CHAT_FROM_ARCHIVE)
-    suspend fun unarchiveChat(
-        @Header("Authorization") token: String,
-        @Body requestBody: ChatInfo
-    ): Response<ApiResponse>
+    suspend fun unarchiveChat(@Body requestBody: ChatInfo): Response<ApiResponse>
 
     @POST(Route.SEND_MESSAGE)
-    suspend fun sendMessage(
-        @Header("Authorization") token: String,
-        @Body requestBody: Message
-    ): Response<ApiResponse>
+    suspend fun sendMessage(@Body requestBody: Message): Response<ApiResponse>
 
     @POST(Route.FOLDER)
-    suspend fun saveFolder(
-        @Header("Authorization") token: String,
-        @Body requestBody: ChatFolder
-    ): Response<ApiResponse>
+    suspend fun saveFolder(@Body requestBody: ChatFolder): Response<ApiResponse>
 
     @DELETE(Route.DELETE_FOLDER)
-    suspend fun deleteFolder(
-        @Header("Authorization") token: String,
-        @Path("id") id: Int
-    ): Response<ApiResponse>
+    suspend fun deleteFolder(@Path("id") id: Int): Response<ApiResponse>
 
     @GET(Route.GET_FOLDER_CHATS)
-    suspend fun getFolderChats(
-        @Header("Authorization") token: String,
-        @Path("id") id: Int
-    ): Response<List<ChatInfo>>
+    suspend fun getFolderChats(@Path("id") id: Int): Response<List<ChatInfo>>
 
     @GET(Route.FOLDERS)
-    suspend fun getFolders(@Header("Authorization") token: String): Response<List<ChatFolder>>
+    suspend fun getFolders(): Response<List<ChatFolder>>
 
     @GET(Route.CHATS)
-    suspend fun getAllChats(@Header("Authorization") token: String): Response<List<ChatInfo>>
+    suspend fun getAllChats(): Response<List<ChatInfo>>
 }
