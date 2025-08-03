@@ -8,6 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
+
     private const val BASE_URL = Constants.SERVER_URL
 
     private val okHttpClient = OkHttpClient.Builder()

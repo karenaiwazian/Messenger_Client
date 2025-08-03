@@ -6,13 +6,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aiwazian.messenger.utils.DataStoreManager
-import com.aiwazian.messenger.utils.DeviceHelper
 import com.aiwazian.messenger.api.RetrofitInstance
+import com.aiwazian.messenger.utils.DataStoreManager
 import com.aiwazian.messenger.data.AuthRequest
 import com.aiwazian.messenger.data.CheckVerificationCodeRequest
 import com.aiwazian.messenger.data.FindUserRequest
 import com.aiwazian.messenger.data.RegisterRequest
+import com.aiwazian.messenger.services.DeviceHelper
 import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {

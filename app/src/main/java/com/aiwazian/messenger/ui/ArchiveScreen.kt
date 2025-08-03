@@ -3,16 +3,13 @@ package com.aiwazian.messenger.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Archive
@@ -37,7 +34,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,7 +45,7 @@ import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.BottomModalSheet
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SwipeableChatCard
-import com.aiwazian.messenger.utils.UserManager
+import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.viewModels.ChatsViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -64,12 +60,10 @@ fun ArchiveScreen() {
 @Composable
 private fun Content() {
     val navViewModel: NavigationViewModel = viewModel()
-    val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
 
     val chatsViewModel: ChatsViewModel = viewModel()
-    val initialChats = chatsViewModel.archivedChats.collectAsState().value
-    val chatList = remember { initialChats.toMutableStateList() }
+    val chatList by chatsViewModel.archivedChats.collectAsState()
 
     val dialogViewModel: DialogViewModel = viewModel()
 
@@ -138,14 +132,14 @@ private fun Content() {
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
-                .verticalScroll(scrollState)
         ) {
+            val user by UserService.user.collectAsState()
+
             LazyColumn {
-                items(chatList) { chat ->
+                items(chatList, key = { it.id }) { chat ->
                     var chatName = chat.chatName
 
-                    if (chat.id == UserManager.user.id) {
+                    if (chat.id == user.id) {
                         chatName = stringResource(R.string.saved_messages)
                     }
 
@@ -156,9 +150,6 @@ private fun Content() {
                     }, backgroundIcon = Icons.Outlined.Unarchive, onDismiss = {
                         scope.launch {
                             chatsViewModel.unarchiveChat(chat.id)
-                            if (chatsViewModel.archivedChats.value.isEmpty()) {
-                                navViewModel.removeLastScreenInStack()
-                            }
                         }
                     })
                 }

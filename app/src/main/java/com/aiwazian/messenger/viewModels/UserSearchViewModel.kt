@@ -7,9 +7,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import com.aiwazian.messenger.utils.UserManager
+import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.User
+import com.aiwazian.messenger.services.TokenManager
 import kotlinx.coroutines.launch
 
 class UserSearchViewModel : ViewModel() {
@@ -20,28 +21,28 @@ class UserSearchViewModel : ViewModel() {
     var query by mutableStateOf("")
         private set
 
-    fun searchUsersByPrefix(prefix: String) {
+    suspend fun searchUsersByPrefix(prefix: String) {
         if (prefix.isBlank()) {
             searchResults.clear()
+            query = ""
             return
         }
 
-        query = prefix
+        query = prefix.trim()
 
-        viewModelScope.launch {
-            try {
-                val token = UserManager.token
-                val response = RetrofitInstance.api.searchUser("Bearer $token", query)
+        try {
+            val tokenManager = TokenManager()
+            val token = tokenManager.getToken()
+            val response = RetrofitInstance.api.searchUser(token, query)
 
-                if (response.isSuccessful) {
-                    searchResults.clear()
-                    searchResults.addAll(response.body() ?: emptyList())
-                } else {
-                    searchResults.clear()
-                }
-            } catch (e: Exception) {
-                Log.e("SearchViewModel", "${e.message}")
+            if (response.isSuccessful) {
+                searchResults.clear()
+                searchResults.addAll(response.body() ?: emptyList())
+            } else {
+                searchResults.clear()
             }
+        } catch (e: Exception) {
+            Log.e("SearchViewModel", "${e.message}")
         }
     }
 }

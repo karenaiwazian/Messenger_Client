@@ -48,7 +48,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.aiwazian.messenger.utils.JsonAnimation
+import com.aiwazian.messenger.utils.LottieAnimation
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.CodeBlocks
 import com.aiwazian.messenger.ui.element.CustomDialog
@@ -297,7 +297,7 @@ private fun PasscodeLockMainScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val composition by rememberLottieComposition(
-                    spec = LottieCompositionSpec.Asset(JsonAnimation.KEY_LOCK)
+                    spec = LottieCompositionSpec.Asset(LottieAnimation.KEY_LOCK)
                 )
 
                 LottieAnimation(
@@ -317,7 +317,8 @@ private fun PasscodeLockMainScreen(
                     text = "После установки кода-пароля над списком чатов появится значок замка для блокировки и разблокировки приложения.",
                     textAlign = TextAlign.Center,
                     fontSize = 14.sp,
-                    lineHeight = 16.sp
+                    lineHeight = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -395,7 +396,7 @@ private fun SettingsPasscodeLockScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val composition by rememberLottieComposition(
-                    spec = LottieCompositionSpec.Asset(JsonAnimation.KEY_LOCK)
+                    spec = LottieCompositionSpec.Asset(LottieAnimation.KEY_LOCK)
                 )
 
                 LottieAnimation(
@@ -409,7 +410,8 @@ private fun SettingsPasscodeLockScreen(
                     text = "Для блокировки и разблокировки приложения нажмите на значок замка над списком чатов.",
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
             }

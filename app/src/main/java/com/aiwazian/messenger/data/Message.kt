@@ -1,14 +1,15 @@
 package com.aiwazian.messenger.data
 
 import androidx.annotation.Keep
-import kotlinx.serialization.Serializable
+import java.time.Instant
+import java.util.Date
 
 @Keep
-@Serializable
 data class Message(
     @Keep val id: Int = 0,
     @Keep val senderId: Int = 0,
-    @Keep val receiverId: Int = 0,
+    @Keep val chatId: Int = 0,
+    @Keep val messageId: Int = 0,
     @Keep val text: String = "",
-    @Keep val timestamp: Long = System.currentTimeMillis(),
-) : WebSocketData
+    @Keep val sendTime: Date = Date.from(Instant.now()),
+)

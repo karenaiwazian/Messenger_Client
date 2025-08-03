@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.ui.element.CodeBlocks
 import com.aiwazian.messenger.ui.element.CustomNumberBoard
-import com.aiwazian.messenger.utils.VibrateService
+import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.utils.VibrationPattern
 import com.aiwazian.messenger.viewModels.LockScreenViewModel
 import com.aiwazian.messenger.viewModels.PasscodeViewModel

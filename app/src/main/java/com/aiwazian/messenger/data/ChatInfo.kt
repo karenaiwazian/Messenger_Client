@@ -6,5 +6,5 @@ import androidx.annotation.Keep
 data class ChatInfo(
     @Keep val id: Int,
     @Keep val chatName: String = "",
-    @Keep val isPinned: Boolean = false
+    @Keep var isPinned: Boolean = false
 )

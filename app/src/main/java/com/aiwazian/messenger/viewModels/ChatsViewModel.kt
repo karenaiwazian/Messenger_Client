@@ -2,12 +2,18 @@ package com.aiwazian.messenger.viewModels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.aiwazian.messenger.api.RetrofitInstance
+import com.aiwazian.messenger.data.ChatFolder
 import com.aiwazian.messenger.data.ChatInfo
+import com.aiwazian.messenger.services.TokenManager
 import com.aiwazian.messenger.utils.DataStoreManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class ChatsViewModel : ViewModel() {
     private val _unarchivedChats = MutableStateFlow<List<ChatInfo>>(emptyList())
@@ -19,11 +25,29 @@ class ChatsViewModel : ViewModel() {
     private val _selectedChats = MutableStateFlow<List<Int>>(emptyList())
     val selectedChats = _selectedChats.asStateFlow()
 
-    private val dataStore = DataStoreManager.getInstance()
+    private val _allSelectedArePinned = MutableStateFlow(false)
+    val allSelectedArePinned = _allSelectedArePinned.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            _selectedChats.combine(_unarchivedChats) { selectedIds, unarchivedInfos ->
+                if (selectedIds.isEmpty()) {
+                    false
+                } else {
+                    selectedIds.all { selectedChatId ->
+                        unarchivedInfos.find { it.id == selectedChatId }?.isPinned == true
+                    }
+                }
+            }.collect { allArePinned ->
+                _allSelectedArePinned.value = allArePinned
+            }
+        }
+    }
 
     suspend fun loadUnarchiveChats() {
         try {
-            val token = dataStore.getToken().first()
+            val tokenManager = TokenManager()
+            val token = tokenManager.getToken()
             val response = RetrofitInstance.api.getUnarchivedChats("Bearer $token")
 
             val responseBody = response.body()
@@ -40,7 +64,8 @@ class ChatsViewModel : ViewModel() {
 
     suspend fun loadArchiveChats() {
         try {
-            val token = dataStore.getToken().first()
+            val tokenManager = TokenManager()
+            val token = tokenManager.getToken()
             val response = RetrofitInstance.api.getArchivedChats("Bearer $token")
 
             val responseBody = response.body()
@@ -73,93 +98,143 @@ class ChatsViewModel : ViewModel() {
 
     suspend fun pinChat(chatId: Int) {
         val currentList = _unarchivedChats.value.toMutableList()
-        val index = currentList.indexOfFirst { it.id == chatId }
+        val chatToPin = currentList.find { it.id == chatId }
 
-        if (index == -1) {
+        if (chatToPin == null) {
             return
         }
 
-        val selectedChatInfo = currentList.first { it.id == chatId }
-        currentList.remove(selectedChatInfo)
-        currentList.add(0, selectedChatInfo)
+        chatToPin.isPinned = true
 
-        _unarchivedChats.value = currentList
+        currentList.remove(chatToPin)
+        currentList.add(0, chatToPin)
 
-        val token = dataStore.getToken().first()
+        _unarchivedChats.value = currentList.toList()
+
         try {
-            RetrofitInstance.api.pinChat("Bearer $token", ChatInfo(id = chatId))
-        } catch(e: Exception) {
+            val tokenManager = TokenManager()
+            val token = tokenManager.getToken()
+            RetrofitInstance.api.pinChat(token, ChatInfo(id = chatId))
+        } catch (e: Exception) {
             Log.e("ChatsViewModel", "Error while pin chat " + e.message)
         }
     }
 
     suspend fun unpinChat(chatId: Int) {
         val currentList = _unarchivedChats.value.toMutableList()
-        val index = currentList.indexOfFirst { it.id == chatId }
+        val selectedChatInfo = currentList.find { it.id == chatId }
 
-        if (index == -1) {
+        if (selectedChatInfo == null) {
             return
         }
 
-        val item = currentList.removeAt(index)
-        _unarchivedChats.value += item
+        selectedChatInfo.isPinned = false
 
-        val token = dataStore.getToken().first()
-        RetrofitInstance.api.unpinChat("Bearer $token", ChatInfo(id = chatId))
+        currentList.remove(selectedChatInfo)
+        currentList.add(_unarchivedChats.value.count { it.isPinned }, selectedChatInfo)
+
+        _unarchivedChats.value = currentList.toList()
+
+        try {
+            val tokenManager = TokenManager()
+            val token = tokenManager.getToken()
+            RetrofitInstance.api.unpinChat(token,ChatInfo(id = chatId))
+        } catch (e: Exception) {
+            Log.e("ChatsViewModel", "Error while unpin chat " + e.message)
+        }
     }
 
     suspend fun archiveChat(chatId: Int) {
-        val currentList = _unarchivedChats.value.toMutableList()
-        val index = currentList.indexOfFirst { it.id == chatId }
+        var chatToArchive: ChatInfo? = null
 
-        if (index == -1) {
+        _unarchivedChats.update { currentUnarchived ->
+            val mutableList = currentUnarchived.toMutableList()
+            val index = mutableList.indexOfFirst { it.id == chatId }
+
+            if (index != -1) {
+                chatToArchive = mutableList.removeAt(index)
+            } else {
+                Log.w("ChatsViewModel", "Chat to archive not found in unarchived list: $chatId")
+                return@update currentUnarchived
+            }
+            mutableList
+        }
+
+        if (chatToArchive == null) {
             return
         }
 
-        val item = currentList.removeAt(index)
-        _archivedChats.value += item
-        _unarchivedChats.value -= item
+        val finalChatToArchive = chatToArchive.copy(isPinned = false)
 
-        val token = dataStore.getToken().first()
-        val chatInfo = ChatInfo(id = chatId)
+        _archivedChats.update { currentArchived ->
+            val mutableList = currentArchived.toMutableList()
+            mutableList.removeAll { it.id == finalChatToArchive.id }
+            mutableList.add(finalChatToArchive)
+            mutableList
+        }
+
+        val requestBody = ChatInfo(id = chatId)
+
         try {
-            RetrofitInstance.api.archiveChat(token = "Bearer $token", chatInfo)
+            val tokenManager = TokenManager()
+            val token = tokenManager.getToken()
+            RetrofitInstance.api.archiveChat("Bearer $token", requestBody)
         } catch (e: Exception) {
-            Log.e("ChatsViewModel", "Error while ad chat to archive " + e.message)
+            Log.e("ChatsViewModel", "Error while adding chat to archive: " + e.message)
         }
     }
 
     suspend fun unarchiveChat(chatId: Int) {
-        val currentList = _archivedChats.value.toMutableList()
-        val index = currentList.indexOfFirst { it.id == chatId }
+        var chatToUnarchive: ChatInfo? = null
 
-        if (index == -1) {
+        _archivedChats.update { currentArchived ->
+            val mutableList = currentArchived.toMutableList()
+            val index = mutableList.indexOfFirst { it.id == chatId }
+
+            if (index != -1) {
+                chatToUnarchive = mutableList.removeAt(index)
+            } else {
+                Log.w("ChatsViewModel", "Chat to unarchive not found in archived list: $chatId")
+                return@update currentArchived
+            }
+            mutableList
+        }
+
+        if (chatToUnarchive == null) {
             return
         }
 
-        val item = currentList.removeAt(index)
-        _unarchivedChats.value += item
-        _archivedChats.value -= item
+        val finalChatToUnarchive = chatToUnarchive.copy(isPinned = false)
 
-        val token = dataStore.getToken().first()
-        val chatInfo = ChatInfo(id = chatId)
+        _unarchivedChats.update { currentUnarchived ->
+            val mutableList = currentUnarchived.toMutableList()
+            mutableList.removeAll { it.id == finalChatToUnarchive.id }
+            mutableList.add(finalChatToUnarchive)
+            mutableList
+        }
+
+        val requestBody = ChatInfo(id = chatId)
+
         try {
-            RetrofitInstance.api.unarchiveChat(token = "Bearer $token", chatInfo)
+            val tokenManager = TokenManager()
+            val token = tokenManager.getToken()
+            RetrofitInstance.api.unarchiveChat("Bearer $token", requestBody)
         } catch (e: Exception) {
-            Log.e("ChatsViewModel", "Error while delete chat from archive")
+            Log.e("ChatsViewModel", "Error while deleting chat from archive: " + e.message)
         }
     }
 
     fun moveToUp(chatId: Int) {
         val currentList = _unarchivedChats.value.toMutableList()
-        val index = currentList.indexOfFirst { it.id == chatId }
+        val chat = currentList.find { it.id == chatId }
 
-        if (index == -1) {
+        if (chat == null) {
             return
         }
 
-        val item = currentList.removeAt(index)
-        currentList.add(0, item)
+        currentList.remove(chat)
+        currentList.add(0, chat)
+
         _unarchivedChats.value = currentList
     }
 }

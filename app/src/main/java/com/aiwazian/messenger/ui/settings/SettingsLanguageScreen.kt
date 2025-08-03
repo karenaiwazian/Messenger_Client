@@ -26,7 +26,7 @@ import com.aiwazian.messenger.customType.Language
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionRadioItem
-import com.aiwazian.messenger.utils.LanguageService
+import com.aiwazian.messenger.services.LanguageService
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 

@@ -34,8 +34,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.utils.Constants
-import com.aiwazian.messenger.utils.QrCodeService
-import com.aiwazian.messenger.utils.UserManager
+import com.aiwazian.messenger.services.QrCodeService
+import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -58,7 +58,8 @@ private fun Content() {
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val url = "${Constants.DOMAIN_NAME}/${UserManager.user.username}"
+
+            val url = "${Constants.DOMAIN_NAME}//TODO username"
 
             val qrCodeService = QrCodeService()
 

@@ -44,9 +44,10 @@ import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.settings.chat.SettingsChatScreen
+import com.aiwazian.messenger.ui.settings.chatFolder.SettingsChatFoldersScreen
 import com.aiwazian.messenger.ui.settings.privacy.SettingsPrivacyScreen
 import com.aiwazian.messenger.ui.settings.security.SettingsSecurityScreen
-import com.aiwazian.messenger.utils.LanguageService
+import com.aiwazian.messenger.services.LanguageService
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -176,46 +177,45 @@ private fun TopBar() {
     val navViewModel: NavigationViewModel = viewModel()
     var menuExpanded by remember { mutableStateOf(false) }
 
-    PageTopBar(
-        title = { Text(stringResource(R.string.settings)) }, navigationIcon = {
-            IconButton(onClick = {
-                navViewModel.removeLastScreenInStack()
-            }) {
+    PageTopBar(navigationIcon = {
+        IconButton(onClick = {
+            navViewModel.removeLastScreenInStack()
+        }) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = null,
+            )
+        }
+    }, actions = {
+        Box {
+            IconButton(onClick = { menuExpanded = true }) {
                 Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.Outlined.MoreVert,
                     contentDescription = null,
                 )
             }
-        }, actions = {
-            Box {
-                IconButton(onClick = { menuExpanded = true }) {
-                    Icon(
-                        imageVector = Icons.Outlined.MoreVert,
-                        contentDescription = null,
-                    )
-                }
 
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false },
-                ) {
-                    DropdownMenuItem(leadingIcon = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ExitToApp,
-                            contentDescription = stringResource(R.string.exit),
-                        )
-                    }, text = {
-                        Text(
-                            text = stringResource(R.string.exit)
-                        )
-                    }, onClick = {
-                        menuExpanded = false
-                        navViewModel.addScreenInStack {
-                            LogoutScreen()
-                        }
-                    })
-                }
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+            ) {
+                DropdownMenuItem(leadingIcon = {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = stringResource(R.string.exit),
+                    )
+                }, text = {
+                    Text(
+                        text = stringResource(R.string.exit)
+                    )
+                }, onClick = {
+                    menuExpanded = false
+                    navViewModel.addScreenInStack {
+                        LogoutScreen()
+                    }
+                })
             }
         }
+    }
     )
 }

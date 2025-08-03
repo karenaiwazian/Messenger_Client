@@ -1,5 +1,6 @@
-package com.aiwazian.messenger.utils
+package com.aiwazian.messenger.services
 
+import com.aiwazian.messenger.utils.DataStoreManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +19,7 @@ class AppLockService {
     var hasPasscode = _hasPasscode.asStateFlow()
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
-    private val dataStorage = DataStoreManager.getInstance()
+    private val dataStorage = DataStoreManager.Companion.getInstance()
 
     init {
         coroutineScope.launch {

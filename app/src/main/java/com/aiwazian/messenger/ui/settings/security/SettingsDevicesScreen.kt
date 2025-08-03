@@ -63,10 +63,7 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.api.RetrofitInstance
-import com.aiwazian.messenger.customType.WebSocketAction
-import com.aiwazian.messenger.data.DismissSession
 import com.aiwazian.messenger.data.Session
-import com.aiwazian.messenger.data.WebSocketMessage
 import com.aiwazian.messenger.ui.element.BottomModalSheet
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
@@ -75,10 +72,10 @@ import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionRadioItem
-import com.aiwazian.messenger.utils.DeviceHelper
-import com.aiwazian.messenger.utils.JsonAnimation
-import com.aiwazian.messenger.utils.UserManager
-import com.aiwazian.messenger.utils.WebSocketManager
+import com.aiwazian.messenger.services.DeviceHelper
+import com.aiwazian.messenger.services.TokenManager
+import com.aiwazian.messenger.utils.LottieAnimation
+import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.viewModels.DeviceSettingsViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -98,11 +95,11 @@ private fun Content() {
 
     var triggerForReloadUserSessions by remember { mutableStateOf(false) }
 
-    val token = UserManager.token
-
     LaunchedEffect(triggerForReloadUserSessions) {
         try {
-            val getDevices = RetrofitInstance.api.getSessions("Bearer $token")
+            val tokenManager = TokenManager()
+            val token = tokenManager.getToken()
+            val getDevices = RetrofitInstance.api.getSessions(token)
 
             if (getDevices.isSuccessful) {
                 sessions = getDevices.body() ?: emptyList()
@@ -139,7 +136,7 @@ private fun Content() {
                 }
             )
         },
-        
+
         snackbarHost = {
             SwipeDismissSnackbarHost(snackbarHostState)
         }
@@ -170,7 +167,7 @@ private fun Content() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val composition by rememberLottieComposition(
-                    spec = LottieCompositionSpec.Asset(JsonAnimation.APPLE_PHONE)
+                    spec = LottieCompositionSpec.Asset(LottieAnimation.APPLE_PHONE)
                 )
 
                 LottieAnimation(
@@ -184,7 +181,8 @@ private fun Content() {
                     text = "Вы можете зайти в приложение с помощью QR-кода.",
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Button(
@@ -238,14 +236,17 @@ private fun Content() {
                         ),
                         onClick = {
                             onDismissClick = {
-                                viewModel.terminateAllOtherSessions(
-                                    success = {
-                                        triggerForReloadUserSessions = !triggerForReloadUserSessions
-                                    },
-                                    fail = {
+                                scope.launch {
+                                    viewModel.terminateAllOtherSessions(
+                                        success = {
+                                            triggerForReloadUserSessions =
+                                                !triggerForReloadUserSessions
+                                        },
+                                        fail = {
 
-                                    }
-                                )
+                                        }
+                                    )
+                                }
                             }
 
                             dismissSessionViewModel.showDialog()
@@ -287,13 +288,7 @@ private fun Content() {
                                     bottomSheetController.showDialog()
 
                                     onDismissClick = {
-                                        val sendData = WebSocketMessage(
-                                            WebSocketAction.DISMISS_SESSION,
-                                            DismissSession(session.id)
-                                        )
-
-                                        WebSocketManager.send(sendData)
-
+                                        // TODO(Dismiss session)
                                         triggerForReloadUserSessions = !triggerForReloadUserSessions
 
                                         bottomSheetController.hideDialog()

@@ -1,7 +1,7 @@
 package com.aiwazian.messenger.ui
 
 import android.util.Log
-import com.aiwazian.messenger.utils.ClipboardHelper
+import com.aiwazian.messenger.services.ClipboardHelper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
@@ -46,6 +46,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,20 +68,20 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.utils.ChatStateManager
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.utils.UserManager
+import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.DeleteChatRequest
 import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.data.User
+import com.aiwazian.messenger.services.TokenManager
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.viewModels.ChatViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 private var showDeleteChatDialog by mutableStateOf(false)
 
@@ -90,10 +91,10 @@ fun ChatScreen(userId: Int) {
     var isLoaded by remember { mutableStateOf(false) }
 
     LaunchedEffect(true) {
-        val token = UserManager.token
-
         try {
-            val response = RetrofitInstance.api.getUserById(token = "Bearer $token", id = userId)
+            val tokenManager = TokenManager()
+            val token = tokenManager.getToken()
+            val response = RetrofitInstance.api.getUserById("Bearer $token",userId)
 
             if (response.isSuccessful) {
                 val getUser = response.body()
@@ -117,8 +118,13 @@ fun ChatScreen(userId: Int) {
 private fun Content(user: User) {
     val context = LocalContext.current
 
-    val currentUserId = remember { UserManager.user.id }
-    val viewModel = remember { ChatViewModel(user.id, currentUserId) }
+    val me by UserService.user.collectAsState()
+
+    val chatViewModel = remember { ChatViewModel(user.id, me.id) }
+
+    LaunchedEffect(Unit) {
+        chatViewModel.loadMessages()
+    }
 
     val deleteDialogViewModel: DialogViewModel = viewModel()
 
@@ -126,10 +132,10 @@ private fun Content(user: User) {
         topBar = {
             TopBar(user, deleteDialogViewModel)
         },
-        
-    ) { innerPadding ->
+
+        ) { innerPadding ->
         val chatId = user.id
-        val messages = viewModel.messages
+        val messages = chatViewModel.messages
 
         val listState = rememberLazyListState()
 
@@ -195,35 +201,36 @@ private fun Content(user: User) {
                     }
                 }
 
+            val coroutineScope = rememberCoroutineScope()
+
             InputMessage(
-                value = viewModel.messageText,
-                onValueChange = { viewModel.messageText = it },
+                value = chatViewModel.messageText,
+                onValueChange = { chatViewModel.changeText(it) },
                 attachFile = {
                     pickMultipleMedia.launch(PickVisualMediaRequest(PickVisualMedia.ImageAndVideo))
                 },
                 onSend = {
-                    viewModel.sendMessage()
-                    viewModel.messageText = ""
+                    coroutineScope.launch {
+                        chatViewModel.sendMessage()
+                    }
                 }
             )
 
-            val coroutineScope = rememberCoroutineScope()
-
             DeleteChatDialog(
                 onDelete = {
-                    val token = UserManager.token
-
                     coroutineScope.launch {
                         val reqBody = DeleteChatRequest(
                             chatId = chatId, deletedBySender = true, deletedByReceiver = false
                         )
 
                         try {
+                            val tokenManager = TokenManager()
+                            val token = tokenManager.getToken()
                             val deleteChat =
-                                RetrofitInstance.api.deleteChat("Bearer $token", reqBody)
+                                RetrofitInstance.api.deleteChat(token,reqBody)
 
                             if (deleteChat.isSuccessful) {
-                                viewModel.deleteAllMessages()
+                                chatViewModel.deleteAllMessages()
                                 deleteDialogViewModel.hideDialog()
                             }
                         } catch (e: Exception) {
@@ -242,6 +249,7 @@ private fun Content(user: User) {
 private fun TopBar(user: User, dialogViewModel: DialogViewModel) {
     var menuExpanded by remember { mutableStateOf(false) }
     val navViewModel: NavigationViewModel = viewModel()
+    val me by UserService.user.collectAsState()
 
     PageTopBar(
         title = {
@@ -259,7 +267,7 @@ private fun TopBar(user: User, dialogViewModel: DialogViewModel) {
                     modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center
                 ) {
 
-                    val chatName = if (user.id == UserManager.user.id) {
+                    val chatName = if (user.id == me.id) {
                         stringResource(R.string.saved_messages)
                     } else {
                         "${user.firstName} ${user.lastName}"
@@ -383,11 +391,11 @@ fun MessageItem(
     onEdit: () -> Unit,
     onCopy: () -> Unit,
 ) {
-    val currentUserId = remember { UserManager.user.id }
+    val user by UserService.user.collectAsState()
+    val currentUserId = remember { user.id }
 
-    val formatter = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
-
-    val sendMessageTime = formatter.format(Instant.ofEpochMilli(message.timestamp))
+    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val sendMessageTime = formatter.format(message.sendTime)
 
     var expanded by remember { mutableStateOf(false) }
 
@@ -487,7 +495,9 @@ private fun TextMessage(text: String, time: String, alignment: Alignment, onClic
             Box(
                 modifier = Modifier
                     .background(
-                        color = if (alignment == Alignment.CenterEnd) MaterialTheme.colorScheme.primary else Color(0x66646464),
+                        color = if (alignment == Alignment.CenterEnd) MaterialTheme.colorScheme.primary else Color(
+                            0x66646464
+                        ),
                         shape = RoundedCornerShape(16.dp)
                     )
                     .widthIn(max = 280.dp)

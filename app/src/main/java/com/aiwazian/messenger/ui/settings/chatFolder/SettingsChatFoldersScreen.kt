@@ -1,18 +1,26 @@
-package com.aiwazian.messenger.ui.settings
+package com.aiwazian.messenger.ui.settings.chatFolder
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,11 +33,13 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.aiwazian.messenger.utils.JsonAnimation
+import com.aiwazian.messenger.utils.LottieAnimation
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionHeader
+import com.aiwazian.messenger.ui.element.SectionItem
+import com.aiwazian.messenger.viewModels.FolderViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -39,13 +49,20 @@ fun SettingsChatFoldersScreen() {
 
 @Composable
 private fun Content() {
+    val navViewModel: NavigationViewModel = viewModel()
+    val folderViewModel: FolderViewModel = viewModel()
+
+    val folders by folderViewModel.folders.collectAsState()
+
+    LaunchedEffect(Unit) {
+        folderViewModel.loadFolders()
+    }
+
     Scaffold(
         topBar = {
             TopBar()
-        },
-        
+        }
     ) { innerPadding ->
-
         Column(modifier = Modifier.padding(innerPadding)) {
             Column(
                 modifier = Modifier
@@ -55,7 +72,7 @@ private fun Content() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val composition by rememberLottieComposition(
-                    spec = LottieCompositionSpec.Asset(JsonAnimation.FOLDERS)
+                    spec = LottieCompositionSpec.Asset(LottieAnimation.FOLDERS)
                 )
 
                 LottieAnimation(
@@ -69,14 +86,44 @@ private fun Content() {
                     text = "Вы можете создать папки с нужными чатами и переключаться между ними.",
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
             SectionHeader(title = stringResource(R.string.chat_folders))
 
             SectionContainer {
+                SectionItem(text = stringResource(R.string.all_chats), icon = Icons.Outlined.Menu)
 
+                LazyColumn {
+                    items(folders, key = { it.id }) { folder ->
+                        SectionItem(
+                            text = folder.folderName,
+                            icon = Icons.Outlined.Menu,
+                            onClick = {
+                                navViewModel.addScreenInStack {
+                                    SettingsFolderScreen(folder.id)
+                                }
+                            }
+                        )
+                    }
+                }
+
+                SectionItem(
+                    text = stringResource(R.string.create_new_folder),
+                    icon = Icons.Filled.AddCircle,
+                    iconColor = MaterialTheme.colorScheme.primary,
+                    onClick = {
+                        navViewModel.addScreenInStack {
+                            SettingsFolderScreen(0)
+                        }
+                    },
+                    textColor = MaterialTheme.colorScheme.primary,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                )
             }
         }
     }

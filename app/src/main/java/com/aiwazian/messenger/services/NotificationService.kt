@@ -1,4 +1,4 @@
-package com.aiwazian.messenger.utils
+package com.aiwazian.messenger.services
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,11 +7,13 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.aiwazian.messenger.MainActivity
-import com.aiwazian.messenger.data.Notification
-import com.aiwazian.messenger.interfaces.NotificationService
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.api.RetrofitInstance
+import com.aiwazian.messenger.data.Notification
 import com.aiwazian.messenger.data.NotificationTokenRequest
+import com.aiwazian.messenger.interfaces.NotificationService
+import com.aiwazian.messenger.utils.ChatStateManager
+import com.aiwazian.messenger.utils.VibrationPattern
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -24,43 +26,36 @@ class NotificationService : FirebaseMessagingService(), NotificationService {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Log.d("FCM", "New token: $token")
-        sendTokenToServer(token)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            sendTokenToServer(token)
+        }
     }
 
-    fun sendTokenToServer(token: String? = null) {
-
-        if (token.isNullOrBlank()) {
-            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val token = task.result
-
-                    val notificationService = NotificationService()
-
-                    notificationService.sendTokenToServer(token)
-
-                    Log.e("FCM", "success $token")
-                } else {
-                    Log.e("FCM", "Error ${task.exception}")
-                }
+    fun getFirebaseToken(): String {
+        val token = FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.e("FCM", "Error ${task.exception}")
             }
-        } else {
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val userId = UserManager.token
-                    val api = RetrofitInstance.api
-                    val request = NotificationTokenRequest(token = token)
-                    val response = api.updateFcmToken("Bearer $userId", request)
+        }.result
 
-                    if (response.isSuccessful) {
-                        Log.d("FCM", "FCM token updated on server")
-                    } else {
-                        Log.e("FCM", "Failed to update token: ${response.code()}")
-                    }
-                } catch (e: Exception) {
-                    Log.e("FCM", "Error updating token: ${e.message}")
-                }
+        return token
+    }
+
+    suspend fun sendTokenToServer(token: String) {
+        try {
+            val request = NotificationTokenRequest(token)
+            val tokenManager = TokenManager()
+            val token = tokenManager.getToken()
+            val response = RetrofitInstance.api.updateFcmToken(token,request)
+
+            if (response.isSuccessful) {
+                Log.d("FCM", "FCM token updated on server")
+            } else {
+                Log.e("FCM", "Failed to update token: ${response.code()}")
             }
+        } catch (e: Exception) {
+            Log.e("FCM", "Error updating token: ${e.message}")
         }
     }
 
@@ -93,7 +88,6 @@ class NotificationService : FirebaseMessagingService(), NotificationService {
         notificationManager.createNotificationChannel(channel)
 
         val intent = Intent(this, MainActivity::class.java)
-
         intent.putExtra("chatId", notification.chatId)
 
         val requestCode = System.currentTimeMillis().toInt()

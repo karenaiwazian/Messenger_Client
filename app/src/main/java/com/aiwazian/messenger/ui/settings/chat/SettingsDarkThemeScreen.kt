@@ -23,7 +23,7 @@ import com.aiwazian.messenger.customType.ThemeOption
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionRadioItem
-import com.aiwazian.messenger.utils.ThemeService
+import com.aiwazian.messenger.services.ThemeService
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 

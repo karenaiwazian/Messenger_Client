@@ -1,4 +1,4 @@
-package com.aiwazian.messenger.utils
+package com.aiwazian.messenger.services
 
 import android.os.Build
 

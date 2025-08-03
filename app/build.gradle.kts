@@ -85,4 +85,6 @@ dependencies {
 
     implementation(libs.lottie.compose)
     implementation(libs.zxing.android.embedded)
+
+    implementation(libs.okhttp)
 }

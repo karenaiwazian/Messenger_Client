@@ -42,13 +42,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.ChatInfo
+import com.aiwazian.messenger.services.TokenManager
 import com.aiwazian.messenger.ui.element.BottomModalSheet
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionCheckBoxItem
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionHeader
-import com.aiwazian.messenger.utils.UserManager
-import com.aiwazian.messenger.utils.VibrateService
+import com.aiwazian.messenger.services.UserService
+import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.viewModels.CreateGroupViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -164,12 +165,11 @@ private fun Content() {
                         val userChats = remember { mutableStateListOf<ChatInfo>() }
 
                         LaunchedEffect(Unit) {
-
-                            val token = UserManager.token
-
                             try {
+                                val tokenManager = TokenManager()
+                                val token = tokenManager.getToken()
                                 val response =
-                                    RetrofitInstance.api.getUnarchivedChats("Bearer $token")
+                                    RetrofitInstance.api.getUnarchivedChats(token)
 
                                 if (response.isSuccessful) {
                                     userChats.addAll(response.body() ?: emptyList())

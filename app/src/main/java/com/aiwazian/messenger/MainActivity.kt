@@ -17,16 +17,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.aiwazian.messenger.api.RetrofitInstance
+import com.aiwazian.messenger.services.AppLockService
+import com.aiwazian.messenger.services.NotificationService
+import com.aiwazian.messenger.services.ThemeService
+import com.aiwazian.messenger.services.TokenManager
+import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.ui.ChatScreen
 import com.aiwazian.messenger.ui.LockScreen
 import com.aiwazian.messenger.ui.MainScreen
 import com.aiwazian.messenger.ui.element.NavigationController
 import com.aiwazian.messenger.ui.theme.ApplicationTheme
-import com.aiwazian.messenger.utils.AppLockService
 import com.aiwazian.messenger.utils.DataStoreManager
-import com.aiwazian.messenger.utils.NotificationService
-import com.aiwazian.messenger.utils.ThemeService
-import com.aiwazian.messenger.utils.UserManager
 import com.aiwazian.messenger.utils.WebSocketManager
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import com.google.firebase.FirebaseApp
@@ -38,7 +40,6 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     private lateinit var appLockService: AppLockService
     private lateinit var themeService: ThemeService
-    private lateinit var dataStoreManager: DataStoreManager
 
     override fun attachBaseContext(newBase: Context) {
         DataStoreManager.initialize(newBase)
@@ -67,7 +68,6 @@ class MainActivity : ComponentActivity() {
 
         appLockService = AppLockService()
         themeService = ThemeService()
-        dataStoreManager = DataStoreManager.getInstance()
 
         setContent {
             val isLockApp by appLockService.isLockApp.collectAsState()
@@ -77,10 +77,11 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(Unit) {
                 try {
-                    val token = dataStoreManager.getToken().first()
+                    val tokenManager = TokenManager()
+                    val token = tokenManager.getToken()
 
                     if (token.isBlank()) {
-                        dataStoreManager.saveToken("")
+                        tokenManager.saveToken("")
 
                         val intent = Intent(this@MainActivity, LoginActivity::class.java)
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -92,8 +93,8 @@ class MainActivity : ComponentActivity() {
                 }
 
                 try {
-                    val notificationService = NotificationService()
-                    notificationService.sendTokenToServer()
+                    //val notificationService = NotificationService()
+                    //notificationService.sendTokenToServer()
                 } catch (e: Exception) {
                     Log.e(
                         "MainActivity",
@@ -102,12 +103,16 @@ class MainActivity : ComponentActivity() {
                 }
 
                 try {
-                    UserManager.loadUserData()
-                    WebSocketManager.init(this@MainActivity)
                     WebSocketManager.onConnect = {
                         lifecycleScope.launch {
-                            UserManager.loadUserData()
+                            UserService.loadUserData()
                         }
+                    }
+                    WebSocketManager.onClose = {
+                        val intent = Intent(this@MainActivity, LoginActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        startActivity(intent)
+                        finish()
                     }
                     WebSocketManager.connect()
                 } catch (e: Exception) {
@@ -130,8 +135,8 @@ class MainActivity : ComponentActivity() {
 
                 AnimatedVisibility(
                     visible = isLockApp,
-                    enter = fadeIn(animationSpec = tween(durationMillis = 100)),
-                    exit = fadeOut(animationSpec = tween(durationMillis = 100))
+                    enter = fadeIn(tween(100)),
+                    exit = fadeOut(tween(100))
                 ) {
                     LockScreen()
                 }

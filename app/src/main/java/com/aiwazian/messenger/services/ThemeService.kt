@@ -1,7 +1,8 @@
-package com.aiwazian.messenger.utils
+package com.aiwazian.messenger.services
 
 import com.aiwazian.messenger.customType.PrimaryColorOption
 import com.aiwazian.messenger.customType.ThemeOption
+import com.aiwazian.messenger.utils.DataStoreManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,22 +16,23 @@ class ThemeService {
 
     private var _primaryColor = MutableStateFlow(PrimaryColorOption.Blue)
     var primaryColor = _primaryColor.asStateFlow()
+
     private var _dynamicColor = MutableStateFlow(false)
     var dynamicColor = _dynamicColor.asStateFlow()
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
-    private val dataStorage = DataStoreManager.getInstance()
+    private val dataStorage = DataStoreManager.Companion.getInstance()
 
     init {
         coroutineScope.launch {
             dataStorage.getTheme().collectLatest { themeName ->
-                _currentTheme.value = ThemeOption.fromString(themeName)
+                _currentTheme.value = ThemeOption.Companion.fromString(themeName)
             }
         }
 
         coroutineScope.launch {
             dataStorage.getPrimaryColor().collectLatest { colorName ->
-                _primaryColor.value = PrimaryColorOption.fromString(colorName)
+                _primaryColor.value = PrimaryColorOption.Companion.fromString(colorName)
             }
         }
 

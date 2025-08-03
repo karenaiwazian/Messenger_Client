@@ -1,8 +1,9 @@
-package com.aiwazian.messenger.utils
+package com.aiwazian.messenger.services
 
 import android.content.Context
 import android.content.res.Configuration
 import com.aiwazian.messenger.customType.Language
+import com.aiwazian.messenger.utils.DataStoreManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,12 +17,12 @@ class LanguageService(private val context: Context) {
     var languageCode = _languageCode.asStateFlow()
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
-    private val dataStorage = DataStoreManager.getInstance()
+    private val dataStorage = DataStoreManager.Companion.getInstance()
 
     init {
         coroutineScope.launch {
             dataStorage.getLanguage().collectLatest { languageName ->
-                _languageCode.value = Language.fromString(languageName)
+                _languageCode.value = Language.Companion.fromString(languageName)
             }
         }
     }

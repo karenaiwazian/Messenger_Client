@@ -21,12 +21,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.aiwazian.messenger.utils.AuthService
+import com.aiwazian.messenger.services.AuthService
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.LoginActivity
 import com.aiwazian.messenger.ui.element.SectionItem
@@ -37,8 +38,9 @@ import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.settings.SettingsDataUsageScreen
 import com.aiwazian.messenger.ui.settings.security.SettingsPasscodeScreen
-import com.aiwazian.messenger.utils.AppLockService
+import com.aiwazian.messenger.services.AppLockService
 import com.aiwazian.messenger.viewModels.NavigationViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun LogoutScreen() {
@@ -114,18 +116,21 @@ private fun Content() {
 private fun LogoutModal(viewModel: DialogViewModel) {
     val isVisible by viewModel.isDialogVisible
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     if (isVisible) {
         CustomDialog(title = stringResource(R.string.exit), onDismiss = {
             viewModel.hideDialog()
         }, onConfirm = {
-            viewModel.hideDialog()
-            val authService = AuthService()
-            authService.logout()
-            val intent = Intent(context, LoginActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            scope.launch {
+                viewModel.hideDialog()
+                val authService = AuthService()
+                authService.logout()
+                val intent = Intent(context, LoginActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                context.startActivity(intent)
             }
-            context.startActivity(intent)
         }) {
             Column(Modifier.padding(horizontal = 16.dp)) {
                 Text(

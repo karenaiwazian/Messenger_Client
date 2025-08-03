@@ -52,4 +52,13 @@
     <string name="connecting">Соединение</string>
     <string name="invites">Приглашения</string>
     <string name="dynamic_color">Динамичные цвета</string>
+    <string name="create_new_folder">Создать новую папку</string>
+    <string name="all_chats">Все чаты</string>
+    <string name="save">Сохранить</string>
+    <string name="remove_folder">Удалить папку</string>
+    <string name="pin">Закрепить</string>
+    <string name="unpin">Открепить</string>
+    <string name="folder_name">Название папки</string>
+    <string name="included_chats">Выбранные чаты</string>
+    <string name="add_chats">Добавить чаты</string>
 </resources>

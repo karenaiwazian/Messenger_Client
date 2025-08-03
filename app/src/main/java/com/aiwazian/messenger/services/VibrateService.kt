@@ -1,9 +1,10 @@
-package com.aiwazian.messenger.utils
+package com.aiwazian.messenger.services
 
 import android.content.Context
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.VibratorManager
+import com.aiwazian.messenger.utils.VibrationPattern
 
 class VibrateService(private val context: Context) {
 

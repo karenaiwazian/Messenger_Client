@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.aiwazian.messenger.utils.VibrateService
+import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.utils.VibrationPattern
 import com.aiwazian.messenger.viewModels.AuthViewModel
 

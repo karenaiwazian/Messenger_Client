@@ -54,7 +54,7 @@ fun SectionItem(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = iconColor ?: LocalContentColor.current,
+                    tint = iconColor ?: MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(end = 16.dp)
                 )
             }
@@ -72,7 +72,8 @@ fun SectionItem(
                         text = description,
                         fontSize = 12.sp,
                         lineHeight = 14.sp,
-                        fontWeight = FontWeight.Normal
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

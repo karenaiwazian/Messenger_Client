@@ -24,7 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.aiwazian.messenger.utils.VibrateService
+import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.utils.VibrationPattern
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -54,9 +54,7 @@ fun SwipeableChatCard(
         confirmValueChange = { dismissValue ->
             if (dismissValue == dismissDirection && canArchive) {
                 scope.launch {
-                    delay(200)
                     onDismiss.invoke()
-                    deleted = true
                 }
                 true
             } else {
@@ -72,7 +70,7 @@ fun SwipeableChatCard(
 
     val backgroundColor by animateColorAsState(
         targetValue = if (canArchive) {
-            MaterialTheme.colorScheme.surface
+            MaterialTheme.colorScheme.onSurfaceVariant
         } else {
             MaterialTheme.colorScheme.primary
         }
@@ -88,10 +86,6 @@ fun SwipeableChatCard(
     } else if (swipeToDismissBoxState.progress < 0.5 && swipeToDismissBoxState.progress > 0.4 && leftVibration) {
         vibrateService.vibrate(VibrationPattern.TactileResponse)
         leftVibration = false
-    }
-
-    if (deleted) {
-        return
     }
 
     SwipeToDismissBox(

@@ -30,7 +30,7 @@ import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
-import com.aiwazian.messenger.utils.VibrateService
+import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.viewModels.CreateChannelViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 

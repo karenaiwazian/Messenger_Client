@@ -3,28 +3,27 @@ package com.aiwazian.messenger.viewModels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aiwazian.messenger.utils.UserManager
+import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.api.RetrofitInstance
+import com.aiwazian.messenger.services.TokenManager
 import kotlinx.coroutines.launch
 
 class DeviceSettingsViewModel : ViewModel() {
 
-    fun terminateAllOtherSessions(success: () -> Unit, fail: () -> Unit) {
-        val token = UserManager.token
-
-        viewModelScope.launch {
-            try {
-                val response =
-                    RetrofitInstance.api.terminateAllSessions("Bearer $token")
-                if (response.isSuccessful) {
-                    success()
-                } else {
-                    fail()
-                }
-            } catch (e: Exception) {
-                Log.e("DeviceSettings", "${e.message}")
+    suspend fun terminateAllOtherSessions(success: () -> Unit, fail: () -> Unit) {
+        try {
+            val tokenManager = TokenManager()
+            val token = tokenManager.getToken()
+            val response =
+                RetrofitInstance.api.terminateAllSessions(token)
+            if (response.isSuccessful) {
+                success()
+            } else {
                 fail()
             }
+        } catch (e: Exception) {
+            Log.e("DeviceSettings", "${e.message}")
+            fail()
         }
     }
 }

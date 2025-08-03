@@ -48,28 +48,24 @@ fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
     var isLoad by remember { mutableStateOf(true) }
 
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize(),
-        
+        modifier = Modifier.fillMaxSize(),
+
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
                     isLoad = false
                     if (viewModel.isUserFound) {
-                        viewModel.onLoginClicked(
-                            success = {
-                                val intent = Intent(context, MainActivity::class.java)
-                                if (context !is Activity) {
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                }
-
-                                context.startActivity(intent)
-                                (context as Activity).finish()
-                            },
-                            error = {
-                                isLoad = true
+                        viewModel.onLoginClicked(success = {
+                            val intent = Intent(context, MainActivity::class.java)
+                            if (context !is Activity) {
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             }
-                        )
+
+                            context.startActivity(intent)
+                            (context as Activity).finish()
+                        }, error = {
+                            isLoad = true
+                        })
                     } else {
                         viewModel.onRegisterClicked(
                             success = {
@@ -106,14 +102,11 @@ fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
                     )
                 } else {
                     CircularProgressIndicator(
-                        color = Color.White,
-                        strokeWidth = 2.dp,
-                        modifier = Modifier.size(20.dp)
+                        color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(20.dp)
                     )
                 }
             }
-        }
-    ) {
+        }) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -127,9 +120,7 @@ fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
             )
             Column(Modifier.width(300.dp)) {
                 PasswordField(
-                    viewModel.password,
-                    viewModel::onPasswordChanged,
-                    viewModel.passwordError
+                    viewModel.password, viewModel::onPasswordChanged, viewModel.passwordError
                 )
             }
         }
@@ -167,14 +158,10 @@ private fun PasswordField(
                 passwordVisible.value = !passwordVisible.value
             }) {
                 Icon(
-                    imageVector = if (passwordVisible.value)
-                        Icons.Outlined.Visibility
-                    else
-                        Icons.Outlined.VisibilityOff,
+                    imageVector = if (passwordVisible.value) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
                     contentDescription = null,
-                    tint = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    tint = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
-    )
+        })
 }

@@ -32,7 +32,7 @@
         tools:targetApi="33">
 
         <service
-            android:name=".utils.NotificationService"
+            android:name=".services.NotificationService"
             android:exported="false"
             android:launchMode="singleTop">
             <intent-filter>

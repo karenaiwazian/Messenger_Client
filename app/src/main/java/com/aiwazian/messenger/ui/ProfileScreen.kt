@@ -17,16 +17,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.aiwazian.messenger.utils.ClipboardHelper
+import com.aiwazian.messenger.services.ClipboardHelper
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.data.User
-import com.aiwazian.messenger.utils.UserManager
+import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
@@ -34,12 +36,15 @@ import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionToggleItem
 import com.aiwazian.messenger.ui.settings.SettingsProfileScreen
+import com.aiwazian.messenger.services.TokenManager
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
 fun ProfileScreen(userId: Int) {
-    if (userId == UserManager.user.id) {
-        Content(UserManager.user)
+    val user by UserService.user.collectAsState()
+
+    if (userId == user.id) {
+        Content(user)
         return
     }
 
@@ -47,9 +52,9 @@ fun ProfileScreen(userId: Int) {
 
     LaunchedEffect(true) {
         try {
-            val token = UserManager.token
-
-            val response = RetrofitInstance.api.getUserById(token = "Bearer $token", id = userId)
+            val tokenManager = TokenManager()
+            val token = tokenManager.getToken()
+            val response = RetrofitInstance.api.getUserById(token, userId)
 
             if (response.isSuccessful) {
                 val getUser = response.body()
@@ -121,7 +126,9 @@ private fun Content(user: User) {
                     )
                 }
 
-                if (user.id != UserManager.user.id) {
+                val me by UserService.user.collectAsState()
+
+                if (user.id != me.id) {
                     SectionToggleItem(text = stringResource(R.string.notifications))
                 }
             }
@@ -133,6 +140,7 @@ private fun Content(user: User) {
 @Composable
 private fun DefaultTopBar(user: User) {
     val navViewModel: NavigationViewModel = viewModel()
+    val me by UserService.user.collectAsState()
 
     PageTopBar(
         title = {
@@ -155,7 +163,7 @@ private fun DefaultTopBar(user: User) {
             }
         },
         actions = {
-            if (user.id == UserManager.user.id) {
+            if (user.id == me.id) {
                 IconButton(
                     onClick = {
                         navViewModel.addScreenInStack { SettingsProfileScreen() }

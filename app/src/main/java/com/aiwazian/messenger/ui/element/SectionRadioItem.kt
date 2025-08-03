@@ -42,7 +42,8 @@ fun SectionRadioItem(text: String, selected: Boolean, onClick: () -> Unit = {}) 
             Text(
                 text = text,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Normal
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
