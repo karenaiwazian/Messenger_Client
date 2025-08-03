@@ -48,9 +48,9 @@ class ChatViewModel(
         }
     }
 
-    suspend fun sendMessage() {
+    suspend fun sendMessage(): Message? {
         if (messageText.isBlank()) {
-            return
+            return null
         }
 
         val message = Message(
@@ -67,10 +67,14 @@ class ChatViewModel(
                 RetrofitInstance.api.sendMessage(message)
 
             if (response.isSuccessful) {
-
+                return message
+            }
+            else {
+                return null
             }
         } catch (e: Exception) {
             Log.e("ChatVM", "Ошибка отпаравки сррбщения: ${e.message}")
+            return null
         }
     }
 

@@ -267,7 +267,7 @@ private fun Content(
 
     var hasChat by remember { mutableStateOf(false) }
 
-    val onMessageHandler: (Message) -> Unit = { message: Message ->
+    val onMessageHandler: (Message) -> Unit = { message ->
         hasChat = chatList.firstOrNull { it.id == message.chatId } != null
 
         folders.forEach { folder ->
@@ -279,6 +279,7 @@ private fun Content(
         }
 
         if (hasChat) {
+            chatsViewModel.updateLastMessage(message.chatId, message.text)
             chatsViewModel.moveToUp(message.chatId)
         }
     }
@@ -501,7 +502,7 @@ private fun ChatListSection(
 
             SwipeableChatCard(
                 chatName = chatName,
-                lastMessage = "",
+                lastMessage = chat.lastMessage,
                 selected = chat.id in selectedChats,
                 pinned = chat.isPinned,
                 enableSwipeable = selectedChats.isEmpty(),

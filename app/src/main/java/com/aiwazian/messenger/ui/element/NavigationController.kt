@@ -80,24 +80,26 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
                     .background(MaterialTheme.colorScheme.background)
                     .zIndex(index + 0.2f)
                     .then(
-                        if (isTop && canGoBackBySwipe) Modifier.draggable(
-                            orientation = Orientation.Horizontal,
-                            state = rememberDraggableState { delta ->
-                                keyboardController?.hide()
-                                scope.launch {
-                                    offsetX.snapTo((offsetX.value + delta).coerceAtLeast(0f))
-                                }
-                            },
-                            onDragStopped = {
-                                scope.launch {
-                                    if (offsetX.value > screenWidthPx / 4) {
-                                        navViewModel.removeLastScreenInStack()
-                                    } else {
-                                        offsetX.animateTo(0f, tween(tweenDurationMillis))
+                        if (isTop && canGoBackBySwipe) {
+                            Modifier.draggable(
+                                orientation = Orientation.Horizontal,
+                                state = rememberDraggableState { delta ->
+                                    keyboardController?.hide()
+                                    scope.launch {
+                                        offsetX.snapTo((offsetX.value + delta).coerceAtLeast(0f))
+                                    }
+                                },
+                                onDragStopped = {
+                                    scope.launch {
+                                        if (offsetX.value > screenWidthPx / 4) {
+                                            navViewModel.removeLastScreenInStack()
+                                        } else {
+                                            offsetX.animateTo(0f, tween(tweenDurationMillis))
+                                        }
                                     }
                                 }
-                            }
-                        ) else Modifier
+                            )
+                        } else Modifier
                     )
             ) {
                 screenEntry.content()

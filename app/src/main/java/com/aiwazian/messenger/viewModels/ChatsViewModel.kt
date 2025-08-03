@@ -40,6 +40,12 @@ class ChatsViewModel : ViewModel() {
         }
     }
 
+    fun hasChat(chatId: Int): Boolean {
+        val unarchivedChat = _unarchivedChats.value.firstOrNull { it.id == chatId }
+        val archivedChat = _archivedChats.value.firstOrNull { it.id == chatId }
+        return if (unarchivedChat != null) true else archivedChat != null
+    }
+
     suspend fun loadUnarchiveChats() {
         try {
             val response = RetrofitInstance.api.getUnarchivedChats()
@@ -222,5 +228,17 @@ class ChatsViewModel : ViewModel() {
         currentList.add(0, chat)
 
         _unarchivedChats.value = currentList
+    }
+
+    fun updateLastMessage(chatId: Int, lastMessage: String) {
+        val list = _unarchivedChats.value.toMutableList()
+        val index = list.indexOfFirst { it.id == chatId }
+
+        if (index != -1) {
+            val oldChat = list[index]
+            val newChat = oldChat.copy(lastMessage = lastMessage)
+            list[index] = newChat
+            _unarchivedChats.value = list
+        }
     }
 }

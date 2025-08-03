@@ -42,7 +42,6 @@ fun SwipeableChatCard(
     backgroundIcon: ImageVector? = null
 ) {
     val context = LocalContext.current
-    var deleted by remember { mutableStateOf(false) }
 
     val dismissDirection = SwipeToDismissBoxValue.EndToStart
 

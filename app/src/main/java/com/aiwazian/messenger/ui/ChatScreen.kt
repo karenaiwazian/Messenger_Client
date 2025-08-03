@@ -76,6 +76,7 @@ import com.aiwazian.messenger.data.User
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.viewModels.ChatViewModel
+import com.aiwazian.messenger.viewModels.ChatsViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
@@ -89,7 +90,24 @@ fun ChatScreen(userId: Int) {
     val userState = remember { mutableStateOf(User()) }
     var isLoaded by remember { mutableStateOf(false) }
 
-    LaunchedEffect(true) {
+    val chatsViewModel: ChatsViewModel = viewModel()
+
+    val scope = rememberCoroutineScope()
+
+    val onSend: (Message) -> Unit = { message ->
+        val hasChat = chatsViewModel.hasChat(message.chatId)
+
+        if (hasChat) {
+            chatsViewModel.updateLastMessage(message.chatId, message.text)
+            chatsViewModel.moveToUp(message.chatId)
+        } else {
+            scope.launch {
+                chatsViewModel.loadUnarchiveChats()
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
         try {
             val response = RetrofitInstance.api.getUserById(userId)
 
@@ -106,13 +124,13 @@ fun ChatScreen(userId: Int) {
     }
 
     if (isLoaded) {
-        Content(userState.value)
+        Content(userState.value, onSend)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Content(user: User) {
+private fun Content(user: User, onSendMessage: (Message) -> Unit) {
     val context = LocalContext.current
 
     val me by UserService.user.collectAsState()
@@ -129,8 +147,7 @@ private fun Content(user: User) {
         topBar = {
             TopBar(user, deleteDialogViewModel)
         },
-
-        ) { innerPadding ->
+    ) { innerPadding ->
         val chatId = user.id
         val messages = chatViewModel.messages
 
@@ -165,7 +182,7 @@ private fun Content(user: User) {
                     Text("Напишите сообщение или отправьте стикер")
                 }
             } else {
-                val clipboardHelper = ClipboardHelper(context = context)
+                val clipboardHelper = ClipboardHelper(context)
 
                 LazyColumn(
                     state = listState,
@@ -202,13 +219,18 @@ private fun Content(user: User) {
 
             InputMessage(
                 value = chatViewModel.messageText,
-                onValueChange = { chatViewModel.changeText(it) },
+                onValueChange = {
+                    chatViewModel.changeText(it)
+                },
                 attachFile = {
                     pickMultipleMedia.launch(PickVisualMediaRequest(PickVisualMedia.ImageAndVideo))
                 },
                 onSend = {
                     coroutineScope.launch {
-                        chatViewModel.sendMessage()
+                        val sentMessage = chatViewModel.sendMessage()
+                        if (sentMessage != null) {
+                            onSendMessage(sentMessage)
+                        }
                     }
                 }
             )

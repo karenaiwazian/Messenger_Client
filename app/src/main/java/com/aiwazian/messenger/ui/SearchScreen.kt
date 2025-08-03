@@ -1,5 +1,11 @@
 package com.aiwazian.messenger.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
@@ -216,7 +222,11 @@ private fun SearchTextField(
             unfocusedContainerColor = Color.Transparent
         ),
         trailingIcon = {
-            if (query.isNotEmpty() && query != "") {
+            AnimatedVisibility(
+                visible = query.isNotBlank(),
+                enter = scaleIn(tween(100)) + fadeIn(tween(100)),
+                exit = scaleOut(tween(100)) + fadeOut(tween(100))
+            ) {
                 IconButton(
                     onClick = {
                         query = ""
@@ -227,7 +237,7 @@ private fun SearchTextField(
                 ) {
                     Icon(
                         Icons.Default.Close,
-                        contentDescription = null,
+                        null,
                     )
                 }
             }
