@@ -6,7 +6,7 @@
     <string name="delete_chat">Удалить чат</string>
     <string name="notifications">Уведомления</string>
     <string name="language">Язык</string>
-    <string name="exit">Выйти</string>
+    <string name="log_out">Выйти</string>
     <string name="help">Помощь</string>
     <string name="confidentiality">Конфиденциальность</string>
     <string name="design">Оформление</string>
@@ -73,4 +73,6 @@
     <string name="chat_folders_description">Вы можете создать папки с чатами и переключаться между ними.</string>
     <string name="terminate_all_other_sessions_description">Выйти на всех устройствах, кроме этого.</string>
     <string name="connect_device">Подключить устройство</string>
+    <string name="turn_off">Отключить</string>
+    <string name="turn_passcode_off">Выключить код-пароль</string>
 </resources>

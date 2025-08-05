@@ -25,6 +25,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -166,31 +167,39 @@ fun PasswordScreen(
         if (showFailureLogin) {
             CustomDialog(
                 title = stringResource(R.string.app_name),
-                onDismiss = { showFailureLogin = false },
-                onConfirm = { showFailureLogin = false },
-                dismissButtonText = null,
-                primaryButtonText = "Ок"
-            ) {
-                Text(
-                    text = "Не удалось войти в аккаунт. Попробуйте ещё раз.",
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
+                onDismissRequest = { showFailureLogin = false },
+                content = {
+                    Text(
+                        text = "Не удалось войти в аккаунт. Попробуйте ещё раз."
+                    )
+                },
+                buttons = {
+                    TextButton(onClick = {
+                        showFailureLogin = false
+                    }) {
+                        Text("Ок")
+                    }
+                }
+            )
         }
         
         if (showFailureRegister) {
             CustomDialog(
                 title = stringResource(R.string.app_name),
-                onDismiss = { showFailureRegister = false },
-                onConfirm = { showFailureRegister = false },
-                dismissButtonText = null,
-                primaryButtonText = "Ок"
-            ) {
-                Text(
-                    text = "Не удалось создать пользователя. Попробуйте ещё раз.",
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
+                onDismissRequest = { showFailureRegister = false },
+                content = {
+                    Text(
+                        text = "Не удалось создать пользователя. Попробуйте ещё раз.",
+                    )
+                },
+                buttons = {
+                    TextButton(onClick = {
+                        showFailureRegister = false
+                    }) {
+                        Text("Ок")
+                    }
+                }
+            )
         }
     }
 }

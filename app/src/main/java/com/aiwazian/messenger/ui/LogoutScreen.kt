@@ -19,6 +19,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,7 +27,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.LoginActivity
 import com.aiwazian.messenger.R
@@ -102,7 +102,7 @@ private fun Content() {
             
             SectionContainer {
                 SectionItem(
-                    text = stringResource(R.string.exit),
+                    text = stringResource(R.string.log_out),
                     textColor = MaterialTheme.colorScheme.error,
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     onClick = {
@@ -123,36 +123,42 @@ private fun LogoutModal(viewModel: DialogViewModel) {
     
     if (isVisible) {
         CustomDialog(
-            title = stringResource(R.string.exit),
-            onDismiss = {
+            title = stringResource(R.string.log_out),
+            onDismissRequest = {
                 viewModel.hideDialog()
             },
-            onConfirm = {
-                scope.launch {
+            content = {
+                Text(text = "Вы точно хотите выйти?")
+            },
+            buttons = {
+                TextButton(onClick = {
                     viewModel.hideDialog()
-                    
-                    val authService = AuthService()
-                    authService.logout()
-                    
-                    WebSocketManager.close()
-                    TokenManager.removeToken()
-                    
-                    val intent = Intent(
-                        context,
-                        LoginActivity::class.java
-                    ).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    }
-                    context.startActivity(intent)
-                    (context as Activity).finish()
+                }) {
+                    Text(stringResource(R.string.cancel))
                 }
-            }) {
-            Column(Modifier.padding(horizontal = 16.dp)) {
-                Text(
-                    text = "Вы точно хотите выйти?"
-                )
-            }
-        }
+                TextButton(onClick = {
+                    scope.launch {
+                        viewModel.hideDialog()
+                        
+                        val authService = AuthService()
+                        authService.logout()
+                        
+                        WebSocketManager.close()
+                        TokenManager.removeToken()
+                        
+                        val intent = Intent(
+                            context,
+                            LoginActivity::class.java
+                        ).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                        context.startActivity(intent)
+                        (context as Activity).finish()
+                    }
+                }) {
+                    Text(stringResource(R.string.log_out))
+                }
+            })
     }
 }
 
@@ -162,7 +168,7 @@ private fun TopBar() {
     val navViewModel: NavigationViewModel = viewModel()
     
     PageTopBar(
-        title = { Text(stringResource(R.string.exit)) },
+        title = { Text(stringResource(R.string.log_out)) },
         navigationIcon = {
             IconButton(
                 onClick = {

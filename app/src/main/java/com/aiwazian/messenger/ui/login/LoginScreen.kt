@@ -19,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -103,8 +104,7 @@ fun LoginScreen(
                     )
                 }
             }
-        }
-    ) {
+        }) {
         val login by authViewModel.login.collectAsState()
         
         Column(
@@ -131,41 +131,53 @@ fun LoginScreen(
         if (showFindUserDialog) {
             CustomDialog(
                 title = stringResource(R.string.app_name),
-                onDismiss = {
+                onDismissRequest = {
                     showFindUserDialog = false
                 },
-                onConfirm = {
-                    showFindUserDialog = false
-                    navController.navigate(Screen.PASSWORD)
+                content = {
+                    Text(
+                        text = "Пользователь найден. Продолжить?"
+                    )
                 },
-                dismissButtonText = "Нет",
-                primaryButtonText = "Да"
-            ) {
-                Text(
-                    text = "Пользователь найден. Продолжить?",
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
+                buttons = {
+                    TextButton(onClick = { showFindUserDialog = false }) {
+                        Text("Нет")
+                    }
+                    TextButton(onClick = {
+                        showFindUserDialog = false
+                        navController.navigate(Screen.PASSWORD)
+                    }) {
+                        Text("Да")
+                    }
+                })
         }
         
         if (showNotFindUserDialog) {
             CustomDialog(
                 title = stringResource(R.string.app_name),
-                onDismiss = {
+                onDismissRequest = {
                     showNotFindUserDialog = false
                 },
-                onConfirm = {
-                    showNotFindUserDialog = false
-                    navController.navigate(Screen.PASSWORD)
+                content = {
+                    Text(
+                        text = "Пользователь не найден. Создать?",
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
                 },
-                dismissButtonText = "Нет",
-                primaryButtonText = "Да"
-            ) {
-                Text(
-                    text = "Пользователь не найден. Создать?",
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
+                buttons = {
+                    TextButton(
+                        onClick = {
+                            showNotFindUserDialog = false
+                        }) {
+                        Text("Нет")
+                    }
+                    TextButton(onClick = {
+                        showNotFindUserDialog = false
+                        navController.navigate(Screen.PASSWORD)
+                    }) {
+                        Text("Да")
+                    }
+                })
         }
     }
 }

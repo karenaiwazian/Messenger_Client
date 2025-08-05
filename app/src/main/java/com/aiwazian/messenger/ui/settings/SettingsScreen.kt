@@ -202,11 +202,11 @@ private fun TopBar() {
                 DropdownMenuItem(leadingIcon = {
                     Icon(
                         Icons.AutoMirrored.Filled.ExitToApp,
-                        contentDescription = stringResource(R.string.exit),
+                        contentDescription = stringResource(R.string.log_out),
                     )
                 }, text = {
                     Text(
-                        text = stringResource(R.string.exit)
+                        text = stringResource(R.string.log_out)
                     )
                 }, onClick = {
                     menuExpanded = false

@@ -61,13 +61,13 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.data.Session
 import com.aiwazian.messenger.services.DeviceHelper
+import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionRadioItem
-import com.aiwazian.messenger.ui.settings.chatFolder.CustomDialogNew
 import com.aiwazian.messenger.utils.LottieAnimation
 import com.aiwazian.messenger.viewModels.DevicesViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -204,7 +204,7 @@ private fun Content() {
                 
                 SectionDescription(text = stringResource(R.string.terminate_all_other_sessions_description))
             }
-            
+
 //            SectionHeader("Автоматически завершать сеансы")
 //
 //            SectionContainer {
@@ -261,7 +261,7 @@ private fun Content() {
                     devicesViewModel.showConfirmTerminateSessionDialog()
                 })
         }
-        
+
 //        TODO auto terminate session
 //        if (isVisibleAutoTerminateDialog) {
 //            AutoTerminateSessionDialog(onDismissRequest = {
@@ -299,8 +299,7 @@ private fun BottomModal(
             if (session.id != 0) {
                 Button(
                     onClick = onConfirm,
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         contentColor = MaterialTheme.colorScheme.onErrorContainer,
@@ -394,7 +393,7 @@ private fun TerminateSessionDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    CustomDialogNew(
+    CustomDialog(
         title = stringResource(R.string.terminate_session),
         onDismissRequest = onDismiss,
         content = {
@@ -427,7 +426,7 @@ private fun AutoTerminateSessionDialog(
         "1 год",
     )
     
-    CustomDialogNew(
+    CustomDialog(
         title = "Автозавершение сессий",
         onDismissRequest = onDismissRequest,
         content = {
@@ -442,7 +441,6 @@ private fun AutoTerminateSessionDialog(
                             })
                     }
                 }
-                
             }
         },
         buttons = {

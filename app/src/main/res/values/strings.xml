@@ -6,7 +6,7 @@
     <string name="delete_chat">Delete chat</string>
     <string name="notifications">Notifications</string>
     <string name="language">Language</string>
-    <string name="exit">Log Out</string>
+    <string name="log_out">Log Out</string>
     <string name="russian_untranslatable" translatable="false">Русский</string>
     <string name="english_untranslatable" translatable="false">English</string>
     <string name="help">Help</string>
@@ -75,4 +75,6 @@
     <string name="chat_folders_description">Create folders for different groups of chats and quickly switch between them.</string>
     <string name="terminate_all_other_sessions_description">Logs out all devices except for this one.</string>
     <string name="connect_device">Connect Device</string>
+    <string name="turn_off">Turn Off</string>
+    <string name="turn_passcode_off">Turn Passcode Off</string>
 </resources>
