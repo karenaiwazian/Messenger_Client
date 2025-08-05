@@ -27,17 +27,17 @@ import retrofit2.http.Query
 @Keep
 interface ApiService {
 
-    @POST(Route.FIND_USER_BY_LOGIN)
-    suspend fun findUserByLogin(@Body request: FindUserRequest): Response<ApiResponse>
-
-    @POST("checkVerificationCode")
-    suspend fun checkVerificationCode(@Body request: CheckVerificationCodeRequest): Response<ApiResponse>
+    @GET(Route.FIND_USER_BY_LOGIN)
+    suspend fun findUserByLogin(@Path("login") login: String): Response<ApiResponse>
 
     @POST(Route.LOGIN)
-    suspend fun login(@Body request: AuthRequest): Response<AuthResponse>
+    suspend fun login(@Body request: AuthRequest): Response<ApiResponse>
 
     @POST(Route.REGISTER)
-    suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
+    suspend fun register(@Body request: RegisterRequest): Response<ApiResponse>
+    
+    @DELETE(Route.LOGOUT)
+    suspend fun logout(): Response<ApiResponse>
 
     @GET(Route.ME)
     suspend fun getMe(): Response<User>

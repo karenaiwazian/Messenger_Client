@@ -1,241 +1,172 @@
 package com.aiwazian.messenger.viewModels
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.AuthRequest
-import com.aiwazian.messenger.data.CheckVerificationCodeRequest
-import com.aiwazian.messenger.data.FindUserRequest
 import com.aiwazian.messenger.data.RegisterRequest
 import com.aiwazian.messenger.services.DeviceHelper
 import com.aiwazian.messenger.services.TokenManager
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class AuthViewModel : ViewModel() {
-
-    var login by mutableStateOf("")
-        private set
-
-    var password by mutableStateOf("")
-        private set
-
-    var errorMessage by mutableStateOf<String?>(null)
-        private set
-
-    var loginError by mutableStateOf(false)
-        private set
-
-    var passwordError by mutableStateOf(false)
-        private set
-
-    var verificationCode by mutableStateOf("")
-        private set
-
-    var isUserFound by mutableStateOf(false)
-        private set
-
-    var onCorrectVerificationCode: (() -> Unit)? = null
-
-    var onWrongVerificationCode: (() -> Unit)? = null
-
-    var onClearError: (() -> Unit)? = null
-
-    fun onLoginChanged(newEmail: String) {
-        login = newEmail
-        loginError = false
-        errorMessage = null
+    
+    private val _login = MutableStateFlow("")
+    val login = _login.asStateFlow()
+    
+    private val _password = MutableStateFlow("")
+    val password = _password.asStateFlow()
+    
+    private val _loginFieldError = MutableStateFlow<String?>(null)
+    val loginFieldError = _loginFieldError.asStateFlow()
+    
+    private val _passwordFieldError = MutableStateFlow<String?>(null)
+    val passwordFieldError = _passwordFieldError.asStateFlow()
+    
+    private val _isUserFound = MutableStateFlow(false)
+    
+    fun setUserFoundState(state: Boolean) {
+        _isUserFound.value = state
     }
-
+    
+    fun getUserFoundState(): Boolean {
+        return _isUserFound.value
+    }
+    
+    fun onLoginChanged(newLogin: String) {
+        _login.value = newLogin
+        clearError()
+    }
+    
     fun onPasswordChanged(newPassword: String) {
-        password = newPassword
-        passwordError = false
-        errorMessage = null
-    }
-
-    fun onVerificationCodeChanged(newCode: String) {
-        if (newCode.length <= 6) {
-            verificationCode = newCode
-            onClearError?.invoke()
-        }
-
-        if (verificationCode.length == 6) {
-            checkVerificationCode()
-            onClearError?.invoke()
-        }
-    }
-
-    fun checkVerificationCode() {
-        viewModelScope.launch {
-            try {
-                val request = CheckVerificationCodeRequest(login = login, code = verificationCode)
-                val response = RetrofitInstance.api.checkVerificationCode(request = request)
-
-                if (!response.isSuccessful) {
-                    return@launch
-                }
-
-                val body = response.body()
-                if (body == null) {
-                    return@launch
-                }
-
-                if (body.success) {
-                    onCorrectVerificationCode?.invoke()
-                } else {
-                    onWrongVerificationCode?.invoke()
-                }
-            } catch (e: Exception) {
-                Log.e("AuthViewModel", "checkVerificationCode: ${e.message}")
-            }
-        }
-    }
-
-    fun findUserByLogin(find: () -> Unit, notFind: () -> Unit, error: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                val response =
-                    RetrofitInstance.api.findUserByLogin(request = FindUserRequest(login = login))
-
-                if (!response.isSuccessful) {
-                    error()
-                    isUserFound = false
-                    return@launch
-                }
-
-                val body = response.body()
-
-                if (body == null) {
-                    isUserFound = false
-                    notFind()
-                    return@launch
-                }
-
-                if (body.success) {
-                    isUserFound = true
-                    find()
-                } else {
-                    isUserFound = false
-                    notFind()
-                }
-
-            } catch (e: Exception) {
-                error()
-                Log.e("AuthViewModel", "findUserByLogin: ${e.message}")
-            }
-        }
-    }
-
-    fun onLoginClicked(success: () -> Unit, error: () -> Unit) {
+        _password.value = newPassword
         clearError()
-        if (!isValidData()) {
-            error()
-            return
-        }
-
-        errorMessage = null
-
-        viewModelScope.launch {
-            try {
-                val deviceHelper = DeviceHelper()
-                val device = deviceHelper.getDeviceName()
-
-                val response = RetrofitInstance.api.login(AuthRequest(login, password, device))
-
-                if (!response.isSuccessful) {
-                    loginError = true
-                    passwordError = true
-                    error()
-                    return@launch
-                }
-
-                val token = response.body()?.token
-
-                if (token == null) {
-                    error()
-                    return@launch
-                }
-
-                TokenManager.saveToken(token)
-                success()
-            } catch (e: Exception) {
-                error()
-                Log.e("AuthViewModel", "onLoginClicked: ${e.message}")
+    }
+    
+    suspend fun findUserByLogin(): Boolean {
+        try {
+            val response = RetrofitInstance.api.findUserByLogin(login = _login.value)
+            
+            if (!response.isSuccessful) {
+                return false
             }
+            
+            return response.code() == 200
+        } catch (e: Exception) {
+            Log.e(
+                "AuthViewModel",
+                "findUserByLogin: ${e.message}"
+            )
+            
+            return false
         }
     }
-
-    fun onRegisterClicked(success: () -> Unit, error: () -> Unit) {
-        clearError()
-        if (!isValidData()) {
-            error()
-            return
-        }
-
-        errorMessage = null
-
-        viewModelScope.launch {
-            try {
-                val deviceHelper = DeviceHelper()
-                val device = deviceHelper.getDeviceName()
-                val requestBody =
-                    RegisterRequest(login = login, password = password, deviceName = device)
-
-                val response = RetrofitInstance.api.register(requestBody)
-
-                if (!response.isSuccessful) {
-                    loginError = true
-                    passwordError = true
-                    error()
-                    return@launch
-                }
-
-                val token = response.body()?.token
-
-                if (token != null) {
-                    success()
-                    return@launch
-                }
-
-                loginError = true
-                passwordError = true
-            } catch (e: Exception) {
-                Log.e("AuthViewModel", "onRegisterClicked: ${e.message}")
+    
+    suspend fun onLoginClicked(): Boolean {
+        try {
+            val deviceHelper = DeviceHelper()
+            val deviceName = deviceHelper.getDeviceName()
+            
+            val response = RetrofitInstance.api.login(
+                AuthRequest(
+                    _login.value,
+                    _password.value,
+                    deviceName
+                )
+            )
+            
+            if (!response.isSuccessful) {
+                return false
             }
+            
+            val code = response.code()
+            
+            if (code != 200) {
+                return false
+            }
+            
+            val body = response.body()
+            
+            if (body == null) {
+                return false
+            }
+            
+            val token = body.message
+            
+            TokenManager.saveToken(token)
+            TokenManager.setAuthorized(true)
+            
+            return true
+        } catch (e: Exception) {
+            Log.e(
+                "AuthViewModel",
+                "onLoginClicked: ${e.message}"
+            )
+            
+            return false
         }
     }
-
-    private fun isValidData(): Boolean {
-        if (login.isBlank() && password.isBlank()) {
-            loginError = true
-            passwordError = true
+    
+    suspend fun onRegisterClicked(): Boolean {
+        try {
+            val requestBody =
+                RegisterRequest(
+                    _login.value,
+                    _password.value
+                )
+            
+            val response = RetrofitInstance.api.register(requestBody)
+            
+            if (!response.isSuccessful) {
+                return false
+            }
+            
+            return response.code() == 200
+        } catch (e: Exception) {
+            Log.e(
+                "AuthViewModel",
+                "onRegisterClicked: ${e.message}"
+            )
+            
+            return false
         }
-
-        if (login.isBlank()) {
-            loginError = true
-        }
-
-        if (login.trim().length < 5) {
-            loginError = true
-        }
-
-        if (password.isBlank()) {
-            passwordError = true
-        }
-
-        if (password.trim().length < 5) {
-            passwordError = true
-        }
-
-        return !loginError && !passwordError
     }
-
+    
+    fun checkValidLogin(): Boolean {
+        if (_login.value.isBlank()) {
+            _loginFieldError.value = "Введите логин"
+            return false
+        }
+        
+        if (_login.value.trim().length < 5) {
+            _loginFieldError.value = "Минимум 5 символов"
+            return false
+        }
+        
+        _loginFieldError.value = null
+        
+        return true
+    }
+    
+    fun checkValidPassword(): Boolean {
+        if (_password.value.isBlank()) {
+            _passwordFieldError.value = "Введите пароль"
+            return false
+        }
+        
+        if (_password.value.trim().length < 5) {
+            _passwordFieldError.value = "Минимум 5 символов"
+            return false
+        }
+        
+        _passwordFieldError.value = null
+        
+        return true
+    }
+    
     private fun clearError() {
-        errorMessage = null
-        loginError = false
-        passwordError = false
+        _loginFieldError.value = null
+        _passwordFieldError.value = null
     }
 }

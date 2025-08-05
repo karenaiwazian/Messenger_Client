@@ -3,7 +3,8 @@ package com.aiwazian.messenger.utils
 object Route {
     const val LOGIN = "login"
     const val REGISTER = "register"
-    const val FIND_USER_BY_LOGIN = "findUserByLogin"
+    const val LOGOUT = "logout"
+    const val FIND_USER_BY_LOGIN = "findUserByLogin/{login}"
     const val ME = "me"
     const val SEARCH_USER = "searchUser"
     const val GE_USER_BY_ID = "user/{id}"

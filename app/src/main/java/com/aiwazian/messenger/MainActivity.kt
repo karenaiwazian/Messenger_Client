@@ -40,48 +40,53 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     private lateinit var appLockService: AppLockService
     private lateinit var themeService: ThemeService
-
+    
     override fun attachBaseContext(newBase: Context) {
         DataStoreManager.initialize(newBase)
         val dataStoreManager = DataStoreManager.getInstance()
-
+        
         val savedLanguageCode = runBlocking {
             TokenManager.init()
             dataStoreManager.getLanguage().first().lowercase()
         }
-
+        
         val locale = Locale(savedLanguageCode)
         Locale.setDefault(locale)
-
+        
         val config = Configuration(newBase.resources.configuration)
         config.setLocale(locale)
         val context = newBase.createConfigurationContext(config)
-
+        
         super.attachBaseContext(context)
     }
-
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        
         enableEdgeToEdge()
-
+        
         FirebaseApp.initializeApp(this)
-
+        
         TokenManager.setUnauthorizedCallback {
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            val intent = Intent(
+                this,
+                LoginActivity::class.java
+            ).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
             this@MainActivity.startActivity(intent)
+            this@MainActivity.finish()
         }
-
+        
         appLockService = AppLockService()
         themeService = ThemeService()
-
+        
         setContent {
             val isLockApp by appLockService.isLockApp.collectAsState()
             val selectedTheme by themeService.currentTheme.collectAsState()
             val selectedColor by themeService.primaryColor.collectAsState()
             val isDynamicColorEnable by themeService.dynamicColor.collectAsState()
-
+            
             LaunchedEffect(Unit) {
                 try {
                     val notificationService = NotificationService()
@@ -93,7 +98,7 @@ class MainActivity : ComponentActivity() {
                         "Error while try send notification token to server" + e.message.toString()
                     )
                 }
-
+                
                 try {
                     WebSocketManager.onConnect = {
                         lifecycleScope.launch {
@@ -110,33 +115,36 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-
+                    
                     WebSocketManager.onFailure = {
                         lifecycleScope.launch {
                             delay(1000)
                             WebSocketManager.connect()
                         }
                     }
-
+                    
                     WebSocketManager.connect()
                 } catch (e: Exception) {
-                    Log.e("MainActivity", e.message.toString())
+                    Log.e(
+                        "MainActivity",
+                        e.message.toString()
+                    )
                 }
             }
-
+            
             ApplicationTheme(
                 theme = selectedTheme,
                 dynamicColor = isDynamicColorEnable,
                 primaryColor = selectedColor.color
             ) {
                 val navViewModel: NavigationViewModel = viewModel()
-
+                
                 if (!isLockApp) {
                     NavigationController(startScreen = {
                         MainScreen()
                     })
                 }
-
+                
                 AnimatedVisibility(
                     visible = isLockApp,
                     enter = fadeIn(tween(100)),
@@ -144,10 +152,10 @@ class MainActivity : ComponentActivity() {
                 ) {
                     LockScreen()
                 }
-
+                
                 LaunchedEffect(Unit) {
                     val chatId = intent.getStringExtra("chatId")?.toIntOrNull()
-
+                    
                     if (chatId != null) {
                         navViewModel.addScreenInStack {
                             ChatScreen(chatId)

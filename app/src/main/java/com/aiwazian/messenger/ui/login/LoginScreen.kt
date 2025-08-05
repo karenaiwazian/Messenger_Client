@@ -9,76 +9,80 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.aiwazian.messenger.viewModels.AuthViewModel
-import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.ui.element.CustomDialog
+import com.aiwazian.messenger.viewModels.AuthViewModel
+import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
+fun LoginScreen(
+    authViewModel: AuthViewModel,
+    navController: NavHostController
+) {
+    val context = LocalContext.current
+    
+    val vibrateService = VibrateService(context)
+    
     var isLoad by remember { mutableStateOf(true) }
-
-    val dialogViewModel: DialogViewModel = viewModel()
-
-    var modalText by remember { mutableStateOf("") }
-
+    
+    val scope = rememberCoroutineScope()
+    
+    var showFindUserDialog by remember { mutableStateOf(false) }
+    var showNotFindUserDialog by remember { mutableStateOf(false) }
+    val loginFieldError by authViewModel.loginFieldError.collectAsState()
+    
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize(),
-        
+        modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    isLoad = false
-                    viewModel.findUserByLogin(
-                        find = {
-                            modalText = "Пользователь найден. Продолжить?"
-                            dialogViewModel.primaryAction = {
-                                navController.navigate(Screen.PASSWORD)
-                            }
-                            dialogViewModel.showDialog()
-                            isLoad = true
-                        },
-                        notFind = {
-                            modalText = "Пользователь не найден. Создать?"
-                            dialogViewModel.primaryAction = {
-                                navController.navigate(Screen.PASSWORD)
-                            }
-                            dialogViewModel.showDialog()
-                            isLoad = true
-                        },
-                        error = {
-                            modalText = "Не удалось проверить, поробуйте ещё раз."
-                            dialogViewModel.primaryAction = {
-                                dialogViewModel.hideDialog()
-                            }
-                            dialogViewModel.showDialog()
-                            isLoad = true
+                    scope.launch {
+                        val isValidLogin = authViewModel.checkValidLogin()
+                        
+                        if (!isValidLogin) {
+                            vibrateService.vibrate()
+                            return@launch
                         }
-                    )
+                        
+                        isLoad = false
+                        
+                        val isFind = authViewModel.findUserByLogin()
+                        
+                        authViewModel.setUserFoundState(isFind)
+                        
+                        if (isFind) {
+                            showFindUserDialog = true
+                        } else {
+                            showNotFindUserDialog = true
+                        }
+                        
+                        isLoad = true
+                    }
                 },
                 modifier = Modifier.imePadding(),
                 contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -87,7 +91,7 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
             ) {
                 if (isLoad) {
                     Icon(
-                        Icons.AutoMirrored.Outlined.ArrowForward,
+                        imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
@@ -101,6 +105,8 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
             }
         }
     ) {
+        val login by authViewModel.login.collectAsState()
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -114,28 +120,49 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
             )
             Column(Modifier.width(300.dp)) {
                 LoginField(
-                    viewModel.login,
-                    viewModel::onLoginChanged,
+                    value = login,
+                    onValueChange = authViewModel::onLoginChanged,
+                    label = loginFieldError ?: "Логин",
+                    isError = loginFieldError != null
                 )
             }
         }
-
-        if (dialogViewModel.isDialogVisible.value) {
+        
+        if (showFindUserDialog) {
             CustomDialog(
                 title = stringResource(R.string.app_name),
                 onDismiss = {
-                    dialogViewModel.hideDialog()
-                    dialogViewModel.dismissAction?.invoke()
+                    showFindUserDialog = false
                 },
                 onConfirm = {
-                    dialogViewModel.hideDialog()
-                    dialogViewModel.primaryAction?.invoke()
+                    showFindUserDialog = false
+                    navController.navigate(Screen.PASSWORD)
                 },
-                dismissButtonText = "Отмена",
+                dismissButtonText = "Нет",
                 primaryButtonText = "Да"
             ) {
                 Text(
-                    text = modalText,
+                    text = "Пользователь найден. Продолжить?",
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+        }
+        
+        if (showNotFindUserDialog) {
+            CustomDialog(
+                title = stringResource(R.string.app_name),
+                onDismiss = {
+                    showNotFindUserDialog = false
+                },
+                onConfirm = {
+                    showNotFindUserDialog = false
+                    navController.navigate(Screen.PASSWORD)
+                },
+                dismissButtonText = "Нет",
+                primaryButtonText = "Да"
+            ) {
+                Text(
+                    text = "Пользователь не найден. Создать?",
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
@@ -147,7 +174,8 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
 private fun LoginField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String = "Логин",
+    label: String,
+    isError: Boolean = false
 ) {
     OutlinedTextField(
         modifier = Modifier.fillMaxWidth(),
@@ -164,5 +192,6 @@ private fun LoginField(
         onValueChange = onValueChange,
         label = { Text(label) },
         singleLine = true,
+        isError = isError
     )
 }

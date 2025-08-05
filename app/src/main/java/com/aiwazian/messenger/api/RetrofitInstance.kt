@@ -10,14 +10,27 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
-
+    
     private const val BASE_URL = Constants.SERVER_URL
-    private val skipAuthPaths = listOf(Route.LOGIN, Route.REGISTER)
-
+    private val skipAuthPaths = listOf(
+        Route.LOGIN,
+        Route.REGISTER,
+        Route.FIND_USER_BY_LOGIN
+    )
+    
     private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(15, TimeUnit.SECONDS)
-        .writeTimeout(15, TimeUnit.SECONDS)
+        .connectTimeout(
+            15,
+            TimeUnit.SECONDS
+        )
+        .readTimeout(
+            15,
+            TimeUnit.SECONDS
+        )
+        .writeTimeout(
+            15,
+            TimeUnit.SECONDS
+        )
         .addInterceptor(
             AuthInterceptor(
                 getToken = {
@@ -32,7 +45,7 @@ object RetrofitInstance {
             )
         )
         .build()
-
+    
     val api: ApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)

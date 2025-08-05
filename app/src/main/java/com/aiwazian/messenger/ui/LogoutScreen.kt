@@ -1,5 +1,6 @@
 package com.aiwazian.messenger.ui
 
+import android.app.Activity
 import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,18 +28,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.aiwazian.messenger.services.AuthService
-import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.LoginActivity
-import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.services.AppLockService
+import com.aiwazian.messenger.services.AuthService
+import com.aiwazian.messenger.services.TokenManager
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionHeader
+import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.settings.SettingsDataUsageScreen
 import com.aiwazian.messenger.ui.settings.security.SettingsPasscodeScreen
-import com.aiwazian.messenger.services.AppLockService
+import com.aiwazian.messenger.utils.WebSocketManager
+import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 
@@ -51,7 +54,7 @@ fun LogoutScreen() {
 private fun Content() {
     val navViewModel: NavigationViewModel = viewModel()
     val scrollState = rememberScrollState()
-
+    
     Scaffold(
         topBar = { TopBar() },
     ) {
@@ -62,14 +65,14 @@ private fun Content() {
                 .verticalScroll(scrollState)
         ) {
             SectionHeader(title = stringResource(R.string.alternative_options))
-
+            
             SectionContainer {
                 SectionItem(
                     icon = Icons.Outlined.PersonAdd,
                     text = "Добавить аккаунт",
                     description = "Подключите несколько аккаунтов и легко переключайтесь между ними."
                 )
-
+                
                 SectionItem(
                     icon = Icons.Outlined.Delete,
                     text = stringResource(R.string.clear_cache),
@@ -79,9 +82,9 @@ private fun Content() {
                             SettingsDataUsageScreen()
                         }
                     })
-
+                
                 val hasPasscode = AppLockService().hasPasscode.collectAsState().value
-
+                
                 if (!hasPasscode) {
                     SectionItem(
                         icon = Icons.Outlined.Key,
@@ -94,9 +97,9 @@ private fun Content() {
                         })
                 }
             }
-
+            
             val dialogViewModel: DialogViewModel = viewModel()
-
+            
             SectionContainer {
                 SectionItem(
                     text = stringResource(R.string.exit),
@@ -106,7 +109,7 @@ private fun Content() {
                         dialogViewModel.showDialog()
                     })
             }
-
+            
             LogoutModal(viewModel = dialogViewModel)
         }
     }
@@ -117,21 +120,33 @@ private fun LogoutModal(viewModel: DialogViewModel) {
     val isVisible by viewModel.isDialogVisible
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
+    
     if (isVisible) {
-        CustomDialog(title = stringResource(R.string.exit), onDismiss = {
-            viewModel.hideDialog()
-        }, onConfirm = {
-            scope.launch {
+        CustomDialog(
+            title = stringResource(R.string.exit),
+            onDismiss = {
                 viewModel.hideDialog()
-                val authService = AuthService()
-                authService.logout()
-                val intent = Intent(context, LoginActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            },
+            onConfirm = {
+                scope.launch {
+                    viewModel.hideDialog()
+                    
+                    val authService = AuthService()
+                    authService.logout()
+                    
+                    WebSocketManager.close()
+                    TokenManager.removeToken()
+                    
+                    val intent = Intent(
+                        context,
+                        LoginActivity::class.java
+                    ).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    context.startActivity(intent)
+                    (context as Activity).finish()
                 }
-                context.startActivity(intent)
-            }
-        }) {
+            }) {
             Column(Modifier.padding(horizontal = 16.dp)) {
                 Text(
                     text = "Вы точно хотите выйти?"
@@ -145,9 +160,10 @@ private fun LogoutModal(viewModel: DialogViewModel) {
 @Composable
 private fun TopBar() {
     val navViewModel: NavigationViewModel = viewModel()
-
+    
     PageTopBar(
-        title = { Text(stringResource(R.string.exit)) }, navigationIcon = {
+        title = { Text(stringResource(R.string.exit)) },
+        navigationIcon = {
             IconButton(
                 onClick = {
                     navViewModel.removeLastScreenInStack()

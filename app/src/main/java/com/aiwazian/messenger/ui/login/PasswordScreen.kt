@@ -1,6 +1,7 @@
 package com.aiwazian.messenger.ui.login
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,64 +26,99 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.aiwazian.messenger.MainActivity
+import com.aiwazian.messenger.R
+import com.aiwazian.messenger.services.VibrateService
+import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.viewModels.AuthViewModel
+import kotlinx.coroutines.launch
 
 @Composable
-fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
+fun PasswordScreen(
+    navController: NavHostController,
+    authViewModel: AuthViewModel
+) {
     val context = LocalContext.current
-
+    
+    val vibrateService = VibrateService(context)
+    
     var isLoad by remember { mutableStateOf(true) }
-
+    
+    val scope = rememberCoroutineScope()
+    
+    var showFailureLogin by remember { mutableStateOf(false) }
+    var showFailureRegister by remember { mutableStateOf(false) }
+    val passwordFieldError by authViewModel.passwordFieldError.collectAsState()
+    
+    val onClick = {
+        val isUserFound = authViewModel.getUserFoundState()
+        val isValidPassword = authViewModel.checkValidPassword()
+        
+        scope.launch {
+            if (!isValidPassword) {
+                vibrateService.vibrate()
+                return@launch
+            }
+            
+            if (isUserFound) {
+                isLoad = false
+                
+                val isLogin = authViewModel.onLoginClicked()
+                
+                isLoad = true
+                
+                if (!isLogin) {
+                    showFailureLogin = true
+                    return@launch
+                }
+                
+                startMainActivity(context)
+            } else {
+                isLoad = false
+                
+                val isRegister = authViewModel.onRegisterClicked()
+                
+                isLoad = true
+                
+                if (!isRegister) {
+                    showFailureRegister = true
+                    isLoad = true
+                    return@launch
+                }
+                
+                val isLogin = authViewModel.onLoginClicked()
+                
+                if (!isLogin) {
+                    showFailureRegister = true
+                    return@launch
+                }
+                
+                startMainActivity(context)
+            }
+        }
+    }
+    
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    isLoad = false
-                    if (viewModel.isUserFound) {
-                        viewModel.onLoginClicked(success = {
-                            val intent = Intent(context, MainActivity::class.java)
-                            if (context !is Activity) {
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-
-                            context.startActivity(intent)
-                            (context as Activity).finish()
-                        }, error = {
-                            isLoad = true
-                        })
-                    } else {
-                        viewModel.onRegisterClicked(success = {
-                            viewModel.onLoginClicked(success = {
-                                val intent = Intent(context, MainActivity::class.java)
-                                if (context !is Activity) {
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                }
-
-                                context.startActivity(intent)
-                                (context as Activity).finish()
-                            }, error = {
-                                isLoad = true
-                            })
-                        }, error = {
-                            isLoad = true
-                        })
-                    }
+                    onClick()
                 },
                 modifier = Modifier.imePadding(),
                 contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -104,6 +140,8 @@ fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
                 }
             }
         }) {
+        val password by authViewModel.password.collectAsState()
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -117,7 +155,40 @@ fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
             )
             Column(Modifier.width(300.dp)) {
                 PasswordField(
-                    viewModel.password, viewModel::onPasswordChanged, viewModel.passwordError
+                    value = password,
+                    onValueChange = authViewModel::onPasswordChanged,
+                    label = passwordFieldError ?: "Пароль",
+                    isError = passwordFieldError != null
+                )
+            }
+        }
+        
+        if (showFailureLogin) {
+            CustomDialog(
+                title = stringResource(R.string.app_name),
+                onDismiss = { showFailureLogin = false },
+                onConfirm = { showFailureLogin = false },
+                dismissButtonText = null,
+                primaryButtonText = "Ок"
+            ) {
+                Text(
+                    text = "Не удалось войти в аккаунт. Попробуйте ещё раз.",
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+        }
+        
+        if (showFailureRegister) {
+            CustomDialog(
+                title = stringResource(R.string.app_name),
+                onDismiss = { showFailureRegister = false },
+                onConfirm = { showFailureRegister = false },
+                dismissButtonText = null,
+                primaryButtonText = "Ок"
+            ) {
+                Text(
+                    text = "Не удалось создать пользователя. Попробуйте ещё раз.",
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
         }
@@ -128,11 +199,11 @@ fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
 private fun PasswordField(
     value: String,
     onValueChange: (String) -> Unit,
+    label: String,
     isError: Boolean,
-    label: String = "Пароль",
 ) {
     val passwordVisible = remember { mutableStateOf(false) }
-
+    
     OutlinedTextField(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
@@ -161,4 +232,16 @@ private fun PasswordField(
                 )
             }
         })
+}
+
+private fun startMainActivity(context: Context) {
+    val intent = Intent(
+        context,
+        MainActivity::class.java
+    ).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    }
+    
+    context.startActivity(intent)
+    (context as Activity).finish()
 }

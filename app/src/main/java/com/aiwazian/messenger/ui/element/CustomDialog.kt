@@ -30,7 +30,7 @@ fun CustomDialog(
     title: String,
     onDismiss: () -> Unit = {},
     onConfirm: () -> Unit = {},
-    dismissButtonText: String = "Отмена",
+    dismissButtonText: String? = "Отмена",
     primaryButtonText: String = "Ок",
     content: @Composable () -> Unit = {},
 ) {
@@ -57,27 +57,32 @@ fun CustomDialog(
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                     )
-
+                    
                     content()
-
+                    
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.End,
                     ) {
-                        TextButton(
-                            shape = RoundedCornerShape(8.dp),
-                            onClick = onDismiss,
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            Text(dismissButtonText, color = MaterialTheme.colorScheme.primary)
+                        if (dismissButtonText != null) {
+                            TextButton(
+                                shape = RoundedCornerShape(8.dp),
+                                onClick = onDismiss,
+                                colors = ButtonDefaults.textButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Text(
+                                    dismissButtonText,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                         
                         Spacer(Modifier.width(10.dp))
-
+                        
                         TextButton(
                             shape = RoundedCornerShape(8.dp),
                             onClick = onConfirm,
@@ -85,7 +90,10 @@ fun CustomDialog(
                                 contentColor = MaterialTheme.colorScheme.primary
                             )
                         ) {
-                            Text(primaryButtonText, color = MaterialTheme.colorScheme.primary)
+                            Text(
+                                primaryButtonText,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
                 }

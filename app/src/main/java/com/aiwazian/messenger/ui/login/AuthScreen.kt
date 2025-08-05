@@ -53,13 +53,13 @@ private fun Content() {
         }
     ) {
         composable(route = Screen.LOGIN) {
-            LoginScreen(navController = navController, viewModel = authViewModel)
+            LoginScreen(navController = navController, authViewModel = authViewModel)
         }
         composable(route = Screen.VERIFICATION) {
             VerificationCodeScreen(navController = navController, viewModel = authViewModel)
         }
         composable(route = Screen.PASSWORD) {
-            PasswordScreen(navController = navController, viewModel = authViewModel)
+            PasswordScreen(navController = navController, authViewModel = authViewModel)
         }
     }
 }
