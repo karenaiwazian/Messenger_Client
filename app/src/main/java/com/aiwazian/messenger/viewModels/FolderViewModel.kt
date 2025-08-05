@@ -25,6 +25,9 @@ class FolderViewModel : ViewModel() {
 
     private val _folderId = MutableStateFlow(0)
 
+    private val _isDialogVisible = MutableStateFlow(false)
+    val idDialogVisible = _isDialogVisible.asStateFlow()
+
     suspend fun loadFolders() {
         try {
             _folders.value = folderService.getFolders()
@@ -69,6 +72,7 @@ class FolderViewModel : ViewModel() {
 
             if (isDeleted) {
                 _folders.value = _folders.value.filter { it.id != folderId }
+                cleanData()
             }
         } catch (e: Exception) {
             Log.e("FolderViewModel", "Error removing folder", e)
@@ -104,7 +108,15 @@ class FolderViewModel : ViewModel() {
         }
     }
 
-    private fun cleanData() {
+    fun showDialog() {
+        _isDialogVisible.value = true
+    }
+
+    fun hideDialog() {
+        _isDialogVisible.value = false
+    }
+
+    fun cleanData() {
         _folderId.value = 0
         _folderName.value = ""
         _folderChats.value = emptyList()

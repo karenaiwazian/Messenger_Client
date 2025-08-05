@@ -83,7 +83,7 @@ private fun Content() {
                 )
 
                 Text(
-                    text = "Вы можете создать папки с нужными чатами и переключаться между ними.",
+                    text = stringResource(R.string.chat_folders_description),
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
                     textAlign = TextAlign.Center,

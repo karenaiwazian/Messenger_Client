@@ -7,5 +7,5 @@ data class ChatInfo(
     @Keep val id: Int,
     @Keep val chatName: String = "",
     @Keep var isPinned: Boolean = false,
-    @Keep var lastMessage: String = ""
+    @Keep var lastMessage: Message? = null
 )

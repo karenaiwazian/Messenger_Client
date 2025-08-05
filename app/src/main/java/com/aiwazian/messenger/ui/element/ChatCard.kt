@@ -29,11 +29,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aiwazian.messenger.data.Message
 
 @Composable
 fun ChatCard(
     chatName: String,
-    lastMessage: String,
+    lastMessage: Message? = null,
     selected: Boolean = false,
     pinned: Boolean = false,
     unreadMessageCount: Int = 0,
@@ -53,7 +54,9 @@ fun ChatCard(
             Text(chatName)
         },
         supportingContent = {
-            Text(lastMessage, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (lastMessage != null) {
+                Text(lastMessage.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
         },
         leadingContent = {
             Leading(selected)

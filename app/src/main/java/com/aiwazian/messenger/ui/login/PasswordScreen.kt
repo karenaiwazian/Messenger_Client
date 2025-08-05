@@ -67,30 +67,25 @@ fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
                             isLoad = true
                         })
                     } else {
-                        viewModel.onRegisterClicked(
-                            success = {
-                                viewModel.onLoginClicked(
-                                    success = {
-                                        val intent = Intent(context, MainActivity::class.java)
-                                        if (context !is Activity) {
-                                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        }
+                        viewModel.onRegisterClicked(success = {
+                            viewModel.onLoginClicked(success = {
+                                val intent = Intent(context, MainActivity::class.java)
+                                if (context !is Activity) {
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
 
-                                        context.startActivity(intent)
-                                        (context as Activity).finish()
-                                    },
-                                    error = {
-                                        isLoad = true
-                                    }
-                                )
-                            },
-                            error = {
+                                context.startActivity(intent)
+                                (context as Activity).finish()
+                            }, error = {
                                 isLoad = true
-                            }
-                        )
+                            })
+                        }, error = {
+                            isLoad = true
+                        })
                     }
                 },
                 modifier = Modifier.imePadding(),
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 containerColor = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             ) {
@@ -98,11 +93,13 @@ fun PasswordScreen(navController: NavHostController, viewModel: AuthViewModel) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
                         contentDescription = null,
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
                     CircularProgressIndicator(
-                        color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(20.dp)
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }

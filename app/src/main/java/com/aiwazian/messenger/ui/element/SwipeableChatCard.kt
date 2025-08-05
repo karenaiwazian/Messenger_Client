@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.utils.VibrationPattern
 import kotlinx.coroutines.delay
@@ -32,7 +33,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SwipeableChatCard(
     chatName: String,
-    lastMessage: String,
+    lastMessage: Message? = null,
     selected: Boolean = false,
     pinned: Boolean = false,
     enableSwipeable: Boolean = true,

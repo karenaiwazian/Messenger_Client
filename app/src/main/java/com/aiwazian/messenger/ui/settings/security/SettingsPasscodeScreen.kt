@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,6 +51,7 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.aiwazian.messenger.utils.LottieAnimation
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.ui.element.AnimatedIntroScreen
 import com.aiwazian.messenger.ui.element.CodeBlocks
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.CustomNumberBoard
@@ -284,66 +286,23 @@ private fun PasscodeLockMainScreen(
             TopBarMain(navViewModel)
         }, 
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val composition by rememberLottieComposition(
-                    spec = LottieCompositionSpec.Asset(LottieAnimation.KEY_LOCK)
-                )
-
-                LottieAnimation(
-                    composition = composition,
-                    modifier = Modifier.size(100.dp),
-                    iterations = LottieConstants.IterateForever,
-                    isPlaying = true
-                )
-
-                Text(
-                    text = stringResource(R.string.passcode_lock),
-                    fontSize = 24.sp,
-                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-                )
-
-                Text(
-                    text = "После установки кода-пароля над списком чатов появится значок замка для блокировки и разблокировки приложения.",
-                    textAlign = TextAlign.Center,
-                    fontSize = 14.sp,
-                    lineHeight = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Button(
-                onClick = {
+            AnimatedIntroScreen(
+                animation = LottieAnimation.KEY_LOCK,
+                title = stringResource(R.string.passcode_lock),
+                description = stringResource(R.string.passcode_lock_description),
+                buttonText = stringResource(R.string.enable_passcode),
+                buttonClick = {
                     navController.navigate(route = PasscodeScreens.CREATE) {
                         popUpTo(PasscodeScreens.MAIN) {
                             inclusive = true
                         }
                     }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    contentColor = Color.White,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                shape = RoundedCornerShape(10.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.enable_passcode),
-                    modifier = Modifier.padding(8.dp),
-                )
-            }
+                }
+            )
         }
     }
 }
@@ -352,7 +311,6 @@ private fun PasscodeLockMainScreen(
 @Composable
 private fun TopBar(navigationViewModel: NavigationViewModel) {
     PageTopBar(
-        title = {},
         navigationIcon = {
             IconButton(
                 onClick = {

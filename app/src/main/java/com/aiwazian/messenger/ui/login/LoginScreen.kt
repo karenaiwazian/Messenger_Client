@@ -81,6 +81,7 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
                     )
                 },
                 modifier = Modifier.imePadding(),
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 containerColor = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             ) {
@@ -88,11 +89,11 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavHostController) {
                     Icon(
                         Icons.AutoMirrored.Outlined.ArrowForward,
                         contentDescription = null,
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
                     CircularProgressIndicator(
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 2.dp,
                         modifier = Modifier.size(20.dp)
                     )

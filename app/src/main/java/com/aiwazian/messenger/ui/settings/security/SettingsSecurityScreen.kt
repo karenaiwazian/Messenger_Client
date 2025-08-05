@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +35,7 @@ import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.utils.DataStoreManager
 import com.aiwazian.messenger.viewModels.NavigationViewModel
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun SettingsSecurityScreen() {
@@ -43,31 +45,32 @@ fun SettingsSecurityScreen() {
 @Composable
 private fun Content() {
     val navViewModel: NavigationViewModel = viewModel()
-
+    
     var deviceCount by remember { mutableIntStateOf(1) }
     var passcodeEnabled by remember { mutableStateOf(false) }
-
+    
     LaunchedEffect(Unit) {
         val dataStoreManager = DataStoreManager.getInstance()
-        dataStoreManager.getPasscode().collect {
-             passcodeEnabled = it.isNotBlank()
-        }
-
+        passcodeEnabled = dataStoreManager.getPasscode().first().isNotBlank()
+        
         try {
             val getDevices = RetrofitInstance.api.getDeviceCount()
-
+            
             if (getDevices.isSuccessful) {
                 deviceCount = getDevices.body() ?: 1
             }
         } catch (e: Exception) {
-            Log.e("SettingsSecurityScreen", e.message.toString())
+            Log.e(
+                "SettingsSecurityScreen",
+                e.message.toString()
+            )
         }
     }
-
+    
     val scrollState = rememberScrollState()
-
+    
     Scaffold(
-        topBar = { TopBar() },
+        topBar = { TopBar() }
     ) {
         Column(
             modifier = Modifier
@@ -87,13 +90,13 @@ private fun Content() {
                             }
                         }
                     )
-
+                    
                     val passcodeEnabledText = if (passcodeEnabled) {
                         stringResource(R.string.on)
                     } else {
                         stringResource(R.string.off)
                     }
-
+                    
                     SectionItem(
                         icon = Icons.Outlined.Lock,
                         text = stringResource(R.string.passcode_lock),
@@ -104,7 +107,7 @@ private fun Content() {
                             }
                         }
                     )
-
+                    
                     SectionItem(
                         icon = Icons.Outlined.Devices,
                         text = stringResource(R.string.devices),
@@ -116,7 +119,7 @@ private fun Content() {
                         }
                     )
                 }
-
+                
                 SectionDescription(
                     text = "Просмотреть список устройств, на которых Ваш аккаунт авторизован в ${
                         stringResource(R.string.app_name)
@@ -131,7 +134,7 @@ private fun Content() {
 @Composable
 private fun TopBar() {
     val navViewModel: NavigationViewModel = viewModel()
-
+    
     PageTopBar(
         title = { Text(stringResource(R.string.security)) },
         navigationIcon = {

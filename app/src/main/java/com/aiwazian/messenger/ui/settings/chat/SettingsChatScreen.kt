@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
@@ -44,13 +45,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.customType.PrimaryColorOption
 import com.aiwazian.messenger.customType.ThemeOption
+import com.aiwazian.messenger.services.ThemeService
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionToggleItem
-import com.aiwazian.messenger.services.ThemeService
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 
@@ -62,9 +63,9 @@ fun SettingsChatScreen() {
 @Composable
 private fun Content() {
     val navViewModel: NavigationViewModel = viewModel()
-
+    
     val scrollState = rememberScrollState()
-
+    
     Scaffold(
         topBar = {
             TopBar()
@@ -83,15 +84,15 @@ private fun Content() {
                 ThemeOption.LIGHT -> "Отключена"
                 else -> "Как в системе"
             }
-
+            
             SectionHeader(title = stringResource(R.string.color_theme))
-
+            
             SectionContainer {
                 val coroutineScope = rememberCoroutineScope()
-
+                
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     val isDynamicColorEnable by themeService.dynamicColor.collectAsState()
-
+                    
                     SectionToggleItem(
                         text = stringResource(R.string.dynamic_color),
                         isChecked = isDynamicColorEnable,
@@ -102,7 +103,7 @@ private fun Content() {
                         }
                     )
                 }
-
+                
                 Row(
                     modifier = Modifier
                         .padding(8.dp)
@@ -125,53 +126,55 @@ private fun Content() {
                     }
                 }
             }
-
+            
             SectionContainer {
                 SectionItem(
-                    text = stringResource(R.string.dark_theme), primaryText = theme, onClick = {
+                    text = stringResource(R.string.dark_theme),
+                    primaryText = theme,
+                    onClick = {
                         navViewModel.addScreenInStack {
                             SettingsDarkThemeScreen()
                         }
                     })
             }
-
-            SectionHeader(title = "Список чатов")
-
-            SectionContainer {
-
-            }
-
+            
             var vds by remember { mutableStateOf("") }
-
+            
             var selected by remember { mutableIntStateOf(0) }
-
+            
             SectionHeader(title = "Смахивание влево в списке чатов $vds")
-
+            
             SectionContainer {
                 Row(
                     modifier = Modifier
                         .padding(5.dp)
                         .horizontalScroll(rememberScrollState())
                 ) {
-
+                    
                     Boxic(
-                        selected = selected == 1, icon = Icons.Outlined.Archive, onClick = {
+                        selected = selected == 1,
+                        icon = Icons.Outlined.Archive,
+                        onClick = {
                             vds = "Архивировать"
                             selected = 1
                         })
-
+                    
                     Boxic(
-                        selected = selected == 2, icon = Icons.Outlined.PushPin, onClick = {
+                        selected = selected == 2,
+                        icon = Icons.Outlined.PushPin,
+                        onClick = {
                             vds = "Закрепить"
                             selected = 2
                         })
-
+                    
                     Boxic(
-                        selected = selected == 5, icon = Icons.Outlined.ChatBubble, onClick = {
+                        selected = selected == 5,
+                        icon = Icons.Outlined.ChatBubble,
+                        onClick = {
                             vds = "Прочитать"
                             selected = 5
                         })
-
+                    
                     Boxic(
                         selected = selected == 6,
                         icon = Icons.AutoMirrored.Outlined.VolumeOff,
@@ -179,21 +182,25 @@ private fun Content() {
                             vds = "Выкл. звук"
                             selected = 6
                         })
-
+                    
                     Boxic(
-                        selected = selected == 3, icon = Icons.Outlined.DisabledVisible, onClick = {
+                        selected = selected == 3,
+                        icon = Icons.Outlined.DisabledVisible,
+                        onClick = {
                             vds = "Сменить папку"
                             selected = 3
                         })
-
+                    
                     Boxic(
-                        selected = selected == 4, icon = Icons.Outlined.Delete, onClick = {
+                        selected = selected == 4,
+                        icon = Icons.Outlined.Delete,
+                        onClick = {
                             vds = "Удалить"
                             selected = 4
                         })
                 }
             }
-
+            
             SectionDescription(text = "Выбор действия, которое будет выполняться при смахивании влево в списке чатов.")
         }
     }
@@ -226,7 +233,8 @@ private fun Boxic(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.padding(10.dp)
+                    modifier = Modifier.padding(10.dp),
+                    tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -237,18 +245,20 @@ private fun Boxic(
 @Composable
 private fun TopBar() {
     val navViewModel: NavigationViewModel = viewModel()
-
-    PageTopBar(title = {
-        Text(stringResource(R.string.design))
-    }, navigationIcon = {
-        IconButton(
-            onClick = {
-                navViewModel.removeLastScreenInStack()
-            }) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-            )
-        }
-    })
+    
+    PageTopBar(
+        title = {
+            Text(stringResource(R.string.design))
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = {
+                    navViewModel.removeLastScreenInStack()
+                }) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                )
+            }
+        })
 }

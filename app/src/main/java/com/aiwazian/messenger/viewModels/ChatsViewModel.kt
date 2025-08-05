@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.ChatInfo
+import com.aiwazian.messenger.data.Message
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -230,7 +231,7 @@ class ChatsViewModel : ViewModel() {
         _unarchivedChats.value = currentList
     }
 
-    fun updateLastMessage(chatId: Int, lastMessage: String) {
+    fun updateLastMessage(chatId: Int, lastMessage: Message) {
         val list = _unarchivedChats.value.toMutableList()
         val index = list.indexOfFirst { it.id == chatId }
 

@@ -13,6 +13,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import java.time.Instant
 import java.util.Date
 
 object WebSocketManager {
@@ -69,7 +70,7 @@ object WebSocketManager {
                                 chatId = content.chatId,
                                 messageId = content.id,
                                 text = content.text,
-                                sendTime = Date(content.sendTime)
+                                sendTime = content.sendTime
                             )
 
                             onReceiveMessage?.invoke(message)

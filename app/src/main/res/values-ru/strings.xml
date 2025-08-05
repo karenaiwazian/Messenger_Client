@@ -61,4 +61,16 @@
     <string name="folder_name">Название папки</string>
     <string name="included_chats">Выбранные чаты</string>
     <string name="add_chats">Добавить чаты</string>
+    <string name="cloud_password_description">Вы можете установить пароль, который будет запрашиваться при входе с нового устройства.</string>
+    <string name="enter_password">Введите пароль</string>
+    <string name="passcode_lock_description">После установки кода-пароля над списком чатов появится значок замка для блокировки и разблокировки приложения.</string>
+    <string name="cancel">Отмена</string>
+    <string name="terminate">Завершить</string>
+    <string name="terminate_session">Завершить сеанс</string>
+    <string name="active_sessions">Активные сессии</string>
+    <string name="terminate_all_other_sessions">Завершить все другие сеансы</string>
+    <string name="delete">Удалить</string>
+    <string name="chat_folders_description">Вы можете создать папки с чатами и переключаться между ними.</string>
+    <string name="terminate_all_other_sessions_description">Выйти на всех устройствах, кроме этого.</string>
+    <string name="connect_device">Подключить устройство</string>
 </resources>

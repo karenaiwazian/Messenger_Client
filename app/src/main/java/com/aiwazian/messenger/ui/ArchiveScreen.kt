@@ -143,7 +143,7 @@ private fun Content() {
                         chatName = stringResource(R.string.saved_messages)
                     }
 
-                    SwipeableChatCard(chatName = chatName, lastMessage = "", onClick = {
+                    SwipeableChatCard(chatName = chatName, onClick = {
                         navViewModel.addScreenInStack {
                             ChatScreen(userId = chat.id)
                         }

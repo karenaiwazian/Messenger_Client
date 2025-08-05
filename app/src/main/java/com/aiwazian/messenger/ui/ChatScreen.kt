@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -48,12 +49,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -81,6 +84,9 @@ import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.format.TextStyle as MonthTextStyle
+import java.time.ZoneId
 import java.util.Locale
 
 private var showDeleteChatDialog by mutableStateOf(false)
@@ -98,7 +104,7 @@ fun ChatScreen(userId: Int) {
         val hasChat = chatsViewModel.hasChat(message.chatId)
 
         if (hasChat) {
-            chatsViewModel.updateLastMessage(message.chatId, message.text)
+            chatsViewModel.updateLastMessage(message.chatId, message)
             chatsViewModel.moveToUp(message.chatId)
         } else {
             scope.launch {
@@ -146,7 +152,7 @@ private fun Content(user: User, onSendMessage: (Message) -> Unit) {
     Scaffold(
         topBar = {
             TopBar(user, deleteDialogViewModel)
-        },
+        }
     ) { innerPadding ->
         val chatId = user.id
         val messages = chatViewModel.messages
@@ -155,6 +161,7 @@ private fun Content(user: User, onSendMessage: (Message) -> Unit) {
 
         LaunchedEffect(messages.size) {
             ChatStateManager.openChat(chatId)
+
             if (messages.isNotEmpty()) {
                 listState.animateScrollToItem(index = messages.lastIndex)
             }
@@ -184,12 +191,54 @@ private fun Content(user: User, onSendMessage: (Message) -> Unit) {
             } else {
                 val clipboardHelper = ClipboardHelper(context)
 
+                var previewMessageSendDate by remember {
+                    mutableStateOf(
+                        Instant.ofEpochMilli(Instant.now().epochSecond)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate()
+                    )
+                }
+
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.Bottom,
                 ) {
-                    items(messages) { message ->
+                    items(messages, key = { it.id }) { message ->
+                        val currentMessageSendDate = Instant.ofEpochMilli(message.sendTime)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate()
+
+                        val monthName = currentMessageSendDate.month.getDisplayName(
+                            MonthTextStyle.FULL,
+                            Locale.getDefault()
+                        )
+
+                        val capitalizedMonthName = monthName.replaceFirstChar {
+                            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+                        }
+
+                        if (previewMessageSendDate.month < currentMessageSendDate.month || previewMessageSendDate.dayOfMonth < currentMessageSendDate.dayOfMonth) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                ) {
+                                    Text(
+                                        "${currentMessageSendDate.dayOfMonth} $capitalizedMonthName",
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+
+                        previewMessageSendDate = currentMessageSendDate
+
                         MessageItem(
                             message = message,
                             onDelete = {

@@ -116,6 +116,7 @@ import com.aiwazian.messenger.utils.LottieAnimation
 import com.aiwazian.messenger.viewModels.ChatsViewModel
 import com.aiwazian.messenger.viewModels.FolderViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -204,7 +205,7 @@ private fun NotificationBottomModal(enable: () -> Unit, disable: () -> Unit) {
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(10.dp),
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
 
@@ -279,7 +280,7 @@ private fun Content(
         }
 
         if (hasChat) {
-            chatsViewModel.updateLastMessage(message.chatId, message.text)
+            chatsViewModel.updateLastMessage(message.chatId, message)
             chatsViewModel.moveToUp(message.chatId)
         }
     }
@@ -370,7 +371,7 @@ private fun Content(
             modifier = Modifier.padding(innerPadding),
         ) {
             AnimatedVisibility(
-                visible = folders.isNotEmpty() && selectedChats.isEmpty(),
+                visible = folders.isNotEmpty(),
                 enter = slideInVertically(tween(100)),
                 exit = slideOutVertically(tween(100))
             ) {
@@ -427,7 +428,6 @@ private fun Content(
                         if (archiveChats.isNotEmpty()) {
                             ChatCard(
                                 chatName = stringResource(R.string.archive),
-                                lastMessage = "",
                                 onClickChat = {
                                     if (selectedChats.isEmpty()) {
                                         navViewModel.addScreenInStack {
@@ -499,7 +499,6 @@ private fun ChatListSection(
             if (chat.id == user.id) {
                 chatName = stringResource(R.string.saved_messages)
             }
-
             SwipeableChatCard(
                 chatName = chatName,
                 lastMessage = chat.lastMessage,
@@ -548,8 +547,7 @@ private fun FloatingButton(onClick: () -> Unit) {
     FloatingActionButton(
         shape = CircleShape,
         onClick = onClick,
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = Color.White
+        containerColor = MaterialTheme.colorScheme.primary
     ) {
         Icon(
             imageVector = Icons.Default.Create, contentDescription = null

@@ -1,16 +1,12 @@
 package com.aiwazian.messenger.ui.settings.security
 
-import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -29,17 +25,19 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,7 +50,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,20 +59,17 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.Session
-import com.aiwazian.messenger.ui.element.BottomModalSheet
-import com.aiwazian.messenger.ui.element.CustomDialog
+import com.aiwazian.messenger.services.DeviceHelper
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionRadioItem
-import com.aiwazian.messenger.services.DeviceHelper
+import com.aiwazian.messenger.ui.settings.chatFolder.CustomDialogNew
 import com.aiwazian.messenger.utils.LottieAnimation
-import com.aiwazian.messenger.viewModels.DeviceSettingsViewModel
-import com.aiwazian.messenger.viewModels.DialogViewModel
+import com.aiwazian.messenger.viewModels.DevicesViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 
@@ -87,33 +81,24 @@ fun SettingsDevicesScreen() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content() {
-    val viewModel: DeviceSettingsViewModel = viewModel()
-
-    var sessions by remember { mutableStateOf<List<Session>>(emptyList()) }
-
-    var triggerForReloadUserSessions by remember { mutableStateOf(false) }
-
-    LaunchedEffect(triggerForReloadUserSessions) {
-        try {
-            val getDevices = RetrofitInstance.api.getSessions()
-
-            if (getDevices.isSuccessful) {
-                sessions = getDevices.body() ?: emptyList()
-            }
-        } catch (e: Exception) {
-            sessions = emptyList()
-            Log.e("Error", e.message.toString())
-        }
-    }
-
-    val scope = rememberCoroutineScope()
-
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    val scrollState = rememberScrollState()
-
     val navViewModel: NavigationViewModel = viewModel()
-
+    val devicesViewModel: DevicesViewModel = viewModel()
+    
+    val sessions by devicesViewModel.sessions.collectAsState()
+//    val isVisibleAutoTerminateDialog by devicesViewModel.isVisibleAutoTerminateDialog.collectAsState()
+    val isVisibleConfirmTerminateSessionDialog by devicesViewModel.isVisibleConfirmTerminateDialog.collectAsState()
+    val isVisibleBottomSheetDialog by devicesViewModel.isVisibleBottomSheetDialog.collectAsState()
+    
+    LaunchedEffect(Unit) {
+        devicesViewModel.getSessions()
+    }
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    val scrollState = rememberScrollState()
+    
+    val scope = rememberCoroutineScope()
+    
     Scaffold(
         topBar = {
             PageTopBar(
@@ -122,39 +107,27 @@ private fun Content() {
                     IconButton(
                         onClick = {
                             navViewModel.removeLastScreenInStack()
-                        }
-                    ) {
+                        }) {
                         Icon(
                             Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = null,
                         )
                     }
-                }
-            )
+                })
         },
-
+        
         snackbarHost = {
             SwipeDismissSnackbarHost(snackbarHostState)
-        }
-    ) {
+        }) {
         Column(
             Modifier
                 .padding(it)
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
-
             val deviceHelper = DeviceHelper()
             val currentDeviceName = deviceHelper.getDeviceName()
-
-            var modalSessionDeviceName by remember { mutableStateOf("") }
-            var modalSessionCreatedTime by remember { mutableStateOf("") }
-            var onDismissClick by remember { mutableStateOf<(() -> Unit)?>(null) }
-
-            val dismissSessionViewModel: DialogViewModel = viewModel()
-
-            val bottomSheetController = remember { DialogViewModel() }
-
+            
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -165,14 +138,14 @@ private fun Content() {
                 val composition by rememberLottieComposition(
                     spec = LottieCompositionSpec.Asset(LottieAnimation.APPLE_PHONE)
                 )
-
+                
                 LottieAnimation(
                     composition = composition,
                     modifier = Modifier.size(100.dp),
                     iterations = LottieConstants.IterateForever,
                     isPlaying = true
                 )
-
+                
                 Text(
                     text = "Вы можете зайти в приложение с помощью QR-кода.",
                     fontSize = 14.sp,
@@ -180,201 +153,165 @@ private fun Content() {
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
+                
                 Button(
                     onClick = { },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(10.dp),
                     shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        contentColor = Color.White,
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.QrCode,
                         contentDescription = null,
-                        tint = Color.White
                     )
                     Text(
-                        text = "Подключить устройство",
+                        text = stringResource(R.string.connect_device),
                         modifier = Modifier.padding(8.dp),
                     )
                 }
             }
-
+            
             SectionHeader(stringResource(R.string.this_device))
-
+            
             SectionContainer {
                 DeviceCard(
                     text = currentDeviceName,
                     onClick = {
-                        onDismissClick = null
-                        modalSessionDeviceName = currentDeviceName
-                        modalSessionCreatedTime = "В сети"
-
-                        bottomSheetController.showDialog()
-                    }
-                )
-
+                        devicesViewModel.openSession(0)
+                        devicesViewModel.showBottomSheetDialog()
+                    })
+                
             }
-
+            
             if (sessions.isNotEmpty()) {
                 SectionContainer {
                     SectionItem(
                         icon = Icons.Outlined.BackHand,
                         iconColor = MaterialTheme.colorScheme.error,
-                        text = "Завершить все другие сеансы",
+                        text = stringResource(R.string.terminate_all_other_sessions),
                         textColor = MaterialTheme.colorScheme.error,
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = MaterialTheme.colorScheme.error
                         ),
                         onClick = {
-                            onDismissClick = {
-                                scope.launch {
-                                    viewModel.terminateAllOtherSessions(
-                                        success = {
-                                            triggerForReloadUserSessions =
-                                                !triggerForReloadUserSessions
-                                        },
-                                        fail = {
-
-                                        }
-                                    )
-                                }
+                            devicesViewModel.setConfirmDialogAction {
+                                devicesViewModel.terminateAllOtherSessions()
                             }
-
-                            dismissSessionViewModel.showDialog()
-                        }
-                    )
+                            devicesViewModel.showConfirmTerminateSessionDialog()
+                        })
                 }
+                
+                SectionDescription(text = stringResource(R.string.terminate_all_other_sessions_description))
             }
-
+            
+//            SectionHeader("Автоматически завершать сеансы")
+//
+//            SectionContainer {
+//                SectionItem(
+//                    text = "Если сеанс неактивен",
+//                    primaryText = "1 нед.",
+//                    onClick = {
+//                        devicesViewModel.showAutoTerminateSessionDialog()
+//                    })
+//            }
+            
             if (sessions.isNotEmpty()) {
-                SectionDescription(text = "Выйти на всех устройствах, кроме этого.")
-            }
-
-            SectionHeader("Автоматически завершать сеансы")
-
-            val dismissSessionFromTimeDialogViewModel =
-                remember { DialogViewModel() }
-
-            SectionContainer {
-                SectionItem(
-                    text = "Если сеанс неактивен",
-                    primaryText = "1 нед.",
-                    onClick = {
-                        dismissSessionFromTimeDialogViewModel.showDialog()
-                    }
-                )
-            }
-
-            if (sessions.isNotEmpty()) {
-                SectionHeader(title = "Активные сеансы")
-
+                SectionHeader(title = stringResource(R.string.active_sessions))
+                
                 SectionContainer {
-                    Column {
-                        sessions.forEach { session ->
-                            DeviceCard(
-                                text = session.deviceName, onClick = {
-                                    modalSessionDeviceName = session.deviceName
-                                    modalSessionCreatedTime = session.createdAt
-
-                                    bottomSheetController.showDialog()
-
-                                    onDismissClick = {
-                                        // TODO(Dismiss session)
-                                        triggerForReloadUserSessions = !triggerForReloadUserSessions
-
-                                        bottomSheetController.hideDialog()
-                                    }
-                                }
-                            )
-                        }
+                    sessions.forEach { session ->
+                        DeviceCard(
+                            text = session.deviceName,
+                            onClick = {
+                                devicesViewModel.openSession(session.id)
+                                devicesViewModel.showBottomSheetDialog()
+                            })
                     }
                 }
             }
-
-            val options = listOf("1 неделя", "1 месяц", "1 год")
-
-            DismissSessionFromTimeDialog(dismissSessionFromTimeDialogViewModel, options)
-
-            DismissSessionDialog(
-                viewModel = dismissSessionViewModel,
-                dismiss = {
-                    bottomSheetController.hideDialog()
-                    onDismissClick?.invoke()
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Сессия завершена",
-                            duration = SnackbarDuration.Long
-                        )
+        }
+        
+        if (isVisibleConfirmTerminateSessionDialog) {
+            TerminateSessionDialog(
+                onDismiss = {
+                    devicesViewModel.hideConfirmTerminateSessionDialog()
+                },
+                onConfirm = {
+                    devicesViewModel.getConfirmDialogAction()?.let { action ->
+                        scope.launch {
+                            action.invoke()
+                        }
                     }
-                }
+                    devicesViewModel.hideConfirmTerminateSessionDialog()
+                    devicesViewModel.hideBottomSheetDialog()
+                })
+        }
+        
+        val openSession by devicesViewModel.openedSession.collectAsState()
+        
+        if (isVisibleBottomSheetDialog) {
+            BottomModal(
+                session = openSession,
+                onDismissRequest = { devicesViewModel.hideBottomSheetDialog() },
+                onConfirm = {
+                    devicesViewModel.setConfirmDialogAction {
+                        devicesViewModel.terminateSession(openSession.id)
+                    }
+                    devicesViewModel.showConfirmTerminateSessionDialog()
+                })
+        }
+        
+//        TODO auto terminate session
+//        if (isVisibleAutoTerminateDialog) {
+//            AutoTerminateSessionDialog(onDismissRequest = {
+//                devicesViewModel.hideAutoTerminateSessionDialog()
+//            })
+//        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BottomModal(
+    session: Session,
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        dragHandle = null
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                session.deviceName,
+                fontSize = 18.sp
             )
-
-            BottomModalSheet(
-                viewModel = bottomSheetController,
-                dragHandle = null
-            ) {
-                SectionContainer {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(vertical = 40.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(70.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.Green), contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    painter = painterResource(R.drawable.ic_launcher_foreground),
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-
-                            Spacer(Modifier.height(10.dp))
-
-                            Text(
-                                text = modalSessionDeviceName,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.W500
-                            )
-
-                            Text(
-                                text = modalSessionCreatedTime
-                            )
-                        }
-
-                        if (onDismissClick != null) {
-                            Button(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
-                                onClick = {
-                                    dismissSessionViewModel.showDialog()
-                                },
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    contentColor = Color.White,
-                                    containerColor = MaterialTheme.colorScheme.error
-                                )
-                            ) {
-                                Text(
-                                    text = "Завершить сеанс",
-                                    fontSize = 16.sp,
-                                    modifier = Modifier.padding(8.dp)
-                                )
-                            }
-                        }
-                    }
+            
+            Text(session.createdAt)
+            
+            if (session.id != 0) {
+                Button(
+                    onClick = onConfirm,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.terminate_session),
+                        modifier = Modifier.padding(8.dp),
+                        fontSize = 16.sp
+                    )
                 }
             }
         }
@@ -385,20 +322,18 @@ private fun Content() {
 private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
     SnackbarHost(hostState = snackbarHostState) { data ->
         var dismissed by remember { mutableStateOf(false) }
-
+        
         if (!dismissed) {
             val swipeToDismissBoxState = rememberSwipeToDismissBoxState(
                 confirmValueChange = {
                     it == SwipeToDismissBoxValue.EndToStart || it == SwipeToDismissBoxValue.StartToEnd
-                }
-            )
-
+                })
+            
             SwipeToDismissBox(
                 state = swipeToDismissBoxState,
                 enableDismissFromEndToStart = true,
                 enableDismissFromStartToEnd = true,
-                backgroundContent = { }
-            ) {
+                backgroundContent = { }) {
                 Snackbar(
                     modifier = Modifier
                         .padding(12.dp)
@@ -412,7 +347,10 @@ private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
 }
 
 @Composable
-private fun DeviceCard(text: String, onClick: () -> Unit) {
+private fun DeviceCard(
+    text: String,
+    onClick: () -> Unit
+) {
     Card(
         shape = RectangleShape,
         modifier = Modifier.fillMaxWidth(),
@@ -444,54 +382,72 @@ private fun DeviceCard(text: String, onClick: () -> Unit) {
                 )
             }
             Text(
-                text = text, modifier = Modifier.padding(start = 16.dp)
+                text = text,
+                modifier = Modifier.padding(start = 16.dp)
             )
         }
     }
 }
 
 @Composable
-private fun DismissSessionDialog(viewModel: DialogViewModel, dismiss: () -> Unit) {
-    val isVisible by viewModel.isDialogVisible
-
-    if (isVisible) {
-        CustomDialog(
-            title = "Завершить сеанс", onDismiss = { viewModel.hideDialog() }, onConfirm = dismiss
-        ) {
-            Column(Modifier.padding(horizontal = 16.dp)) {
-                Text("Вы точно хотите завершить сеанс?")
+private fun TerminateSessionDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    CustomDialogNew(
+        title = stringResource(R.string.terminate_session),
+        onDismissRequest = onDismiss,
+        content = {
+            Text("Вы точно хотите завершить сеанс?")
+        },
+        buttons = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
             }
-        }
-    }
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text(stringResource(R.string.terminate))
+            }
+        })
 }
 
 @Composable
-private fun DismissSessionFromTimeDialog(
-    viewModel: DialogViewModel,
-    options: List<String>,
+private fun AutoTerminateSessionDialog(
+    onDismissRequest: () -> Unit,
 ) {
-    val isVisible by viewModel.isDialogVisible
-
     var selectedOption by remember { mutableStateOf("Выберите пункт") }
-
-    var selectedInDialog by remember { mutableStateOf(options[0]) }
-
-    if (isVisible) {
-        CustomDialog(
-            title = "Автозавершение сессий",
-            onDismiss = { viewModel.hideDialog() },
-            onConfirm = {
-                selectedOption = selectedInDialog
-                viewModel.hideDialog()
-            }
-        ) {
-            options.forEach { option ->
-                SectionRadioItem(
-                    text = option, selected = (selectedOption == option), onClick = {
-                        selectedOption = option
+    
+    val options = listOf(
+        "1 нед.",
+        "1 мес.",
+        "1 год",
+    )
+    
+    CustomDialogNew(
+        title = "Автозавершение сессий",
+        onDismissRequest = onDismissRequest,
+        content = {
+            Column {
+                options.forEach { option ->
+                    Card(shape = RoundedCornerShape(10.dp)) {
+                        SectionRadioItem(
+                            text = option,
+                            selected = option == selectedOption,
+                            onClick = {
+                                selectedOption = option
+                            })
                     }
-                )
+                }
+                
             }
-        }
-    }
+        },
+        buttons = {
+            TextButton(onClick = onDismissRequest) {
+                Text(stringResource(R.string.cancel))
+            }
+        })
 }

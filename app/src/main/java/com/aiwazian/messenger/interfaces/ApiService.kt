@@ -39,9 +39,6 @@ interface ApiService {
     @POST(Route.REGISTER)
     suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
 
-    @POST(Route.LOGOUT)
-    suspend fun logout()
-
     @GET(Route.ME)
     suspend fun getMe(): Response<User>
 
@@ -65,6 +62,9 @@ interface ApiService {
 
     @POST(Route.TERMINATE_ALL_SESSIONS)
     suspend fun terminateAllSessions(): Response<ApiResponse>
+
+    @DELETE(Route.TERMINATE_SESSION)
+    suspend fun terminateSession(@Path("id") id: Int): Response<ApiResponse>
 
     @GET(Route.GET_DEVICE_COUNT)
     suspend fun getDeviceCount(): Response<Int>
