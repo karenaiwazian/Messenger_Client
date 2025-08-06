@@ -32,7 +32,6 @@ import com.aiwazian.messenger.LoginActivity
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.services.AppLockService
 import com.aiwazian.messenger.services.AuthService
-import com.aiwazian.messenger.services.TokenManager
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
@@ -40,7 +39,6 @@ import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.settings.SettingsDataUsageScreen
 import com.aiwazian.messenger.ui.settings.security.SettingsPasscodeScreen
-import com.aiwazian.messenger.utils.WebSocketManager
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
@@ -142,9 +140,6 @@ private fun LogoutModal(viewModel: DialogViewModel) {
                         
                         val authService = AuthService()
                         authService.logout()
-                        
-                        WebSocketManager.close()
-                        TokenManager.removeToken()
                         
                         val intent = Intent(
                             context,

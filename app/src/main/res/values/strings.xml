@@ -77,4 +77,5 @@
     <string name="connect_device">Connect Device</string>
     <string name="turn_off">Turn Off</string>
     <string name="turn_passcode_off">Turn Passcode Off</string>
+    <string name="copy">Copy</string>
 </resources>

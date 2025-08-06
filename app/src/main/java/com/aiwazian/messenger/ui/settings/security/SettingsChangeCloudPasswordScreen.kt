@@ -18,49 +18,91 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+ import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.ui.element.PageTopBar
+import com.aiwazian.messenger.viewModels.CloudPasswordViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsChangeCloudPasswordScreen() {
     val navViewModel: NavigationViewModel = viewModel()
-    Scaffold(topBar = {
-        PageTopBar(navigationIcon = {
-            IconButton(onClick = {
-                navViewModel.removeLastScreenInStack()
-            }) {
-                Icon(Icons.AutoMirrored.Outlined.ArrowBack, null)
+    val cloudPasswordViewModel: CloudPasswordViewModel = viewModel()
+    
+    val newPassword by cloudPasswordViewModel.newPassword.collectAsState()
+    val errorMessage by cloudPasswordViewModel.errorMessage.collectAsState()
+    
+    val vibrateService = VibrateService(LocalContext.current)
+    
+    val scope = rememberCoroutineScope()
+    
+    Scaffold(
+        topBar = {
+            PageTopBar(navigationIcon = {
+                IconButton(onClick = {
+                    navViewModel.removeLastScreenInStack()
+                }) {
+                    Icon(
+                        Icons.AutoMirrored.Outlined.ArrowBack,
+                        null
+                    )
+                }
+            })
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    val isValid = cloudPasswordViewModel.checkValidPassword()
+                    
+                    scope.launch {
+                        if (!isValid) {
+                            vibrateService.vibrate()
+                            return@launch
+                        }
+                        
+                        val isChanged = cloudPasswordViewModel.changePassword()
+                        if (isChanged) {
+                            navViewModel.removeLastScreenInStack()
+                        }
+                    }
+                },
+                shape = CircleShape,
+                modifier = Modifier.imePadding(),
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.ArrowForward,
+                    null
+                )
             }
-        })
-    }, floatingActionButton = {
-        FloatingActionButton(
-            onClick = {
-                //TODO change cloud password
-            },
-            shape = CircleShape,
-            modifier = Modifier.imePadding(),
-            containerColor = MaterialTheme.colorScheme.primary
-        ) {
-            Icon(Icons.AutoMirrored.Outlined.ArrowForward, null)
-        }
-    }) { innerPadding ->
+        }) { innerPadding ->
         Column(
-            modifier = Modifier.padding(innerPadding).fillMaxSize(),
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             OutlinedTextField(
-                value = "",
-                onValueChange = {},
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 40.dp),
+                value = newPassword,
+                onValueChange = cloudPasswordViewModel::onInputNewPassword,
                 shape = RoundedCornerShape(10.dp),
                 label = {
-                    Text(stringResource(R.string.enter_password))
-                }
+                    Text(errorMessage ?: stringResource(R.string.enter_password))
+                },
+                isError = errorMessage != null
             )
         }
     }
