@@ -39,7 +39,6 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -106,7 +105,7 @@ import com.aiwazian.messenger.data.ChatFolder
 import com.aiwazian.messenger.data.ChatInfo
 import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.ui.element.ChatCard
-import com.aiwazian.messenger.services.UserService
+import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.utils.WebSocketManager
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SwipeableChatCard
@@ -116,7 +115,6 @@ import com.aiwazian.messenger.utils.LottieAnimation
 import com.aiwazian.messenger.viewModels.ChatsViewModel
 import com.aiwazian.messenger.viewModels.FolderViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
-import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -491,7 +489,7 @@ private fun ChatListSection(
     onChatLongClick: (ChatInfo) -> Unit,
     onChatSwipe: (ChatInfo) -> Unit
 ) {
-    val user by UserService.user.collectAsState()
+    val user by UserManager.user.collectAsState()
 
     LazyColumn {
         items(chatList, key = { it.id }) { chat ->
@@ -788,7 +786,7 @@ private fun DrawerContent(
     drawerState: DrawerState
 ) {
     val navViewModel: NavigationViewModel = viewModel()
-    val user by UserService.user.collectAsState()
+    val user by UserManager.user.collectAsState()
     val scope = rememberCoroutineScope()
 
     ModalDrawerSheet(

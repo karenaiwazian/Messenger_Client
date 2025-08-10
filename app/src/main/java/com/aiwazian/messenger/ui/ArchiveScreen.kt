@@ -45,7 +45,7 @@ import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.BottomModalSheet
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SwipeableChatCard
-import com.aiwazian.messenger.services.UserService
+import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.viewModels.ChatsViewModel
 import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -133,7 +133,7 @@ private fun Content() {
             modifier = Modifier
                 .padding(innerPadding)
         ) {
-            val user by UserService.user.collectAsState()
+            val user by UserManager.user.collectAsState()
 
             LazyColumn {
                 items(chatList, key = { it.id }) { chat ->

@@ -35,7 +35,6 @@ import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.utils.Constants
 import com.aiwazian.messenger.services.QrCodeService
-import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable

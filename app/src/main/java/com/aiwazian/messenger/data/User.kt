@@ -9,4 +9,5 @@ data class User(
     @Keep var lastName: String = "",
     @Keep var username: String? = null,
     @Keep var bio: String = "",
+    @Keep var dateOfBirth: Long? = null,
 )

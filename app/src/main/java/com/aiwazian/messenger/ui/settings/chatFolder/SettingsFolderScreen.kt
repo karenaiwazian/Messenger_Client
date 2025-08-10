@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.services.UserService
+import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.InputField
 import com.aiwazian.messenger.ui.element.MinimizeChatCard
@@ -144,7 +144,7 @@ private fun Content(folderId: Int) {
                     }
                 )
                 
-                val user by UserService.user.collectAsState()
+                val user by UserManager.user.collectAsState()
                 
                 LazyColumn {
                     items(

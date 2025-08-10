@@ -31,7 +31,7 @@ import com.aiwazian.messenger.ui.element.InputField
 import com.aiwazian.messenger.ui.element.MinimizeChatCard
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
-import com.aiwazian.messenger.services.UserService
+import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.viewModels.FolderViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
@@ -111,7 +111,7 @@ private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit = { }) {
             }
 
             SectionContainer {
-                val user by UserService.user.collectAsState()
+                val user by UserManager.user.collectAsState()
 
                 LazyColumn {
                     items(filteredChats, { it.id }) { chat ->

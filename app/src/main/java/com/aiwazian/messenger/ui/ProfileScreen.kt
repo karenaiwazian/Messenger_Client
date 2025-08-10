@@ -25,11 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.aiwazian.messenger.services.ClipboardHelper
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.data.User
-import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.api.RetrofitInstance
+import com.aiwazian.messenger.data.User
+import com.aiwazian.messenger.services.ClipboardHelper
+import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionHeader
@@ -37,40 +37,57 @@ import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionToggleItem
 import com.aiwazian.messenger.ui.settings.SettingsProfileScreen
 import com.aiwazian.messenger.viewModels.NavigationViewModel
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun ProfileScreen(userId: Int) {
-    val user by UserService.user.collectAsState()
-
+    val user by UserManager.user.collectAsState()
+    
     if (userId == user.id) {
         Content(user)
         return
     }
-
+    
     val userState = remember { mutableStateOf(User()) }
-
+    
     LaunchedEffect(true) {
         try {
             val response = RetrofitInstance.api.getUserById(userId)
-
+            
             if (response.isSuccessful) {
                 val getUser = response.body()
                 if (getUser != null) {
                     userState.value = getUser
-                    Log.d("PROFILE1", userState.toString())
+                    Log.d(
+                        "PROFILE1",
+                        userState.toString()
+                    )
                 }
-
-                Log.d("PROFILE1", userState.toString())
+                
+                Log.d(
+                    "PROFILE1",
+                    userState.toString()
+                )
             } else {
-                Log.d("PROFILE1", response.code().toString())
+                Log.d(
+                    "PROFILE1",
+                    response.code().toString()
+                )
             }
         } catch (e: Exception) {
-            Log.e("PROFILE1", e.message.toString())
+            Log.e(
+                "PROFILE1",
+                e.message.toString()
+            )
         }
     }
-
-    Log.d("PROFILE1", userState.toString())
-
+    
+    Log.d(
+        "PROFILE1",
+        userState.toString()
+    )
+    
     Content(userState.value)
 }
 
@@ -78,11 +95,11 @@ fun ProfileScreen(userId: Int) {
 private fun Content(user: User) {
     val navViewModel: NavigationViewModel = viewModel()
     val context = LocalContext.current
-
+    
     val scrollState = rememberScrollState()
-
+    
     val clipboardHelper = ClipboardHelper(context = context)
-
+    
     Scaffold(
         topBar = { DefaultTopBar(user) },
     ) {
@@ -93,10 +110,10 @@ private fun Content(user: User) {
                 .verticalScroll(scrollState)
         ) {
             SectionHeader(title = stringResource(R.string.information))
-
+            
             SectionContainer {
                 val userBio = user.bio
-
+                
                 if (userBio.isNotEmpty()) {
                     SectionItem(
                         text = userBio,
@@ -106,9 +123,9 @@ private fun Content(user: User) {
                         }
                     )
                 }
-
+                
                 val username = user.username
-
+                
                 if (!username.isNullOrBlank()) {
                     SectionItem(
                         text = ("@$username"),
@@ -122,9 +139,23 @@ private fun Content(user: User) {
                         }
                     )
                 }
-
-                val me by UserService.user.collectAsState()
-
+                
+                val dateOfBirth = user.dateOfBirth
+                
+                if (dateOfBirth != null) {
+                    val date = SimpleDateFormat(
+                        "d MMM yyyy",
+                        Locale.getDefault()
+                    ).format(dateOfBirth)
+                    
+                    SectionItem(
+                        text = date,
+                        description = stringResource(R.string.date_of_birth)
+                    )
+                }
+                
+                val me by UserManager.user.collectAsState()
+                
                 if (user.id != me.id) {
                     SectionToggleItem(text = stringResource(R.string.notifications))
                 }
@@ -137,8 +168,8 @@ private fun Content(user: User) {
 @Composable
 private fun DefaultTopBar(user: User) {
     val navViewModel: NavigationViewModel = viewModel()
-    val me by UserService.user.collectAsState()
-
+    val me by UserManager.user.collectAsState()
+    
     PageTopBar(
         title = {
             Text(

@@ -160,8 +160,7 @@ fun LoginScreen(
                 },
                 content = {
                     Text(
-                        text = "Пользователь не найден. Создать?",
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        text = "Пользователь не найден. Создать?"
                     )
                 },
                 buttons = {

@@ -6,13 +6,15 @@ import com.aiwazian.messenger.data.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-object UserService {
+object UserManager {
 
     private val _user = MutableStateFlow(User())
     val user = _user.asStateFlow()
 
-    fun updateUser(updatedUser: User) {
+    fun updateUserInfo(updatedUser: User) {
+        val userId = _user.value.id
         _user.value = updatedUser
+        _user.value.id = userId
     }
 
     suspend fun loadUserData() {
@@ -23,24 +25,13 @@ object UserService {
                 val responseBody = response.body()
 
                 if (responseBody != null) {
-                    updateUser(responseBody)
+                    _user.value = responseBody
                 }
 
                 Log.d("UserManager", "User loaded: $user")
             }
         } catch (e: Exception) {
             Log.e("UserManager", "An unexpected error occurred while loading user", e)
-        }
-    }
-
-    suspend fun saveUserData() {
-        try {
-            val response = RetrofitInstance.api.updateProfile(_user.value)
-            if (response.isSuccessful) {
-                Log.d("UserManager", "change is success $user")
-            }
-        } catch (e: Exception) {
-            Log.e("UserManager", "Error saving user data", e)
         }
     }
 }

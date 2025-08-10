@@ -3,9 +3,7 @@ package com.aiwazian.messenger.ui
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia
-import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -31,8 +29,10 @@ import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.EmojiEmotions
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -70,17 +70,15 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.api.RetrofitInstance
-import com.aiwazian.messenger.data.DeleteChatRequest
 import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.data.User
 import com.aiwazian.messenger.services.ClipboardHelper
-import com.aiwazian.messenger.services.UserService
+import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.utils.ChatStateManager
 import com.aiwazian.messenger.viewModels.ChatViewModel
 import com.aiwazian.messenger.viewModels.ChatsViewModel
-import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -88,8 +86,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.Locale
 import java.time.format.TextStyle as MonthTextStyle
-
-private var showDeleteChatDialog by mutableStateOf(false)
 
 @Composable
 fun ChatScreen(userId: Int) {
@@ -151,7 +147,7 @@ private fun Content(
 ) {
     val context = LocalContext.current
     
-    val me by UserService.user.collectAsState()
+    val me by UserManager.user.collectAsState()
     
     val chatViewModel = remember {
         ChatViewModel(
@@ -160,20 +156,50 @@ private fun Content(
         )
     }
     
+    val coroutineScope = rememberCoroutineScope()
+    
     LaunchedEffect(Unit) {
         chatViewModel.loadMessages()
     }
     
-    val deleteDialogViewModel: DialogViewModel = viewModel()
+    val pickMultipleMedia = rememberLauncherForActivityResult(PickMultipleVisualMedia(5)) { uris ->
+        if (uris.isNotEmpty()) {
+            Log.d(
+                "PhotoPicker",
+                "Number of items selected: ${uris.size}"
+            )
+        } else {
+            Log.d(
+                "PhotoPicker",
+                "No media selected"
+            )
+        }
+    }
+    
+    val messageText by chatViewModel.messageText.collectAsState()
     
     Scaffold(
         topBar = {
             TopBar(
                 user,
-                deleteDialogViewModel
+                chatViewModel
             )
-        }
-    ) { innerPadding ->
+        },
+        bottomBar = {
+            InputMessage(
+                value = messageText,
+                onValueChange = chatViewModel::changeText,
+                onSendMessage = {
+                    coroutineScope.launch {
+                        val sentMessage = chatViewModel.sendMessage()
+                        
+                        if (sentMessage != null) {
+                            onSendMessage(sentMessage)
+                        }
+                    }
+                }
+            )
+        }) { innerPadding ->
         val chatId = user.id
         val messages = chatViewModel.messages
         
@@ -199,154 +225,124 @@ private fun Content(
                 .padding(innerPadding),
         ) {
             if (messages.isEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("Напишите сообщение или отправьте стикер")
-                }
-            } else {
-                val clipboardHelper = ClipboardHelper(context)
-                
-                var previewMessageSendDate by remember {
-                    mutableStateOf(
-                        Instant.ofEpochMilli(Instant.now().epochSecond)
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate()
-                    )
-                }
-                
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.Bottom,
-                ) {
-                    items(
-                        messages,
-                        key = { it.id }) { message ->
-                        val currentMessageSendDate = Instant.ofEpochMilli(message.sendTime)
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate()
-                        
-                        val monthName = currentMessageSendDate.month.getDisplayName(
-                            MonthTextStyle.FULL,
-                            Locale.getDefault()
-                        )
-                        
-                        val capitalizedMonthName = monthName.replaceFirstChar {
-                            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-                        }
-                        
-                        if (previewMessageSendDate.month < currentMessageSendDate.month || previewMessageSendDate.dayOfMonth < currentMessageSendDate.dayOfMonth) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .clip(CircleShape)
-                                ) {
-                                    Text(
-                                        "${currentMessageSendDate.dayOfMonth} $capitalizedMonthName",
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-                        }
-                        
-                        previewMessageSendDate = currentMessageSendDate
-                        
-                        MessageItem(
-                            message = message,
-                            onDelete = {
-                                Toast.makeText(
-                                    context,
-                                    "delete",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            },
-                            onEdit = {
-                                Toast.makeText(
-                                    context,
-                                    "edit",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            },
-                            onCopy = {
-                                clipboardHelper.copy(message.text)
-                            }
-                        )
-                    }
-                }
+                EmptyChatPlaceholder()
             }
             
-            val pickMultipleMedia =
-                rememberLauncherForActivityResult(PickMultipleVisualMedia(5)) { uris ->
-                    if (uris.isNotEmpty()) {
-                        Log.d(
-                            "PhotoPicker",
-                            "Number of items selected: ${uris.size}"
-                        )
-                    } else {
-                        Log.d(
-                            "PhotoPicker",
-                            "No media selected"
-                        )
+            val clipboardHelper = ClipboardHelper(context)
+            
+            var previewMessageSendDate by remember {
+                mutableStateOf(
+                    Instant.ofEpochMilli(Instant.MIN.epochSecond)
+                        .atZone(ZoneId.systemDefault()).toLocalDate()
+                )
+            }
+            
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Bottom,
+            ) {
+                items(
+                    items = messages,
+                    key = { it.id }
+                ) { message ->
+                    val currentMessageSendDate =
+                        Instant.ofEpochMilli(message.sendTime).atZone(ZoneId.systemDefault())
+                            .toLocalDate()
+                    
+                    val monthName = currentMessageSendDate.month.getDisplayName(
+                        MonthTextStyle.FULL,
+                        Locale.getDefault()
+                    )
+                    
+                    val capitalizedMonthName = monthName.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
                     }
-                }
-            
-            val coroutineScope = rememberCoroutineScope()
-            
-            InputMessage(
-                value = chatViewModel.messageText,
-                onValueChange = {
-                    chatViewModel.changeText(it)
-                },
-                attachFile = {
-                    pickMultipleMedia.launch(PickVisualMediaRequest(PickVisualMedia.ImageAndVideo))
-                },
-                onSend = {
-                    coroutineScope.launch {
-                        val sentMessage = chatViewModel.sendMessage()
-                        if (sentMessage != null) {
-                            onSendMessage(sentMessage)
-                        }
-                    }
-                }
-            )
-            
-            DeleteChatDialog(
-                onDelete = {
-                    coroutineScope.launch {
-                        val reqBody = DeleteChatRequest(
-                            chatId = chatId,
-                            deletedBySender = true,
-                            deletedByReceiver = false
-                        )
-                        
-                        try {
-                            val deleteChat =
-                                RetrofitInstance.api.deleteChat(reqBody)
-                            
-                            if (deleteChat.isSuccessful) {
-                                chatViewModel.deleteAllMessages()
-                                deleteDialogViewModel.hideDialog()
+                    
+                    if (previewMessageSendDate.month < currentMessageSendDate.month || previewMessageSendDate.dayOfMonth < currentMessageSendDate.dayOfMonth) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                modifier = Modifier.clip(CircleShape)
+                            ) {
+                                Text(
+                                    "${currentMessageSendDate.dayOfMonth} $capitalizedMonthName",
+                                    textAlign = TextAlign.Center
+                                )
                             }
-                        } catch (e: Exception) {
-                            Log.e(
-                                "DeleteChat",
-                                e.message.toString()
-                            )
                         }
                     }
-                },
-                dialogViewModel = deleteDialogViewModel
-            )
+                    
+                    previewMessageSendDate = currentMessageSendDate
+                    
+                    MessageItem(
+                        message = message,
+                        onDelete = {
+                            Toast.makeText(
+                                context,
+                                "delete",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        },
+                        onEdit = {
+                            Toast.makeText(
+                                context,
+                                "edit",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        },
+                        onCopy = {
+                            clipboardHelper.copy(message.text)
+                        })
+                }
+            }
+        }
+        
+        val showDeleteChatDialog by chatViewModel.isVisibleDeleteChatDialog.collectAsState()
+        
+        if (showDeleteChatDialog) {
+            DeleteChatDialog(
+                onDismissRequest = chatViewModel::hideDeleteChatDialog,
+                onConfirm = { deleteForReceiver ->
+                    coroutineScope.launch {
+                        val isDeleted = chatViewModel.deleteChat(deleteForReceiver)
+                        
+                        if (isDeleted) {
+                            chatViewModel.hideDeleteChatDialog()
+                            chatViewModel.deleteAllMessages()
+                        }
+                    }
+                })
+        }
+    }
+}
+
+@Composable
+private fun EmptyChatPlaceholder() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Card(
+            modifier = Modifier.widthIn(max = 280.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(4.dp)
+        ) {
+            Column(modifier = Modifier.padding(14.dp)) {
+                Text(
+                    text = "Напишите сообщение или отправьте стикер",
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
@@ -355,11 +351,12 @@ private fun Content(
 @Composable
 private fun TopBar(
     user: User,
-    dialogViewModel: DialogViewModel
+    chatViewModel: ChatViewModel
 ) {
-    var menuExpanded by remember { mutableStateOf(false) }
     val navViewModel: NavigationViewModel = viewModel()
-    val me by UserService.user.collectAsState()
+    
+    var menuExpanded by remember { mutableStateOf(false) }
+    val me by UserManager.user.collectAsState()
     
     PageTopBar(
         title = {
@@ -371,8 +368,7 @@ private fun TopBar(
                 ),
                 onClick = {
                     navViewModel.addScreenInStack { ProfileScreen(user.id) }
-                }
-            ) {
+                }) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center
@@ -392,10 +388,9 @@ private fun TopBar(
             IconButton(
                 onClick = {
                     navViewModel.removeLastScreenInStack()
-                }
-            ) {
+                }) {
                 Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,
                 )
             }
@@ -421,50 +416,53 @@ private fun TopBar(
                         text = { Text(stringResource(R.string.delete_chat)) },
                         onClick = {
                             menuExpanded = false
-                            dialogViewModel.showDialog()
+                            chatViewModel.showDeleteChatDialog()
                         })
                 }
             }
-        }
-    )
+        })
 }
 
 @Composable
 private fun DeleteChatDialog(
-    onDelete: () -> Unit = {},
-    dialogViewModel: DialogViewModel
+    onDismissRequest: () -> Unit,
+    onConfirm: (Boolean) -> Unit
 ) {
-    if (showDeleteChatDialog) {
-        CustomDialog(
-            title = "Удалить чат",
-            onDismissRequest = {
-                dialogViewModel.hideDialog()
-            },
-            content = {
-                Text(
-                    "Удалить чат без возможности восстановления?",
-                    modifier = Modifier.padding(start = 16.dp)
+    var deleteForReceiver by remember { mutableStateOf(false) }
+    
+    CustomDialog(
+        title = stringResource(R.string.delete_chat),
+        onDismissRequest = onDismissRequest,
+        content = {
+            Text("Удалить чат без возможности восстановления?")
+            Checkbox(
+                checked = deleteForReceiver,
+                onCheckedChange = { deleteForReceiver = !deleteForReceiver })
+        },
+        buttons = {
+            TextButton(onClick = onDismissRequest) {
+                Text(stringResource(R.string.cancel))
+            }
+            
+            
+            TextButton(
+                onClick = {
+                    onConfirm(deleteForReceiver)
+                },
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
                 )
-            },
-            buttons = {
-                TextButton(onClick = {
-                    dialogViewModel.hideDialog()
-                }) {
-                    Text(stringResource(R.string.cancel))
-                }
-                
-                TextButton(onClick = { }) {
-                    Text(stringResource(R.string.delete_chat))
-                }
-            })
-    }
+            ) {
+                Text(stringResource(R.string.delete_chat))
+            }
+        })
 }
 
 @Composable
 private fun InputMessage(
     value: String,
     onValueChange: (String) -> Unit,
-    onSend: () -> Unit = { },
+    onSendMessage: () -> Unit,
     attachFile: () -> Unit = { },
 ) {
     TextField(
@@ -497,7 +495,7 @@ private fun InputMessage(
                         modifier = Modifier.rotate(45f)
                     )
                 }
-                IconButton(onClick = onSend) {
+                IconButton(onClick = onSendMessage) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.Send,
                         contentDescription = null,
@@ -508,13 +506,13 @@ private fun InputMessage(
 }
 
 @Composable
-fun MessageItem(
+private fun MessageItem(
     message: Message,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
     onCopy: () -> Unit,
 ) {
-    val user by UserService.user.collectAsState()
+    val user by UserManager.user.collectAsState()
     val currentUserId = remember { user.id }
     
     val formatter = SimpleDateFormat(
@@ -561,7 +559,7 @@ fun MessageItem(
                         )
                     }
                 },
-                text = { Text("Копировать") },
+                text = { Text(stringResource(R.string.copy)) },
                 onClick = {
                     expanded = false
                     onCopy()
@@ -569,11 +567,11 @@ fun MessageItem(
             DropdownMenuItem(
                 leadingIcon = {
                     Icon(
-                        Icons.Outlined.DeleteOutline,
+                        imageVector = Icons.Outlined.DeleteOutline,
                         contentDescription = null
                     )
                 },
-                text = { Text("Удалить") },
+                text = { Text(stringResource(R.string.delete)) },
                 onClick = {
                     expanded = false
                     onDelete()

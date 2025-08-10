@@ -21,7 +21,7 @@ import com.aiwazian.messenger.services.AppLockService
 import com.aiwazian.messenger.services.NotificationService
 import com.aiwazian.messenger.services.ThemeService
 import com.aiwazian.messenger.services.TokenManager
-import com.aiwazian.messenger.services.UserService
+import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.ui.ChatScreen
 import com.aiwazian.messenger.ui.LockScreen
 import com.aiwazian.messenger.ui.MainScreen
@@ -102,7 +102,7 @@ class MainActivity : ComponentActivity() {
                 try {
                     WebSocketManager.onConnect = {
                         lifecycleScope.launch {
-                            UserService.loadUserData()
+                            UserManager.loadUserData()
                         }
                     }
                     WebSocketManager.onClose = { code ->
