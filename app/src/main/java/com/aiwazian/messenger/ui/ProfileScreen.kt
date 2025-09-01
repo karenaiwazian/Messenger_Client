@@ -1,6 +1,5 @@
 package com.aiwazian.messenger.ui
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -19,14 +18,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.User
 import com.aiwazian.messenger.services.ClipboardHelper
 import com.aiwazian.messenger.services.UserManager
@@ -37,63 +36,26 @@ import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionToggleItem
 import com.aiwazian.messenger.ui.settings.SettingsProfileScreen
 import com.aiwazian.messenger.viewModels.NavigationViewModel
+import com.aiwazian.messenger.viewModels.ProfileViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun ProfileScreen(userId: Int) {
-    val user by UserManager.user.collectAsState()
-    
-    if (userId == user.id) {
-        Content(user)
-        return
-    }
-    
-    val userState = remember { mutableStateOf(User()) }
-    
-    LaunchedEffect(true) {
-        try {
-            val response = RetrofitInstance.api.getUserById(userId)
-            
-            if (response.isSuccessful) {
-                val getUser = response.body()
-                if (getUser != null) {
-                    userState.value = getUser
-                    Log.d(
-                        "PROFILE1",
-                        userState.toString()
-                    )
-                }
-                
-                Log.d(
-                    "PROFILE1",
-                    userState.toString()
-                )
-            } else {
-                Log.d(
-                    "PROFILE1",
-                    response.code().toString()
-                )
-            }
-        } catch (e: Exception) {
-            Log.e(
-                "PROFILE1",
-                e.message.toString()
-            )
-        }
-    }
-    
-    Log.d(
-        "PROFILE1",
-        userState.toString()
-    )
-    
-    Content(userState.value)
+fun ProfileScreen(profileId: Int) {
+    Content(profileId)
 }
 
 @Composable
-private fun Content(user: User) {
-    val navViewModel: NavigationViewModel = viewModel()
+private fun Content(profileId: Int) {
+    val navViewModel = viewModel<NavigationViewModel>()
+    val profile = viewModel<ProfileViewModel>()
+    
+    LaunchedEffect(Unit) {
+        profile.open(profileId)
+    }
+    
+    val user by profile.user.collectAsState()
+    
     val context = LocalContext.current
     
     val scrollState = rememberScrollState()
@@ -120,8 +82,7 @@ private fun Content(user: User) {
                         description = stringResource(R.string.bio),
                         onLongClick = {
                             clipboardHelper.copy("userBio")
-                        }
-                    )
+                        })
                 }
                 
                 val username = user.username
@@ -136,8 +97,7 @@ private fun Content(user: User) {
                         primaryIcon = Icons.Outlined.QrCode,
                         primaryIconClick = {
                             navViewModel.addScreenInStack { QRCodeScreen() }
-                        }
-                    )
+                        })
                 }
                 
                 val dateOfBirth = user.dateOfBirth
@@ -167,8 +127,12 @@ private fun Content(user: User) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DefaultTopBar(user: User) {
-    val navViewModel: NavigationViewModel = viewModel()
-    val me by UserManager.user.collectAsState()
+    val navViewModel = viewModel<NavigationViewModel>()
+    var myId by remember { mutableIntStateOf(0) }
+    
+    LaunchedEffect(Unit) {
+        myId = UserManager.user.value.id
+    }
     
     PageTopBar(
         title = {
@@ -182,8 +146,7 @@ private fun DefaultTopBar(user: User) {
             IconButton(
                 onClick = {
                     navViewModel.removeLastScreenInStack()
-                }
-            ) {
+                }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = null,
@@ -191,18 +154,16 @@ private fun DefaultTopBar(user: User) {
             }
         },
         actions = {
-            if (user.id == me.id) {
+            if (user.id == myId && user.id != 0) {
                 IconButton(
                     onClick = {
                         navViewModel.addScreenInStack { SettingsProfileScreen() }
-                    }
-                ) {
+                    }) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = null,
                     )
                 }
             }
-        }
-    )
+        })
 }

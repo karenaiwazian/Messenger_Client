@@ -1,8 +1,9 @@
 package com.aiwazian.messenger.services
 
 import android.os.Build
+import javax.inject.Inject
 
-class DeviceHelper {
+class DeviceHelper @Inject constructor() {
 
     fun getDeviceName(): String {
         val manufacturer = Build.MANUFACTURER

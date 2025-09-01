@@ -5,11 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aiwazian.messenger.utils.DataStoreManager
+import com.aiwazian.messenger.services.DataStoreManager
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class LockScreenViewModel : ViewModel() {
+    
     var onWrongPasscode: () -> Unit = { }
 
     var passcode by mutableStateOf("")

@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.services.UserManager
@@ -52,28 +53,23 @@ fun SettingsFolderScreen(folderId: Int = 0) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content(folderId: Int) {
-    val navViewModel: NavigationViewModel = viewModel()
-    val folderViewModel: FolderViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
+    val folderViewModel = hiltViewModel<FolderViewModel>()
     
-    val folderName by folderViewModel.folderName.collectAsState()
-    val folderChats by folderViewModel.folderChats.collectAsState()
+    val openFolder by folderViewModel.openFolder.collectAsState()
     val canSave by folderViewModel.canSave.collectAsState()
     
     val scope = rememberCoroutineScope()
     
     LaunchedEffect(Unit) {
-        if (folderId != 0) {
-            folderViewModel.loadFolder(folderId)
-        } else {
-            folderViewModel.cleanData()
-        }
+        folderViewModel.loadFolder(folderId)
     }
     
     Scaffold(
         topBar = {
             PageTopBar(
                 title = {
-                    Text(text = folderName.ifBlank { "Новая папка" })
+                    Text(text = openFolder.folderName.ifBlank { stringResource(R.string.new_folder) })
                 },
                 navigationIcon = {
                     IconButton(onClick = {
@@ -120,7 +116,7 @@ private fun Content(folderId: Int) {
             SectionContainer {
                 InputField(
                     placeholder = stringResource(R.string.folder_name),
-                    value = folderName,
+                    value = openFolder.folderName,
                     onValueChange = {
                         folderViewModel.changeFolderName(it)
                     }
@@ -138,7 +134,7 @@ private fun Content(folderId: Int) {
                     onClick = {
                         navViewModel.addScreenInStack {
                             SettingsChatInFolderScreen { selectedChats ->
-                                folderViewModel.updateChatsForFolder(selectedChats)
+                                folderViewModel.updateFolderChats(selectedChats)
                             }
                         }
                     }
@@ -148,7 +144,7 @@ private fun Content(folderId: Int) {
                 
                 LazyColumn {
                     items(
-                        folderChats,
+                        openFolder.chats,
                         { it.id }) { chat ->
                         val chatName = if (chat.id == user.id) {
                             stringResource(R.string.saved_messages)
@@ -162,6 +158,8 @@ private fun Content(folderId: Int) {
             }
             
             SectionDescription(text = "Выберите чаты, которые нужно показывать в этой папке.")
+
+            val removeFolderDialog = folderViewModel.removeFolderDialog
             
             if (folderId != 0) {
                 SectionContainer {
@@ -171,34 +169,26 @@ private fun Content(folderId: Int) {
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = MaterialTheme.colorScheme.error,
                         ),
-                        onClick = {
-                            folderViewModel.showDialog()
-                        }
+                        onClick = removeFolderDialog::show
                     )
                 }
             }
             
-            val showDialog by folderViewModel.idDialogVisible.collectAsState()
-            
-            if (showDialog) {
+            if (removeFolderDialog.isVisible) {
                 CustomDialog(
                     title = stringResource(R.string.remove_folder),
-                    onDismissRequest = {
-                        folderViewModel.hideDialog()
-                    },
+                    onDismissRequest = removeFolderDialog::hide,
                     content = {
                         Text("Это не затронет чаты, находящиеся внутри.")
                     },
                     buttons = {
-                        TextButton(onClick = {
-                            folderViewModel.hideDialog()
-                        }) {
+                        TextButton(onClick = removeFolderDialog::hide) {
                             Text(stringResource(R.string.cancel))
                         }
                         TextButton(
                             onClick = {
                                 scope.launch {
-                                    folderViewModel.hideDialog()
+                                    removeFolderDialog.hide()
                                     folderViewModel.removeFolder(folderId)
                                     navViewModel.removeLastScreenInStack()
                                 }

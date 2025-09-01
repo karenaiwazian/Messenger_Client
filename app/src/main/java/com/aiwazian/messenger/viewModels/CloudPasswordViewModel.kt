@@ -6,6 +6,7 @@ import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.ChangeCloudPasswordRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 class CloudPasswordViewModel : ViewModel() {
     
@@ -16,22 +17,22 @@ class CloudPasswordViewModel : ViewModel() {
     val errorMessage = _errorMessage.asStateFlow()
     
     fun onInputNewPassword(newPassword: String) {
-        _newPassword.value = newPassword
-        _errorMessage.value = null
+        _newPassword.update { newPassword }
+        _errorMessage.update { null }
     }
     
     fun checkValidPassword(): Boolean {
         if (_newPassword.value.isBlank()) {
-            _errorMessage.value = "Введите пароль"
+            _errorMessage.update { "Введите пароль" }
             return false
         }
         
         if (_newPassword.value.length < 5) {
-            _errorMessage.value = "Минимум 5 символов"
+            _errorMessage.update { "Минимум 5 символов" }
             return false
         }
         
-        _errorMessage.value = null
+        _errorMessage.update { null }
         return true
     }
     
@@ -53,5 +54,10 @@ class CloudPasswordViewModel : ViewModel() {
             
             return false
         }
+    }
+    
+    fun cleanData() {
+        _newPassword.update { "" }
+        _errorMessage.update { null }
     }
 }

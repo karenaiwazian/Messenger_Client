@@ -2,87 +2,65 @@ package com.aiwazian.messenger.viewModels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.aiwazian.messenger.api.RetrofitInstance
+import androidx.lifecycle.viewModelScope
 import com.aiwazian.messenger.data.User
+import com.aiwazian.messenger.services.DialogController
 import com.aiwazian.messenger.services.UserManager
+import com.aiwazian.messenger.services.UserService
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SettingsProfileViewModel : ViewModel() {
+@HiltViewModel
+class SettingsProfileViewModel @Inject constructor(private val userService: UserService) :
+    ViewModel() {
     
-    private val _firstName = MutableStateFlow("")
-    val firstName = _firstName.asStateFlow()
+    private val _user = MutableStateFlow(User())
+    val user = _user.asStateFlow()
     
-    private val _lastName = MutableStateFlow("")
-    val lastName = _lastName.asStateFlow()
-    
-    private val _username = MutableStateFlow<String?>(null)
-    val username = _username.asStateFlow()
-    
-    private val _bio = MutableStateFlow("")
-    val bio = _bio.asStateFlow()
-    
-    private val _dateOfBirth = MutableStateFlow<Long?>(null)
-    val dateOfBirth = _dateOfBirth.asStateFlow()
-    
-    private val _isVisibleDataPicker = MutableStateFlow(false)
-    val isVisibleDataPicker = _isVisibleDataPicker.asStateFlow()
+    val dataOfBirthDialog = DialogController()
     
     init {
-        val user = UserManager.user.value
-        _firstName.value = user.firstName
-        _lastName.value = user.lastName
-        _bio.value = user.bio
-        _username.value = user.username
-        _dateOfBirth.value = user.dateOfBirth
+        viewModelScope.launch {
+            UserManager.user.collectLatest { collect ->
+                _user.update { collect }
+            }
+        }
     }
     
     fun onChangeFirstName(newName: String) {
-        _firstName.value = newName
+        _user.value = _user.value.copy(firstName = newName)
     }
     
     fun onChangeLastName(newName: String) {
-        _lastName.value = newName
-    }
-    
-    fun onChangeUsername(newUsername: String) {
-        _username.value = newUsername
+        _user.value = _user.value.copy(lastName = newName)
     }
     
     fun onChangeBio(newBio: String) {
-        _bio.value = newBio
+        _user.value = _user.value.copy(bio = newBio)
     }
     
     fun onChangeDateOfBirth(newDate: Long?) {
-        _dateOfBirth.value = newDate
-    }
-    
-    fun showDataPicker() {
-        _isVisibleDataPicker.value = true
-    }
-    
-    fun hideDataPicker() {
-        _isVisibleDataPicker.value = false
+        _user.value = _user.value.copy(dateOfBirth = newDate)
     }
     
     suspend fun save() {
         try {
-            val user = User(
-                firstName = _firstName.value,
-                lastName = _lastName.value,
-                username = _username.value,
-                bio = _bio.value,
-                dateOfBirth = _dateOfBirth.value
-            )
+            val response = userService.updateProfile(_user.value)
             
-            val response = RetrofitInstance.api.updateProfile(user)
-            
-            if (response.isSuccessful) {
-                UserManager.updateUserInfo(user)
-                Log.d("UserManager", "change is success $user")
+            if (response) {
+                UserManager.updateUserInfo(_user.value)
             }
         } catch (e: Exception) {
-            Log.e("UserManager", "Error saving user data", e)
+            Log.e(
+                "UserManager",
+                "Error saving user data",
+                e
+            )
         }
     }
 }

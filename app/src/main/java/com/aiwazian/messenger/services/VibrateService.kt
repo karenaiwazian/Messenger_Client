@@ -9,7 +9,7 @@ import com.aiwazian.messenger.utils.VibrationPattern
 
 class VibrateService(private val context: Context) {
 
-    fun vibrate(pattern: LongArray = VibrationPattern.Error) {
+    fun vibrate(pattern: LongArray) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager =
                 context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager

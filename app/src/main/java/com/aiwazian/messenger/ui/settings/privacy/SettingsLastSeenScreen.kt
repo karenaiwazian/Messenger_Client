@@ -31,7 +31,7 @@ fun SettingsLastSeenScreen() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content() {
-    val navViewModel: NavigationViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
 
     val scrollState = rememberScrollState()
 

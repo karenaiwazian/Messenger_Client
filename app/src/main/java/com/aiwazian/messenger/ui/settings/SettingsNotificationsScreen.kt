@@ -31,11 +31,11 @@ fun SettingsNotificationsScreen() {
 @Composable
 private fun Content() {
     val scrollState = rememberScrollState()
-
+    
     Scaffold(
         topBar = { TopBar() },
         
-    ) {
+        ) {
         Column(
             modifier = Modifier
                 .padding(it)
@@ -43,12 +43,12 @@ private fun Content() {
                 .verticalScroll(scrollState)
         ) {
             SectionHeader("Уведомления из чатов")
-
+            
             SectionContainer {
                 SectionToggleItem(text = "Личные чаты")
-
+                
                 SectionToggleItem(text = "Группы")
-
+                
                 SectionToggleItem(text = "Каналы")
             }
         }
@@ -58,8 +58,8 @@ private fun Content() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val navViewModel: NavigationViewModel = viewModel()
-
+    val navViewModel = viewModel<NavigationViewModel>()
+    
     PageTopBar(
         title = {
             Text(stringResource(R.string.notifications))

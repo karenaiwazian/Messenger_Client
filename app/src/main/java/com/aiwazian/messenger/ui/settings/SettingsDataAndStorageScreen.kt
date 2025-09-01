@@ -31,48 +31,46 @@ import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.viewModels.DataUsageViewModel
-import com.aiwazian.messenger.viewModels.DialogViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 @Composable
-fun SettingsDataUsageScreen() {
+fun SettingsDataAndStorageScreen() {
     Content()
 }
 
 @Composable
-private fun Content(viewModel: DataUsageViewModel = viewModel()) {
+private fun Content() {
+    val dataUsageViewModel = viewModel<DataUsageViewModel>()
+    
     val context = LocalContext.current
     
-    viewModel.reload(context)
+    dataUsageViewModel.reload(context)
     
-    val cacheSize = viewModel.cacheSize
+    val clearCacheDialog = dataUsageViewModel.clearCacheDialog
+    
+    val cacheSize = dataUsageViewModel.cacheSize
     val cacheMb = cacheSize / (1024.0 * 1024.0)
     val cacheMbRounded = BigDecimal(cacheMb).setScale(
         2,
         RoundingMode.HALF_UP
     ).toDouble()
     
-    val sizeBytes = viewModel.appSize
+    val sizeBytes = dataUsageViewModel.appSize
     val sizeMb = sizeBytes / (1024.0 * 1024.0)
     val sizeMbRounded = BigDecimal(sizeMb).setScale(
         2,
         RoundingMode.HALF_UP
     ).toDouble()
     
-    val dialogViewModel: DialogViewModel = viewModel()
-    
     Scaffold(
-        topBar = { TopBar() },
-        
-        ) {
+        topBar = { TopBar() }) {
         Column(
             modifier = Modifier
                 .padding(it)
                 .fillMaxSize()
         ) {
-            
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -89,9 +87,8 @@ private fun Content(viewModel: DataUsageViewModel = viewModel()) {
             
             SectionContainer {
                 Column(Modifier.padding(10.dp)) {
-                    
                     Button(
-                        onClick = { dialogViewModel.showDialog() },
+                        onClick = clearCacheDialog::show,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -100,7 +97,7 @@ private fun Content(viewModel: DataUsageViewModel = viewModel()) {
                         )
                     ) {
                         Text(
-                            text = "Очистить кеш $cacheMbRounded MB",
+                            text = stringResource(R.string.clear_cache) + " $cacheMbRounded MB",
                             modifier = Modifier.padding(8.dp),
                             fontSize = 16.sp,
                             lineHeight = 18.sp
@@ -110,58 +107,54 @@ private fun Content(viewModel: DataUsageViewModel = viewModel()) {
             }
         }
         
-        ClearCacheDialog(
-            dialogViewModel = dialogViewModel,
-            onPrimary = {
-                val cacheDir = context.cacheDir
-                cacheDir.deleteRecursively()
-                viewModel.reload(context)
-                dialogViewModel.hideDialog()
-            })
+        if (clearCacheDialog.isVisible) {
+            ClearCacheDialog(
+                onConfirm = {
+                    val cacheDir = context.cacheDir
+                    cacheDir.deleteRecursively()
+                    dataUsageViewModel.reload(context)
+                    clearCacheDialog.hide()
+                },
+                onDismissRequest = clearCacheDialog::hide
+            )
+        }
     }
 }
 
 @Composable
 private fun ClearCacheDialog(
-    dialogViewModel: DialogViewModel,
-    onPrimary: () -> Unit,
+    onConfirm: () -> Unit,
+    onDismissRequest: () -> Unit
 ) {
-    if (dialogViewModel.isDialogVisible.value) {
-        CustomDialog(
-            title = "Очистить кеш",
-            onDismissRequest = {
-                dialogViewModel.hideDialog()
-            },
-            content = {
-                Text(
-                    text = "Все медиа останутся в облаке, при необходимости Вы сможете заново загрузить их снова.",
+    CustomDialog(
+        title = stringResource(R.string.clear_cache),
+        onDismissRequest = onDismissRequest,
+        content = {
+            Text(
+                text = "Все медиа останутся в облаке, при необходимости Вы сможете заново загрузить их снова.",
+            )
+        },
+        buttons = {
+            TextButton(
+                onClick = onDismissRequest
+            ) {
+                Text(stringResource(R.string.cancel))
+            }
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
                 )
-            },
-            buttons = {
-                TextButton(onClick = {
-                    dialogViewModel.hideDialog()
-                    onPrimary()
-                }) {
-                    Text(stringResource(R.string.cancel))
-                }
-                TextButton(
-                    onClick = {
-                        dialogViewModel.hideDialog()
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text(stringResource(R.string.clear_cache))
-                }
-            })
-    }
+            ) {
+                Text(stringResource(R.string.clear_cache))
+            }
+        })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val navViewModel: NavigationViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
     
     PageTopBar(
         title = { },
@@ -169,13 +162,11 @@ private fun TopBar() {
             IconButton(
                 onClick = {
                     navViewModel.removeLastScreenInStack()
-                }
-            ) {
+                }) {
                 Icon(
                     Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = null,
                 )
             }
-        }
-    )
+        })
 }

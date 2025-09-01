@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Keep
 @Serializable
 data class Session(
-    @Keep val id: Int,
-    @Keep val deviceName: String,
-    @Keep val createdAt: String,
+    @Keep val id: Int = 0,
+    @Keep var deviceName: String = "",
+    @Keep val createdAt: String = "",
 )

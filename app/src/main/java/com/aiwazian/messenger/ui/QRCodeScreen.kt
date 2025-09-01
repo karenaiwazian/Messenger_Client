@@ -93,7 +93,7 @@ private fun Content() {
                 Text(
                     text = stringResource(R.string.share),
                     modifier = Modifier.padding(vertical = 8.dp),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -103,7 +103,7 @@ private fun Content() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val navViewModel: NavigationViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
 
     PageTopBar(
         title = { },

@@ -46,6 +46,7 @@ import com.aiwazian.messenger.MainActivity
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.ui.element.CustomDialog
+import com.aiwazian.messenger.utils.VibrationPattern
 import com.aiwazian.messenger.viewModels.AuthViewModel
 import kotlinx.coroutines.launch
 
@@ -72,7 +73,7 @@ fun PasswordScreen(
         
         scope.launch {
             if (!isValidPassword) {
-                vibrateService.vibrate()
+                vibrateService.vibrate(VibrationPattern.Error)
                 return@launch
             }
             

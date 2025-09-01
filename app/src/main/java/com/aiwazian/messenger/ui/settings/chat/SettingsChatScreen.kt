@@ -62,7 +62,7 @@ fun SettingsChatScreen() {
 
 @Composable
 private fun Content() {
-    val navViewModel: NavigationViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
     
     val scrollState = rememberScrollState()
     
@@ -244,7 +244,7 @@ private fun Boxic(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val navViewModel: NavigationViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
     
     PageTopBar(
         title = {

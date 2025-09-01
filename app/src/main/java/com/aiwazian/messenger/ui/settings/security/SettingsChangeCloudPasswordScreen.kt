@@ -18,7 +18,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
- import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -30,14 +31,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.ui.element.PageTopBar
+import com.aiwazian.messenger.utils.VibrationPattern
 import com.aiwazian.messenger.viewModels.CloudPasswordViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsChangeCloudPasswordScreen() {
-    val navViewModel: NavigationViewModel = viewModel()
-    val cloudPasswordViewModel: CloudPasswordViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
+    val cloudPasswordViewModel = viewModel<CloudPasswordViewModel>()
     
     val newPassword by cloudPasswordViewModel.newPassword.collectAsState()
     val errorMessage by cloudPasswordViewModel.errorMessage.collectAsState()
@@ -45,6 +47,12 @@ fun SettingsChangeCloudPasswordScreen() {
     val vibrateService = VibrateService(LocalContext.current)
     
     val scope = rememberCoroutineScope()
+    
+    DisposableEffect(Unit) {
+        onDispose {
+            cloudPasswordViewModel.cleanData()
+        }
+    }
     
     Scaffold(
         topBar = {
@@ -66,7 +74,7 @@ fun SettingsChangeCloudPasswordScreen() {
                     
                     scope.launch {
                         if (!isValid) {
-                            vibrateService.vibrate()
+                            vibrateService.vibrate(VibrationPattern.Error)
                             return@launch
                         }
                         

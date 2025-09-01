@@ -5,12 +5,19 @@ import androidx.lifecycle.ViewModel
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.AuthRequest
 import com.aiwazian.messenger.data.RegisterRequest
+import com.aiwazian.messenger.services.AuthService
 import com.aiwazian.messenger.services.DeviceHelper
 import com.aiwazian.messenger.services.TokenManager
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
-class AuthViewModel : ViewModel() {
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val authService: AuthService,
+    private val deviceHelper: DeviceHelper
+) : ViewModel() {
     
     private val _login = MutableStateFlow("")
     val login = _login.asStateFlow()
@@ -30,17 +37,15 @@ class AuthViewModel : ViewModel() {
         _isUserFound.value = state
     }
     
-    fun getUserFoundState(): Boolean {
-        return _isUserFound.value
-    }
+    fun getUserFoundState() = _isUserFound.value
     
     fun onLoginChanged(newLogin: String) {
-        _login.value = newLogin
+        _login.value = newLogin.trim()
         clearError()
     }
     
     fun onPasswordChanged(newPassword: String) {
-        _password.value = newPassword
+        _password.value = newPassword.trim()
         clearError()
     }
     
@@ -65,34 +70,19 @@ class AuthViewModel : ViewModel() {
     
     suspend fun onLoginClicked(): Boolean {
         try {
-            val deviceHelper = DeviceHelper()
             val deviceName = deviceHelper.getDeviceName()
             
-            val response = RetrofitInstance.api.login(
-                AuthRequest(
-                    _login.value,
-                    _password.value,
-                    deviceName
-                )
+            val requestBody = AuthRequest(
+                _login.value,
+                _password.value,
+                deviceName
             )
             
-            if (!response.isSuccessful) {
+            val token = authService.login(requestBody)
+            
+            if (token == null) {
                 return false
             }
-            
-            val code = response.code()
-            
-            if (code != 200) {
-                return false
-            }
-            
-            val body = response.body()
-            
-            if (body == null) {
-                return false
-            }
-            
-            val token = body.message
             
             TokenManager.saveToken(token)
             TokenManager.setAuthorized(true)
@@ -110,19 +100,12 @@ class AuthViewModel : ViewModel() {
     
     suspend fun onRegisterClicked(): Boolean {
         try {
-            val requestBody =
-                RegisterRequest(
-                    _login.value,
-                    _password.value
-                )
+            val requestBody = RegisterRequest(
+                _login.value,
+                _password.value
+            )
             
-            val response = RetrofitInstance.api.register(requestBody)
-            
-            if (!response.isSuccessful) {
-                return false
-            }
-            
-            return response.code() == 200
+            return authService.register(requestBody)
         } catch (e: Exception) {
             Log.e(
                 "AuthViewModel",

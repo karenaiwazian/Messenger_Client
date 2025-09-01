@@ -1,23 +1,23 @@
 package com.aiwazian.messenger.services
 
-import com.aiwazian.messenger.utils.DataStoreManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 
 object TokenManager {
+    
     private val _token = MutableStateFlow("")
     
-    private var isAuthorized = false
-
+    private var _isAuthorized = false
+    
     private var unauthorizedCallback: (() -> Unit)? = null
     
-    fun getToken(): String = _token.value
+    fun getToken() = _token.value
     
     fun setAuthorized(value: Boolean) {
-        isAuthorized = value
+        _isAuthorized = value
     }
     
-    fun isAuthorized(): Boolean = isAuthorized
+    fun isAuthorized() = _isAuthorized
     
     suspend fun init() {
         val dataStore = DataStoreManager.getInstance()
@@ -40,5 +40,5 @@ object TokenManager {
         unauthorizedCallback = callback
     }
     
-    fun getUnauthorizedCallback(): (() -> Unit)? = unauthorizedCallback
+    fun getUnauthorizedCallback() = unauthorizedCallback
 }

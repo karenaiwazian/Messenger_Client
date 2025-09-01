@@ -1,6 +1,7 @@
 package com.aiwazian.messenger.utils
 
-object ChatStateManager {
+object ChatState {
+    
     private var openChatId: Int? = null
 
     fun openChat(chatId: Int) {

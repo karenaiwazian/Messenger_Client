@@ -1,0 +1,14 @@
+package com.aiwazian.messenger.customType
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable enum class WebSocketAction {
+    @SerialName("NEW_MESSAGE") NEW_MESSAGE,
+    
+    @SerialName("UPDATE_MESSAGE") UPDATE_MESSAGE,
+    
+    @SerialName("DELETE_MESSAGE") DELETE_MESSAGE,
+    
+    @SerialName("DELETE_CHAT") DELETE_CHAT, UNKNOWN
+}

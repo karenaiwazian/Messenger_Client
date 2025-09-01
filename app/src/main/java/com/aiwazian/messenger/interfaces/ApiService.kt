@@ -8,6 +8,7 @@ import com.aiwazian.messenger.data.ChatFolder
 import com.aiwazian.messenger.data.ChatInfo
 import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.data.NotificationTokenRequest
+import com.aiwazian.messenger.data.PrivacySettings
 import com.aiwazian.messenger.data.RegisterRequest
 import com.aiwazian.messenger.data.Session
 import com.aiwazian.messenger.data.User
@@ -46,19 +47,13 @@ interface ApiService {
     @GET(Route.ARCHIVED_CHATS)
     suspend fun getArchivedChats(): Response<List<ChatInfo>>
     
-    @POST(Route.PIN_CHAT)
-    suspend fun pinChat(@Body chatInfo: ChatInfo): Response<ApiResponse>
-    
-    @POST(Route.UNPIN_CHAT)
-    suspend fun unpinChat(@Body chatInfo: ChatInfo): Response<ApiResponse>
-    
     @GET(Route.GET_SESSIONS)
     suspend fun getSessions(): Response<List<Session>>
     
     @POST(Route.UPDATE_FCM_TOKEN)
     suspend fun updateFcmToken(@Body newToken: NotificationTokenRequest): Response<ApiResponse>
     
-    @POST(Route.TERMINATE_ALL_SESSIONS)
+    @DELETE(Route.TERMINATE_ALL_SESSIONS)
     suspend fun terminateAllSessions(): Response<ApiResponse>
     
     @DELETE(Route.TERMINATE_SESSION)
@@ -69,33 +64,52 @@ interface ApiService {
     
     @DELETE(Route.DELETE_CHAT)
     suspend fun deleteChat(
-        @Query("chatId") chatId: Int,
+        @Path("id") chatId: Int,
         @Query("deleteForReceiver") deleteForReceiver: Boolean
     ): Response<ApiResponse>
     
     @PATCH(Route.CHANGE_CLOUD_PASSWORD)
     suspend fun changeCloudPassword(@Body body: ChangeCloudPasswordRequest): Response<ApiResponse>
     
-    @GET(Route.MESSAGES)
-    suspend fun getMessagesBetweenUsers(@Query("user") user: Int): Response<List<Message>>
+    @PATCH(Route.CHANGE_BIO_PRIVACY)
+    suspend fun changeBioPrivacy(@Path("value") body: Int): Response<ApiResponse>
+    
+    @PATCH(Route.CHANGE_DATE_OF_BIRTH_PRIVACY)
+    suspend fun changeDateOfBirthPrivacy(@Path("value") body: Int): Response<ApiResponse>
+    
+    @GET(Route.CHAT_MESSAGES)
+    suspend fun getMessagesBetweenUsers(@Path("id") chatId: Int): Response<List<Message>>
+    
+    @GET(Route.GET_CHAT_LAST_MESSAGE)
+    suspend fun getChatLastMessage(@Path("chatId") chatId: Int): Response<Message>
+    
+    @GET(Route.GET_CHAT_INFO)
+    suspend fun getChatInfo(@Path("id") id: Int): Response<ChatInfo?>
     
     @PUT(Route.PROFILE_UPDATE)
     suspend fun updateProfile(@Body profile: User): Response<Unit>
     
     @GET(Route.SEARCH_USER)
-    suspend fun searchUser(@Query("search") search: String): Response<List<User>>
+    suspend fun searchUser(@Query("search") query: String): Response<List<User>>
     
     @GET(Route.GE_USER_BY_ID)
     suspend fun getUserById(@Path("id") id: Int): Response<User>
     
     @POST(Route.ADD_CHAT_TO_ARCHIVE)
-    suspend fun archiveChat(@Body requestBody: ChatInfo): Response<ApiResponse>
+    suspend fun archiveChat(@Path("id") chatId: Int): Response<ApiResponse>
     
-    @POST(Route.DELETE_CHAT_FROM_ARCHIVE)
-    suspend fun unarchiveChat(@Body requestBody: ChatInfo): Response<ApiResponse>
+    @DELETE(Route.DELETE_CHAT_FROM_ARCHIVE)
+    suspend fun unarchiveChat(@Path("id") chatId: Int): Response<ApiResponse>
     
     @POST(Route.SEND_MESSAGE)
-    suspend fun sendMessage(@Body requestBody: Message): Response<ApiResponse>
+    suspend fun sendMessage(@Body requestBody: Message): Response<Message>
+    
+    @DELETE(Route.DELETE_MESSAGE)
+    suspend fun deleteMessage(
+        @Path("chatId") chatId: Int,
+        @Path("messageId") messageId: Int,
+        @Query("deleteForAllUsers") deleteForAllUsers: Boolean
+    ): Response<ApiResponse>
     
     @POST(Route.FOLDER)
     suspend fun saveFolder(@Body requestBody: ChatFolder): Response<ApiResponse>
@@ -103,12 +117,40 @@ interface ApiService {
     @DELETE(Route.DELETE_FOLDER)
     suspend fun deleteFolder(@Path("id") id: Int): Response<ApiResponse>
     
-    @GET(Route.GET_FOLDER_CHATS)
-    suspend fun getFolderChats(@Path("id") id: Int): Response<List<ChatInfo>>
-    
     @GET(Route.FOLDERS)
     suspend fun getFolders(): Response<List<ChatFolder>>
     
     @GET(Route.CHATS)
     suspend fun getAllChats(): Response<List<ChatInfo>>
+    
+    @POST(Route.PIN_CHAT)
+    suspend fun pinChat(
+        @Path("id") chatId: Int
+    ): Response<ApiResponse>
+    
+    @DELETE(Route.UNPIN_CHAT)
+    suspend fun unpinChat(
+        @Path("id") chatId: Int
+    ): Response<ApiResponse>
+    
+    @POST(Route.PIN_CHAT_IN_FOLDER)
+    suspend fun pinChatInFolder(
+        @Path("folderId") folderId: Int,
+        @Path("chatId") chatId: Int
+    ): Response<ApiResponse>
+    
+    @DELETE(Route.UNPIN_CHAT_IN_FOLDER)
+    suspend fun unpinChatInFolder(
+        @Path("folderId") folderId: Int,
+        @Path("chatId") chatId: Int
+    ): Response<ApiResponse>
+    
+    @GET(Route.GET_MY_PRIVACY)
+    suspend fun getMyPrivacy(): Response<PrivacySettings>
+    
+    @GET(Route.CHECK_USERNAME)
+    suspend fun checkUsername(@Path("username") username: String): Response<ApiResponse>
+    
+    @PATCH(Route.SAVE_USERNAME)
+    suspend fun saveUsername(@Path("username") username: String): Response<ApiResponse>
 }

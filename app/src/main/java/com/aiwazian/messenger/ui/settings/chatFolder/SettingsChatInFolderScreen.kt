@@ -23,15 +23,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.ChatInfo
+import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.ui.element.InputField
 import com.aiwazian.messenger.ui.element.MinimizeChatCard
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
-import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.viewModels.FolderViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
@@ -44,19 +45,19 @@ fun SettingsChatInFolderScreen(
 
 @Composable
 private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit = { }) {
-    val navViewModel: NavigationViewModel = viewModel()
-    val folderViewModel: FolderViewModel = viewModel()
-
-    val initialSelectedChats by folderViewModel.folderChats.collectAsState()
-
+    val navViewModel = viewModel<NavigationViewModel>()
+    val folderViewModel = hiltViewModel<FolderViewModel>()
+    
+    val openFolder by folderViewModel.openFolder.collectAsState()
+    
     var allChats by remember { mutableStateOf<List<ChatInfo>>(emptyList()) }
     var searchQuery by remember { mutableStateOf("") }
-    var currentSelectedChats by remember { mutableStateOf(initialSelectedChats) }
-
+    var currentSelectedChats by remember { mutableStateOf(openFolder.chats) }
+    
     val filteredChats = allChats.filter { chatInfo ->
         chatInfo.chatName.contains(searchQuery.trim(), ignoreCase = true)
     }
-
+    
     LaunchedEffect(Unit) {
         try {
             val request = RetrofitInstance.api.getAllChats()
@@ -67,39 +68,34 @@ private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit = { }) {
             Log.e("SettingsChatInFolderScreen", "Error get all chats" + e.message)
         }
     }
-
+    
     Scaffold(
         topBar = {
-            PageTopBar(
-                title = {
-                    Column {
-                        Text("Чаты в папке")
-                        Text(
-                            "Количество чатов не ограничено",
-                            fontSize = 12.sp,
-                            lineHeight = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navViewModel.removeLastScreenInStack()
-                    }) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        onConfirmSelect(currentSelectedChats)
-                        navViewModel.removeLastScreenInStack()
-                    }) {
-                        Icon(Icons.Outlined.Check, contentDescription = null)
-                    }
+            PageTopBar(title = {
+                Column {
+                    Text("Чаты в папке")
+                    Text(
+                        "Количество чатов не ограничено",
+                        fontSize = 12.sp,
+                        lineHeight = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-            )
-        }
-    ) { innerPadding ->
+            }, navigationIcon = {
+                IconButton(onClick = {
+                    navViewModel.removeLastScreenInStack()
+                }) {
+                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null)
+                }
+            }, actions = {
+                IconButton(onClick = {
+                    onConfirmSelect(currentSelectedChats)
+                    navViewModel.removeLastScreenInStack()
+                }) {
+                    Icon(Icons.Outlined.Check, contentDescription = null)
+                }
+            })
+        }) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             SectionContainer {
                 InputField(
@@ -109,10 +105,10 @@ private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit = { }) {
                         searchQuery = newValue
                     })
             }
-
+            
             SectionContainer {
                 val user by UserManager.user.collectAsState()
-
+                
                 LazyColumn {
                     items(filteredChats, { it.id }) { chat ->
                         val chatName = if (chat.id == user.id) {
@@ -120,20 +116,17 @@ private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit = { }) {
                         } else {
                             chat.chatName
                         }
-
+                        
                         val selected = currentSelectedChats.any { it.id == chat.id }
-
+                        
                         MinimizeChatCard(
-                            chatName = chatName,
-                            selected = selected,
-                            onClick = {
+                            chatName = chatName, selected = selected, onClick = {
                                 currentSelectedChats = if (selected) {
                                     currentSelectedChats - chat
                                 } else {
                                     currentSelectedChats + chat
                                 }
-                            }
-                        )
+                            })
                     }
                 }
             }

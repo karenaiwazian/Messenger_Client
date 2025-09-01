@@ -27,10 +27,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
-import com.aiwazian.messenger.services.VibrateService
+import com.aiwazian.messenger.utils.VibrationPattern
 import com.aiwazian.messenger.viewModels.CreateChannelViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
@@ -43,21 +44,20 @@ fun CreateChannelScreen() {
 @Composable
 private fun Content() {
     val context = LocalContext.current
-
-    val createChannelViewModel: CreateChannelViewModel = viewModel()
-
+    
+    val createChannelViewModel = viewModel<CreateChannelViewModel>()
+    
     createChannelViewModel.onError = {
         val vibrateService = VibrateService(context)
-        vibrateService.vibrate()
+        vibrateService.vibrate(VibrationPattern.Error)
     }
-
+    
     val scrollState = rememberScrollState()
-
+    
     Scaffold(
         topBar = {
             TopBar()
         },
-        
         floatingActionButton = {
             FloatingActionButton(
                 modifier = Modifier.imePadding(),
@@ -99,7 +99,7 @@ private fun Content() {
                         unfocusedIndicatorColor = Color.Transparent,
                     )
                 )
-
+                
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -118,9 +118,9 @@ private fun Content() {
                     )
                 )
             }
-
+            
             SectionDescription("Можете указать дополнительное описание канала.")
-
+            
         }
     }
 }
@@ -128,8 +128,8 @@ private fun Content() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val navViewModel: NavigationViewModel = viewModel()
-
+    val navViewModel = viewModel<NavigationViewModel>()
+    
     PageTopBar(
         title = { Text(text = stringResource(R.string.create_channel)) },
         navigationIcon = {

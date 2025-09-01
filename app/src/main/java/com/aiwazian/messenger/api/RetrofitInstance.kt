@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit
 object RetrofitInstance {
     
     private const val BASE_URL = Constants.SERVER_URL
+    
     private val skipAuthPaths = listOf(
         Route.LOGIN,
         Route.REGISTER,

@@ -1,29 +1,31 @@
 [versions]
 accompanistNavigationMaterial = "0.36.0"
 accompanistSystemuicontroller = "0.36.0"
-agp = "8.11.1"
-animation = "..."
+agp = "8.12.2"
+animation = "1.9.0"
 coilCompose = "2.7.0"
 converterGson = "3.0.0"
 datastorePreferences = "1.1.7"
 firebaseMessaging = "25.0.0"
-foundation = "..."
-kotlin = "2.2.0"
-coreKtx = "1.16.0"
+foundation = "1.9.0"
+hiltAndroid = "2.57.1"
+hiltNavigationCompose = "1.2.0"
+kotlin = "2.2.10"
+coreKtx = "1.17.0"
 kotlinxSerializationJson = "1.9.0"
-ktorClientCore = "3.2.2"
-ktorClientWebsockets = "3.2.2"
-ktorClientOkhttp = "3.2.2"
-lifecycleRuntimeKtx = "2.9.2"
+ktorClientCore = "3.2.3"
+ktorClientWebsockets = "3.2.3"
+ktorClientOkhttp = "3.2.3"
+lifecycleRuntimeKtx = "2.9.3"
 activityCompose = "1.10.1"
-composeBom = "2025.07.00"
+composeBom = "2025.08.01"
 gmsVersion = "4.4.3"
-lifecycleViewmodelComposeVersion = "2.9.2"
-lottieCompose = "6.0.0"
+lifecycleViewmodelComposeVersion = "2.9.3"
+lottieCompose = "6.6.7"
 materialIconsExtendedAndroid = "1.7.8"
-navigationCompose = "2.9.2"
+navigationCompose = "2.9.3"
 okhttp = "5.1.0"
-protobufJavalite = "4.31.1"
+protobufJavalite = "4.32.0"
 retrofit = "3.0.0"
 zxingAndroidEmbedded = "4.3.0"
 
@@ -34,6 +36,7 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }
+androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelComposeVersion" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
@@ -50,6 +53,8 @@ accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version = "2.57.1" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 
 firebase-messaging = { module = "com.google.firebase:firebase-messaging", version.ref = "firebaseMessaging" }

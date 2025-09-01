@@ -1,71 +1,108 @@
 package com.aiwazian.messenger.viewModels
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.aiwazian.messenger.api.RetrofitInstance
+import com.aiwazian.messenger.customType.WebSocketAction
+import com.aiwazian.messenger.data.ChatInfo
+import com.aiwazian.messenger.data.DeleteChatPayload
+import com.aiwazian.messenger.data.DeleteMessagePayload
 import com.aiwazian.messenger.data.Message
-import com.aiwazian.messenger.utils.ChatStateManager
+import com.aiwazian.messenger.services.ChatService
+import com.aiwazian.messenger.services.DialogController
+import com.aiwazian.messenger.services.UserManager
+import com.aiwazian.messenger.utils.ChatState
 import com.aiwazian.messenger.utils.WebSocketManager
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.time.Instant
+import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
-class ChatViewModel(
-    private val chatId: Int,
-    private val currentUserId: Int,
-) : ViewModel() {
+@HiltViewModel
+class ChatViewModel @Inject constructor(private val chatService: ChatService) : ViewModel() {
     
-    private val _isVisibleDeleteChatDialog = MutableStateFlow(false)
-    val isVisibleDeleteChatDialog = _isVisibleDeleteChatDialog.asStateFlow()
+    private val _currentUserId = UserManager.user.value.id
+    
+    private val _chatInfo = MutableStateFlow(ChatInfo())
+    val chatInfo = _chatInfo.asStateFlow()
     
     private val _messageText = MutableStateFlow("")
     val messageText = _messageText.asStateFlow()
     
-    var messages = mutableStateListOf<Message>()
-        private set
+    private val _messages = MutableStateFlow<List<Message>>(emptyList())
+    val messages = _messages.asStateFlow()
+    
+    private val _selectedMessages = MutableStateFlow<Set<Message>>(emptySet())
+    val selectedMessages = _selectedMessages.asStateFlow()
+    
+    val deleteChatDialog = DialogController()
+    
+    val deleteMessageDialog = DialogController()
     
     init {
-        WebSocketManager.onReceiveMessage = { message ->
-            if (ChatStateManager.isChatOpen(message.senderId) && message.senderId != currentUserId) {
-                messages.add(message)
+        WebSocketManager.registerTypedMessageHandler<Message>(WebSocketAction.NEW_MESSAGE) { message ->
+            if (_chatInfo.value.id == message.senderId && message.senderId != _currentUserId) {
+                _messages.value += message
             }
         }
-    }
-    
-    fun showDeleteChatDialog() {
-        _isVisibleDeleteChatDialog.value = true
-    }
-    
-    fun hideDeleteChatDialog() {
-        _isVisibleDeleteChatDialog.value = false
+        
+        WebSocketManager.registerTypedMessageHandler<DeleteChatPayload>(WebSocketAction.DELETE_CHAT) { chat ->
+            if (chat.chatId == _chatInfo.value.id) {
+                deleteAllMessages()
+            }
+        }
+        
+        WebSocketManager.registerTypedMessageHandler<DeleteMessagePayload>(WebSocketAction.DELETE_MESSAGE) { message ->
+            if (_chatInfo.value.id == message.chatId) {
+                deleteMessage(message.messageId)
+            }
+        }
     }
     
     fun changeText(newText: String) {
         _messageText.value = newText
     }
     
-    suspend fun loadMessages() {
+    fun selectMessage(message: Message) {
+        _selectedMessages.value += message
+    }
+    
+    fun unselectMessage(message: Message) {
+        _selectedMessages.value -= message
+    }
+    
+    suspend fun openChat(chatId: Int) {
+        ChatState.openChat(chatId)
+        
+        _chatInfo.update { chatInfo ->
+            chatInfo.id = chatId
+            chatInfo
+        }
+        
         try {
-            val response = RetrofitInstance.api.getMessagesBetweenUsers(chatId)
+            val chatInfo = chatService.getChatInfo(chatId)
             
-            if (response.isSuccessful) {
-                messages.addAll(response.body().orEmpty())
-            } else {
-                Log.e(
-                    "ChatVM",
-                    "Ошибка ответа загрузки сообщений: ${response.code()}"
-                )
+            if (chatInfo == null) {
+                return
             }
+            
+            _chatInfo.value = chatInfo
+            
+            val chatMessages = chatService.getChatMessages(chatId)
+            
+            _messages.value = chatMessages.orEmpty()
         } catch (e: Exception) {
             Log.e(
                 "ChatVM",
                 "Ошибка загрузки сообщений: ${e.message}"
             )
         }
+    }
+    
+    fun closeChat() {
+        _chatInfo.update { ChatInfo() }
+        
+        ChatState.closeChat()
     }
     
     suspend fun sendMessage(): Message? {
@@ -75,26 +112,42 @@ class ChatViewModel(
         
         val validText = _messageText.value.trim()
         
+        val messageId = if (_messages.value.isNotEmpty()) {
+            messages.value.last().id + 1
+        } else {
+            1
+        }
+        
         val message = Message(
-            id = messages.last().id + 1,
-            messageId = messages.size + 1,
-            senderId = currentUserId,
-            chatId = chatId,
+            id = messageId,
+            senderId = _currentUserId,
+            chatId = _chatInfo.value.id,
             text = validText,
             sendTime = System.currentTimeMillis()
         )
         
-        messages.add(message)
-        _messageText.value = ""
+        changeText("")
+        
+        _messages.update { it + message }
         
         try {
-            val response = RetrofitInstance.api.sendMessage(message)
+            val sentMessage = chatService.sendMessage(message)
             
-            return if (response.isSuccessful) {
-                message
-            } else {
-                null
+            if (sentMessage == null) {
+                return null
             }
+            
+            _messages.update { currentList ->
+                currentList.map { message ->
+                    if (message.id == messageId) {
+                        message.copy(id = sentMessage.id)
+                    } else {
+                        message
+                    }
+                }
+            }
+            
+            return sentMessage
         } catch (e: Exception) {
             Log.e(
                 "ChatVM",
@@ -105,18 +158,45 @@ class ChatViewModel(
         }
     }
     
-    suspend fun deleteChat(deleteForReceiver: Boolean): Boolean {
+    suspend fun tryDeleteMessage(
+        messageId: Int,
+        deleteForAll: Boolean
+    ): Boolean {
         try {
-            val response = RetrofitInstance.api.deleteChat(
-                chatId = chatId,
-                deleteForReceiver = deleteForReceiver
+            val isDeleted = chatService.deleteMessage(
+                _chatInfo.value.id,
+                messageId,
+                deleteForAll
             )
             
-            if (!response.isSuccessful) {
-                return false
+            if (isDeleted) {
+                deleteMessage(messageId)
             }
             
-            return response.code() == 200
+            return isDeleted
+        } catch (e: Exception) {
+            Log.e(
+                "ChatVM",
+                "Ошибка удаления сообщения",
+                e
+            )
+            
+            return false
+        }
+    }
+    
+    suspend fun tryDeleteChat(deleteForReceiver: Boolean): Boolean {
+        try {
+            val isDeleted = chatService.deleteChat(
+                _chatInfo.value.id,
+                deleteForReceiver
+            )
+            
+            if (isDeleted) {
+                deleteAllMessages()
+            }
+            
+            return isDeleted
         } catch (e: Exception) {
             Log.e(
                 "DeleteChat",
@@ -127,8 +207,13 @@ class ChatViewModel(
         }
     }
     
-    fun deleteAllMessages() {
-        messages.clear()
+    private fun deleteMessage(messageId: Int) {
+        val messages = _messages.value.filter { it.id != messageId }
+        _messages.update { messages }
+    }
+    
+    private fun deleteAllMessages() {
+        _messages.update { emptyList() }
     }
 }
 

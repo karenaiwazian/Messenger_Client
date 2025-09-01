@@ -16,105 +16,102 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.DrawerState
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Reply
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.PrimaryScrollableTabRow
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.data.ChatFolder
 import com.aiwazian.messenger.data.ChatInfo
-import com.aiwazian.messenger.data.Message
-import com.aiwazian.messenger.ui.element.ChatCard
+import com.aiwazian.messenger.services.AppLockService
 import com.aiwazian.messenger.services.UserManager
-import com.aiwazian.messenger.utils.WebSocketManager
+import com.aiwazian.messenger.ui.element.ChatCard
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SwipeableChatCard
 import com.aiwazian.messenger.ui.settings.SettingsScreen
-import com.aiwazian.messenger.services.AppLockService
 import com.aiwazian.messenger.utils.LottieAnimation
-import com.aiwazian.messenger.viewModels.ChatsViewModel
-import com.aiwazian.messenger.viewModels.FolderViewModel
+import com.aiwazian.messenger.utils.WebSocketManager
+import com.aiwazian.messenger.viewModels.MainScreenViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -125,46 +122,50 @@ fun MainScreen() {
 @Composable
 private fun MainScreenContent() {
     val context = LocalContext.current
-
-    val showPermissionRationale = remember { mutableStateOf(false) }
-
+    
+    var showPermissionRationale by remember { mutableStateOf(false) }
+    
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (!isGranted) {
-            showPermissionRationale.value = true
+            showPermissionRationale = true
         }
     }
-
-    if (showPermissionRationale.value) {
-        NotificationBottomModal(enable = {
-            showPermissionRationale.value = false
-
-            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                putExtra(
-                    Settings.EXTRA_APP_PACKAGE, context.packageName
-                )
-            }
-
-            context.startActivity(intent)
-        }, disable = {
-            showPermissionRationale.value = false
-        })
+    
+    if (showPermissionRationale) {
+        NotificationBottomModal(
+            enable = {
+                showPermissionRationale = false
+                
+                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                    putExtra(
+                        Settings.EXTRA_APP_PACKAGE,
+                        context.packageName
+                    )
+                }
+                
+                context.startActivity(intent)
+            },
+            disable = {
+                showPermissionRationale = false
+            })
     }
-
+    
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
-                    context, POST_NOTIFICATIONS
+                    context,
+                    POST_NOTIFICATIONS
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 requestPermissionLauncher.launch(POST_NOTIFICATIONS)
             }
         }
     }
-
+    
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-
+    
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -177,7 +178,10 @@ private fun MainScreenContent() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun NotificationBottomModal(enable: () -> Unit, disable: () -> Unit) {
+private fun NotificationBottomModal(
+    enable: () -> Unit,
+    disable: () -> Unit
+) {
     ModalBottomSheet(
         onDismissRequest = disable,
         dragHandle = null,
@@ -206,7 +210,7 @@ private fun NotificationBottomModal(enable: () -> Unit, disable: () -> Unit) {
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
-
+            
             Column {
                 Text(
                     text = "Включите уведомления",
@@ -217,7 +221,7 @@ private fun NotificationBottomModal(enable: () -> Unit, disable: () -> Unit) {
                         .fillMaxWidth()
                         .padding(bottom = 10.dp)
                 )
-
+                
                 Text(
                     text = "Разрешите приложению отправлять Вам уведомления, чтобы не пропустить сообщения от друзей и родных.",
                     textAlign = TextAlign.Center,
@@ -227,7 +231,7 @@ private fun NotificationBottomModal(enable: () -> Unit, disable: () -> Unit) {
                 )
             }
         }
-
+        
         Button(
             onClick = enable,
             modifier = Modifier
@@ -239,7 +243,8 @@ private fun NotificationBottomModal(enable: () -> Unit, disable: () -> Unit) {
             )
         ) {
             Text(
-                text = "Открыть настройки", modifier = Modifier.padding(8.dp)
+                text = "Открыть настройки",
+                modifier = Modifier.padding(8.dp)
             )
         }
     }
@@ -250,126 +255,115 @@ private fun NotificationBottomModal(enable: () -> Unit, disable: () -> Unit) {
 private fun Content(
     drawerState: DrawerState
 ) {
-    val navViewModel: NavigationViewModel = viewModel()
-
-    val chatsViewModel: ChatsViewModel = viewModel()
-    val folderViewModel: FolderViewModel = viewModel()
-
-    val chatList by chatsViewModel.unarchivedChats.collectAsState()
-    val archiveChats by chatsViewModel.archivedChats.collectAsState()
-    val selectedChats by chatsViewModel.selectedChats.collectAsState()
-    val allSelectedChatsArePinned by chatsViewModel.allSelectedArePinned.collectAsState()
-    val folders by folderViewModel.folders.collectAsState()
-
+    val navViewModel = viewModel<NavigationViewModel>()
+    
+    val mainScreenViewModel = hiltViewModel<MainScreenViewModel>()
+    
+    val folders by mainScreenViewModel.chatFolders.collectAsState()
+    val archiveChats by mainScreenViewModel.archivedChats.collectAsState()
+    val selectedChats by mainScreenViewModel.selectedChats.collectAsState()
+    val allSelectedChatsArePinned by mainScreenViewModel.allSelectedArePinned.collectAsState()
+    
     val snackbarHostState = remember { SnackbarHostState() }
+    
     val scope = rememberCoroutineScope()
-
-    var hasChat by remember { mutableStateOf(false) }
-
-    val onMessageHandler: (Message) -> Unit = { message ->
-        hasChat = chatList.firstOrNull { it.id == message.chatId } != null
-
-        folders.forEach { folder ->
-            folder.chats.forEach {
-                if (it.id == message.chatId) {
-                    hasChat = true
-                }
-            }
-        }
-
-        if (hasChat) {
-            chatsViewModel.updateLastMessage(message.chatId, message)
-            chatsViewModel.moveToUp(message.chatId)
-        }
-    }
-
+    
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-
-    val tabs = listOf(
-        stringResource(R.string.all_chats),
-        *folders.map { it.folderName }.toTypedArray()
-    )
-
+    
     val pagerState = rememberPagerState {
-        tabs.size
+        folders.size
     }
-
-    WebSocketManager.onReceiveMessage = onMessageHandler
-
+    
     LaunchedEffect(selectedTabIndex) {
         pagerState.animateScrollToPage(selectedTabIndex)
     }
-
+    
     LaunchedEffect(pagerState.currentPage) {
         selectedTabIndex = pagerState.currentPage
     }
-
-    LaunchedEffect(Unit) {
-        folderViewModel.loadFolders()
-        chatsViewModel.loadUnarchiveChats()
-        chatsViewModel.loadArchiveChats()
+    
+    BackHandler(selectedTabIndex != 0) {
+        selectedTabIndex = 0
     }
-
+    
     BackHandler(selectedChats.isNotEmpty()) {
-        chatsViewModel.unselectAllChats()
+        mainScreenViewModel.unselectAllChats()
     }
-
-    Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
-        DefaultTopBar(drawerState)
-
-        AnimatedVisibility(
-            visible = selectedChats.isNotEmpty(),
-            enter = fadeIn(animationSpec = tween(durationMillis = 100)),
-            exit = fadeOut(animationSpec = tween(durationMillis = 100))
-        ) {
-            SelectedChatTopBar(
-                onBack = {
-                    chatsViewModel.unselectAllChats()
-                }, selectedCount = selectedChats.size, onClickArchive = {
-                    scope.launch {
-                        selectedChats.forEach { selectedChat ->
-                            chatsViewModel.archiveChat(selectedChat)
+    
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            DefaultTopBar(drawerState)
+            
+            val selectedChatCount = selectedChats.values.sumOf { it.size }
+            
+            AnimatedVisibility(
+                visible = selectedChats.isNotEmpty(),
+                enter = fadeIn(tween(100)),
+                exit = fadeOut(tween(100))
+            ) {
+                SelectedChatTopBar(
+                    onBack = mainScreenViewModel::unselectAllChats,
+                    selectedCount = selectedChatCount,
+                    onClickArchive = {
+                        scope.launch {
+                            selectedChats.forEach { selectedChat ->
+                                mainScreenViewModel.archiveChat(selectedChat.key)
+                            }
                         }
-                    }
-                    chatsViewModel.unselectAllChats()
-                }, dropdownActions = arrayOf(
-                    SelectedChatsAction(
-                        icon = Icons.Outlined.PushPin,
-                        title = if (allSelectedChatsArePinned) stringResource(R.string.unpin) else stringResource(
-                            R.string.pin
-                        ),
-                        onClick = {
-                            scope.launch {
-                                if (allSelectedChatsArePinned) {
-                                    selectedChats.forEach { selectedChat ->
-                                        chatsViewModel.unpinChat(selectedChat)
-                                    }
-                                } else {
-                                    selectedChats.forEach { selectedChat ->
-                                        chatsViewModel.pinChat(selectedChat)
+                        mainScreenViewModel.unselectAllChats()
+                    },
+                    dropdownActions = arrayOf(
+                        SelectedChatsAction(
+                            icon = Icons.Outlined.PushPin,
+                            title = if (allSelectedChatsArePinned) {
+                                stringResource(R.string.unpin)
+                            } else {
+                                stringResource(R.string.pin)
+                            },
+                            onClick = {
+                                scope.launch {
+                                    if (allSelectedChatsArePinned) {
+                                        selectedChats.forEach { folder ->
+                                            folder.value.forEach { chatId ->
+                                                mainScreenViewModel.unpinChat(
+                                                    chatId = chatId,
+                                                    folderId = folder.key
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        selectedChats.forEach { folder ->
+                                            folder.value.forEach { chatId ->
+                                                mainScreenViewModel.pinChat(
+                                                    chatId = chatId,
+                                                    folderId = folder.key
+                                                )
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                            chatsViewModel.unselectAllChats()
-                        })
+                                mainScreenViewModel.unselectAllChats()
+                            })
+                    )
                 )
-            )
-        }
-    }, snackbarHost = {
-        SwipeDismissSnackbarHost(snackbarHostState)
-    }, floatingActionButton = {
-        FloatingButton(onClick = {
-            navViewModel.addScreenInStack {
-                NewMessageScreen()
             }
-        })
-    }) { innerPadding ->
-
+        },
+        snackbarHost = {
+            SwipeDismissSnackbarHost(snackbarHostState)
+        },
+        floatingActionButton = {
+            FloatingButton(onClick = {
+                navViewModel.addScreenInStack {
+                    NewMessageScreen()
+                }
+            })
+        }) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding),
         ) {
             AnimatedVisibility(
-                visible = folders.isNotEmpty(),
+                visible = folders.size > 1,
                 enter = slideInVertically(tween(100)),
                 exit = slideOutVertically(tween(100))
             ) {
@@ -377,52 +371,45 @@ private fun Content(
                     selectedTabIndex = selectedTabIndex,
                     modifier = Modifier.fillMaxWidth(),
                     edgePadding = 8.dp,
-                    divider = { }
-                ) {
-                    tabs.forEachIndexed { index, tab ->
+                    divider = { }) {
+                    folders.forEachIndexed { index, folder ->
                         Tab(
                             selected = index == selectedTabIndex,
                             onClick = {
                                 selectedTabIndex = index
                             },
-                            modifier = Modifier
-                                .clip(
-                                    RoundedCornerShape(
-                                        topStart = 10.dp,
-                                        topEnd = 10.dp
-                                    )
-                                ),
+                            modifier = Modifier.clip(
+                                RoundedCornerShape(
+                                    topStart = 10.dp,
+                                    topEnd = 10.dp
+                                )
+                            ),
                             text = {
-                                Text(text = tab)
+                                Text(text = folder.folderName)
                             },
                             unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
-
+            
             HorizontalPager(
                 state = pagerState,
-                userScrollEnabled = folders.isNotEmpty() && selectedChats.isEmpty(),
+                userScrollEnabled = folders.size > 1 && selectedChats.isEmpty(),
+                overscrollEffect = null,
                 modifier = Modifier.fillMaxSize()
             ) { index ->
                 val chatFolders = folders.toMutableList()
-
-                val allChatFolder = ChatFolder(
-                    id = 0, folderName = stringResource(R.string.all_chats), chats = chatList
-                )
-
-                chatFolders.add(0, allChatFolder)
-
+                
                 val folder = chatFolders[index]
-
+                
                 Column(modifier = Modifier.fillMaxSize()) {
                     if (folder.id == 0) {
                         if (folder.chats.isEmpty() && archiveChats.isEmpty()) {
                             EmptyChatPlaceholder(text = "Чтобы начать общение нажмите на значок поиска в правом верхнем углу и найдите пользователя по его @username")
                             return@Column
                         }
-
+                        
                         if (archiveChats.isNotEmpty()) {
                             ChatCard(
                                 chatName = stringResource(R.string.archive),
@@ -432,11 +419,10 @@ private fun Content(
                                             ArchiveScreen()
                                         }
                                     }
-                                }
-                            )
+                                })
                         }
                     }
-
+                    
                     if (folder.id != 0 && folder.chats.isEmpty()) {
                         EmptyChatPlaceholder(
                             text = "Добавьте чаты в папку",
@@ -444,34 +430,47 @@ private fun Content(
                         )
                         return@Column
                     }
-
+                    
+                    val snackBarActionLabel = stringResource(R.string.cancel).uppercase()
+                    
+                    val selectedChatsInFolder = selectedChats[folder.id] ?: emptyList()
+                    
+                    val snackBarMessage = stringResource(R.string.chat_archived)
+                    
                     ChatListSection(
                         chatList = folder.chats,
-                        selectedChats = selectedChats,
+                        selectedChats = selectedChatsInFolder,
+                        enableSwipeable = folder.id == 0,
                         onChatClick = { chat ->
                             if (selectedChats.isEmpty()) {
                                 navViewModel.addScreenInStack {
-                                    ChatScreen(userId = chat.id)
+                                    ChatScreen(chatId = chat.id)
                                 }
                             } else {
-                                chatsViewModel.selectChat(chat.id)
+                                mainScreenViewModel.selectChat(
+                                    chat.id,
+                                    folder.id
+                                )
                             }
                         },
                         onChatLongClick = { chat ->
-                            chatsViewModel.selectChat(chat.id)
+                            mainScreenViewModel.selectChat(
+                                chat.id,
+                                folder.id
+                            )
                         },
                         onChatSwipe = { chat ->
                             scope.launch {
-                                chatsViewModel.archiveChat(chat.id)
-
+                                mainScreenViewModel.archiveChat(chat.id)
+                                
                                 val result = snackbarHostState.showSnackbar(
-                                    message = "Чат в архиве",
-                                    actionLabel = "Отменить",
-                                    duration = SnackbarDuration.Short
+                                    message = snackBarMessage,
+                                    actionLabel = snackBarActionLabel,
+                                    duration = SnackbarDuration.Long
                                 )
-
+                                
                                 if (result == SnackbarResult.ActionPerformed) {
-                                    chatsViewModel.unarchiveChat(chat.id)
+                                    mainScreenViewModel.unarchiveChat(chat.id)
                                 }
                             }
                         })
@@ -485,34 +484,53 @@ private fun Content(
 private fun ChatListSection(
     chatList: List<ChatInfo>,
     selectedChats: List<Int>,
+    enableSwipeable: Boolean,
     onChatClick: (ChatInfo) -> Unit,
     onChatLongClick: (ChatInfo) -> Unit,
     onChatSwipe: (ChatInfo) -> Unit
 ) {
     val user by UserManager.user.collectAsState()
-
+    
     LazyColumn {
-        items(chatList, key = { it.id }) { chat ->
+        items(
+            chatList,
+            { it.lastMessage?.sendTime ?: it.id }) { chat ->
             var chatName = chat.chatName
+            
             if (chat.id == user.id) {
                 chatName = stringResource(R.string.saved_messages)
             }
-            SwipeableChatCard(
-                chatName = chatName,
-                lastMessage = chat.lastMessage,
-                selected = chat.id in selectedChats,
-                pinned = chat.isPinned,
-                enableSwipeable = selectedChats.isEmpty(),
-                onClick = { onChatClick(chat) },
-                onLongClick = { onChatLongClick(chat) },
-                backgroundIcon = Icons.Outlined.Archive,
-                onDismiss = { onChatSwipe(chat) })
+            
+            if (enableSwipeable) {
+                SwipeableChatCard(
+                    chatName = chatName,
+                    lastMessage = chat.lastMessage,
+                    selected = chat.id in selectedChats,
+                    pinned = chat.isPinned,
+                    enableSwipeable = selectedChats.isEmpty(),
+                    onClick = { onChatClick(chat) },
+                    onLongClick = { onChatLongClick(chat) },
+                    backgroundIcon = Icons.Outlined.Archive,
+                    onDismiss = { onChatSwipe(chat) })
+            } else {
+                ChatCard(
+                    chatName = chatName,
+                    lastMessage = chat.lastMessage,
+                    selected = chat.id in selectedChats,
+                    pinned = chat.isPinned,
+                    onClickChat = { onChatClick(chat) },
+                    onLongClickChat = { onChatLongClick(chat) },
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun EmptyChatPlaceholder(text: String, animation: String? = null) {
+private fun EmptyChatPlaceholder(
+    text: String,
+    animation: String? = null
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -522,7 +540,7 @@ private fun EmptyChatPlaceholder(text: String, animation: String? = null) {
             val composition by rememberLottieComposition(
                 spec = LottieCompositionSpec.Asset(animation)
             )
-
+            
             LottieAnimation(
                 composition = composition,
                 modifier = Modifier
@@ -532,7 +550,7 @@ private fun EmptyChatPlaceholder(text: String, animation: String? = null) {
                 isPlaying = true
             )
         }
-
+        
         Text(
             text = text,
             textAlign = TextAlign.Center,
@@ -548,7 +566,8 @@ private fun FloatingButton(onClick: () -> Unit) {
         containerColor = MaterialTheme.colorScheme.primary
     ) {
         Icon(
-            imageVector = Icons.Default.Create, contentDescription = null
+            imageVector = Icons.Default.Create,
+            contentDescription = null
         )
     }
 }
@@ -556,13 +575,14 @@ private fun FloatingButton(onClick: () -> Unit) {
 @Composable
 private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
     SnackbarHost(
-        hostState = snackbarHostState, modifier = Modifier.fillMaxWidth()
+        hostState = snackbarHostState,
+        modifier = Modifier.fillMaxWidth()
     ) { data ->
         var dismissed by remember { mutableStateOf(false) }
-
+        
         if (!dismissed) {
             val swipeToDismissBoxState = rememberSwipeToDismissBoxState()
-
+            
             SwipeToDismissBox(
                 state = swipeToDismissBoxState,
                 backgroundContent = { },
@@ -591,12 +611,12 @@ private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
                                 imageVector = Icons.Outlined.Archive,
                                 contentDescription = null,
                             )
-
+                            
                             Text(
                                 text = data.visuals.message
                             )
                         }
-
+                        
                         TextButton(
                             onClick = { data.performAction() },
                             colors = ButtonDefaults.textButtonColors(
@@ -609,10 +629,13 @@ private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary
                             )
-
-                            Text(
-                                text = "ОТМЕНА", color = MaterialTheme.colorScheme.primary
-                            )
+                            
+                            data.visuals.actionLabel?.let {
+                                Text(
+                                    text = it,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
                 }
@@ -638,83 +661,82 @@ private fun SelectedChatTopBar(
     vararg dropdownActions: SelectedChatsAction
 ) {
     var expanded by remember { mutableStateOf(false) }
-
-    PageTopBar(title = {
-        AnimatedContent(
-            targetState = selectedCount, transitionSpec = {
-                if (targetState > initialState) {
-                    slideInVertically(animationSpec = tween(durationMillis = 200)) { height -> height } + fadeIn(
-                        animationSpec = tween(durationMillis = 200)
-                    ) togetherWith slideOutVertically(animationSpec = tween(durationMillis = 200)) { height -> -height } + fadeOut(
-                        animationSpec = tween(durationMillis = 200)
-                    )
-                } else {
-                    slideInVertically(animationSpec = tween(durationMillis = 200)) { height -> -height } + fadeIn(
-                        animationSpec = tween(durationMillis = 200)
-                    ) togetherWith slideOutVertically(animationSpec = tween(durationMillis = 200)) { height -> height } + fadeOut(
-                        animationSpec = tween(durationMillis = 200)
-                    )
-                }
-            }) { count ->
-            Text(text = count.toString())
-        }
-    }, navigationIcon = {
-        IconButton(onClick = onBack) {
-            Icon(
-                imageVector = Icons.Outlined.Close,
-                contentDescription = null,
-            )
-        }
-    }, actions = {
-        IconButton(onClick = onClickArchive) {
-            Icon(
-                imageVector = Icons.Outlined.Archive,
-                contentDescription = null,
-            )
-        }
-        IconButton(onClick = { }) {
-            Icon(
-                imageVector = Icons.Outlined.Delete,
-                contentDescription = null,
-            )
-        }
-        IconButton(onClick = { expanded = true }) {
-            Icon(
-                imageVector = Icons.Outlined.MoreVert,
-                contentDescription = null,
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded, onDismissRequest = { expanded = false }) {
-            dropdownActions.forEach { action ->
-                DropdownMenuItem(text = {
-                    Text(text = action.title)
-                }, onClick = action.onClick, leadingIcon = {
-                    Icon(
-                        imageVector = action.icon,
-                        contentDescription = null,
-                    )
-                })
+    
+    PageTopBar(
+        title = {
+            AnimatedContent(
+                targetState = selectedCount,
+                transitionSpec = {
+                    if (targetState > initialState) {
+                        slideInVertically(tween(200)) { height -> height } + fadeIn(
+                            tween(200)
+                        ) togetherWith slideOutVertically(tween(200)) { height -> -height } + fadeOut(
+                            tween(200)
+                        )
+                    } else {
+                        slideInVertically(animationSpec = tween(200)) { height -> -height } + fadeIn(
+                            tween(200)
+                        ) togetherWith slideOutVertically(tween(200)) { height -> height } + fadeOut(
+                            tween(200)
+                        )
+                    }
+                }) { count ->
+                Text(text = count.toString())
             }
-        }
-    })
+        },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.Outlined.Close,
+                    contentDescription = null,
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = { expanded = true }) {
+                Icon(
+                    imageVector = Icons.Outlined.MoreVert,
+                    contentDescription = null,
+                )
+            }
+            
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }) {
+                dropdownActions.forEach { action ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(text = action.title)
+                        },
+                        onClick = action.onClick,
+                        leadingIcon = {
+                            Icon(
+                                imageVector = action.icon,
+                                contentDescription = null,
+                            )
+                        })
+                }
+            }
+        })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DefaultTopBar(drawerState: DrawerState) {
     val isConnected by WebSocketManager.isConnectedState.collectAsState()
-    val navViewModel: NavigationViewModel = viewModel()
+    
+    val navViewModel = viewModel<NavigationViewModel>()
+    
     val scope = rememberCoroutineScope()
-
+    
     val appLockService = AppLockService()
     val showLockIcon = appLockService.passcode.collectAsState().value.isNotBlank()
-
+    
     PageTopBar(
         title = {
             AnimatedContent(
-                targetState = isConnected, transitionSpec = {
+                targetState = isConnected,
+                transitionSpec = {
                     if (isConnected) {
                         slideInVertically(tween(200)) { height -> height } + fadeIn(
                             tween(200)
@@ -765,7 +787,7 @@ private fun DefaultTopBar(drawerState: DrawerState) {
                     )
                 }
             }
-
+            
             IconButton(
                 onClick = {
                     navViewModel.addScreenInStack {
@@ -785,22 +807,31 @@ private fun DefaultTopBar(drawerState: DrawerState) {
 private fun DrawerContent(
     drawerState: DrawerState
 ) {
-    val navViewModel: NavigationViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
     val user by UserManager.user.collectAsState()
     val scope = rememberCoroutineScope()
-
+    
     ModalDrawerSheet(
-        drawerShape = RectangleShape, modifier = Modifier.fillMaxWidth(0.7f)
+        drawerShape = RectangleShape,
+        modifier = Modifier.fillMaxWidth(0.7f)
     ) {
-
+        
         Text(
-            text = "${user.firstName} ${user.lastName}", modifier = Modifier.padding(
-                start = 20.dp, top = 80.dp, end = 20.dp, bottom = 40.dp
-            ), fontSize = 24.sp, maxLines = 1, softWrap = false
+            text = "${user.firstName} ${user.lastName}",
+            modifier = Modifier.padding(
+                start = 20.dp,
+                top = 80.dp,
+                end = 20.dp,
+                bottom = 40.dp
+            ),
+            fontSize = 24.sp,
+            maxLines = 1,
+            softWrap = false
         )
-
+        
         DrawerItem(
-            label = stringResource(R.string.profile), icon = Icons.Outlined.AccountCircle
+            label = stringResource(R.string.profile),
+            icon = Icons.Outlined.AccountCircle
         ) {
             scope.launch {
                 drawerState.close()
@@ -809,9 +840,10 @@ private fun DrawerContent(
                 ProfileScreen(user.id)
             }
         }
-
+        
         DrawerItem(
-            label = stringResource(R.string.saved_messages), icon = Icons.Outlined.BookmarkBorder
+            label = stringResource(R.string.saved_messages),
+            icon = Icons.Outlined.BookmarkBorder
         ) {
             scope.launch {
                 drawerState.close()
@@ -820,9 +852,10 @@ private fun DrawerContent(
                 ChatScreen(user.id)
             }
         }
-
+        
         DrawerItem(
-            label = stringResource(R.string.settings), icon = Icons.Outlined.Settings
+            label = stringResource(R.string.settings),
+            icon = Icons.Outlined.Settings
         ) {
             scope.launch {
                 drawerState.close()
@@ -836,15 +869,22 @@ private fun DrawerContent(
 
 @Composable
 private fun DrawerItem(
-    label: String, icon: ImageVector, onClick: () -> Unit
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit
 ) {
     NavigationDrawerItem(
-        shape = RectangleShape, label = {
+        shape = RectangleShape,
+        label = {
             Text(text = label)
-        }, icon = {
+        },
+        icon = {
             Icon(
-                imageVector = icon, contentDescription = null
+                imageVector = icon,
+                contentDescription = null
             )
-        }, selected = false, onClick = onClick
+        },
+        selected = false,
+        onClick = onClick
     )
 }

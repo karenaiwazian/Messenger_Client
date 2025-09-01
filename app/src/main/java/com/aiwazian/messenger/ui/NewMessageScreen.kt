@@ -30,9 +30,10 @@ fun NewMessageScreen() {
 
 @Composable
 private fun Content() {
-    val navViewModel: NavigationViewModel = viewModel()
-
+    val navViewModel = viewModel<NavigationViewModel>()
+    
     val scrollState = rememberScrollState()
+    
     Scaffold(
         topBar = { TopBar() },
     ) {
@@ -49,7 +50,7 @@ private fun Content() {
                     onClick = {
                         navViewModel.addScreenInStack { CreateGroupScreen() }
                     })
-
+                
                 SectionItem(
                     icon = Icons.Outlined.Group,
                     text = stringResource(R.string.create_channel),
@@ -64,17 +65,19 @@ private fun Content() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val navViewModel: NavigationViewModel = viewModel()
-
-    PageTopBar(title = { Text(stringResource(R.string.new_message)) }, navigationIcon = {
-        IconButton(
-            onClick = {
-                navViewModel.removeLastScreenInStack()
-            }) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-            )
-        }
-    })
+    val navViewModel = viewModel<NavigationViewModel>()
+    
+    PageTopBar(
+        title = { Text(stringResource(R.string.new_message)) },
+        navigationIcon = {
+            IconButton(
+                onClick = {
+                    navViewModel.removeLastScreenInStack()
+                }) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                )
+            }
+        })
 }

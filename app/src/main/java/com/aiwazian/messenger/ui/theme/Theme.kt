@@ -20,11 +20,11 @@ import com.aiwazian.messenger.customType.ThemeOption
 
 private fun darkColorSchemeMaterial(customPrimaryColor: Color) = darkColorScheme(
     primary = customPrimaryColor,
-    onPrimary = Color.White,
+    onPrimary = Color.Black,
     background = Color.Black,
     onBackground = Color.White,
     surface = Color.Black,
-    error = Color(0xFFFF3232),
+    error = Color(0xFFFF6464),
 )
 
 private fun lightColorSchemeMaterial(customPrimaryColor: Color) = lightColorScheme(
@@ -33,7 +33,7 @@ private fun lightColorSchemeMaterial(customPrimaryColor: Color) = lightColorSche
     background = Color.White,
     onBackground = Color.Black,
     surface = Color.White,
-    error = Color(0xFFFF3232),
+    error = Color(0xFFFF6464),
 )
 
 @Composable

@@ -2,38 +2,23 @@
 
 package com.aiwazian.messenger.ui.settings.security
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.Navigation
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.AnimatedIntroScreen
 import com.aiwazian.messenger.ui.element.PageTopBar
@@ -49,9 +34,10 @@ fun SettingsCloudPasswordScreen(enabled: Boolean = true) {
 
 @Composable
 private fun Content(enabled: Boolean) {
-    val navViewModel: NavigationViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
+    
     val navHost = rememberNavController()
-
+    
     NavHost(
         navController = navHost,
         startDestination = if (enabled) "SETTINGS" else "MAIN"
@@ -72,7 +58,10 @@ private fun Main(navViewModel: NavigationViewModel) {
             IconButton(onClick = {
                 navViewModel.removeLastScreenInStack()
             }) {
-                Icon(Icons.AutoMirrored.Outlined.ArrowBack, null)
+                Icon(
+                    Icons.AutoMirrored.Outlined.ArrowBack,
+                    null
+                )
             }
         })
     }) { innerPadding ->
@@ -99,12 +88,13 @@ private fun Settings(navViewModel: NavigationViewModel) {
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             SectionContainer {
-                SectionItem("Сменить пароль", onClick = {
-                    navViewModel.addScreenInStack {
-                        SettingsChangeCloudPasswordScreen()
-                    }
-                })
-                SectionItem("Отключить пароль")
+                SectionItem(
+                    "Сменить пароль",
+                    onClick = {
+                        navViewModel.addScreenInStack {
+                            SettingsChangeCloudPasswordScreen()
+                        }
+                    })
             }
         }
     }

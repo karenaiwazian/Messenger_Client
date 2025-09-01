@@ -53,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -60,7 +61,6 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.data.Session
-import com.aiwazian.messenger.services.DeviceHelper
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
@@ -81,13 +81,14 @@ fun SettingsDevicesScreen() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content() {
-    val navViewModel: NavigationViewModel = viewModel()
-    val devicesViewModel: DevicesViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
+    val devicesViewModel = hiltViewModel<DevicesViewModel>()
+    
+    val currentSession by devicesViewModel.currentSession.collectAsState()
     
     val sessions by devicesViewModel.sessions.collectAsState()
-//    val isVisibleAutoTerminateDialog by devicesViewModel.isVisibleAutoTerminateDialog.collectAsState()
-    val isVisibleConfirmTerminateSessionDialog by devicesViewModel.isVisibleConfirmTerminateDialog.collectAsState()
-    val isVisibleBottomSheetDialog by devicesViewModel.isVisibleBottomSheetDialog.collectAsState()
+    val bottomSheetDialog = devicesViewModel.sessionInfoDialog
+    val terminateSessionDialog = devicesViewModel.terminateSessionDialog
     
     LaunchedEffect(Unit) {
         devicesViewModel.getSessions()
@@ -125,9 +126,6 @@ private fun Content() {
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
-            val deviceHelper = DeviceHelper()
-            val currentDeviceName = deviceHelper.getDeviceName()
-            
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -176,44 +174,33 @@ private fun Content() {
             
             SectionContainer {
                 DeviceCard(
-                    text = currentDeviceName,
+                    text = currentSession.deviceName,
                     onClick = {
-                        devicesViewModel.openSession(0)
-                        devicesViewModel.showBottomSheetDialog()
+                        devicesViewModel.openSession(currentSession.id)
+                        bottomSheetDialog.show()
                     })
                 
             }
-            
-            if (sessions.isNotEmpty()) {
-                SectionContainer {
-                    SectionItem(
-                        icon = Icons.Outlined.BackHand,
-                        iconColor = MaterialTheme.colorScheme.error,
-                        text = stringResource(R.string.terminate_all_other_sessions),
-                        textColor = MaterialTheme.colorScheme.error,
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
-                        onClick = {
-                            devicesViewModel.setConfirmDialogAction {
-                                devicesViewModel.terminateAllOtherSessions()
-                            }
-                            devicesViewModel.showConfirmTerminateSessionDialog()
-                        })
-                }
-                
-                SectionDescription(text = stringResource(R.string.terminate_all_other_sessions_description))
-            }
-
-//            SectionHeader("Автоматически завершать сеансы")
 //
-//            SectionContainer {
-//                SectionItem(
-//                    text = "Если сеанс неактивен",
-//                    primaryText = "1 нед.",
-//                    onClick = {
-//                        devicesViewModel.showAutoTerminateSessionDialog()
-//                    })
+//            if (sessions.isNotEmpty()) {
+//                SectionContainer {
+//                    SectionItem(
+//                        icon = Icons.Outlined.BackHand,
+//                        iconColor = MaterialTheme.colorScheme.error,
+//                        text = stringResource(R.string.terminate_all_other_sessions),
+//                        textColor = MaterialTheme.colorScheme.error,
+//                        colors = ButtonDefaults.textButtonColors(
+//                            contentColor = MaterialTheme.colorScheme.error
+//                        ),
+//                        onClick = {
+//                            devicesViewModel.setConfirmDialogAction {
+//                                devicesViewModel.terminateAllOtherSessions()
+//                            }
+//                            bottomSheetDialog.show()
+//                        })
+//                }
+//
+//                SectionDescription(text = stringResource(R.string.terminate_all_other_sessions_description))
 //            }
             
             if (sessions.isNotEmpty()) {
@@ -225,49 +212,40 @@ private fun Content() {
                             text = session.deviceName,
                             onClick = {
                                 devicesViewModel.openSession(session.id)
-                                devicesViewModel.showBottomSheetDialog()
+                                bottomSheetDialog.show()
                             })
                     }
                 }
             }
         }
         
-        if (isVisibleConfirmTerminateSessionDialog) {
+        if (terminateSessionDialog.isVisible) {
             TerminateSessionDialog(
-                onDismiss = {
-                    devicesViewModel.hideConfirmTerminateSessionDialog()
-                },
+                onDismiss = terminateSessionDialog::hide,
                 onConfirm = {
                     devicesViewModel.getConfirmDialogAction()?.let { action ->
                         scope.launch {
                             action.invoke()
                         }
                     }
-                    devicesViewModel.hideConfirmTerminateSessionDialog()
-                    devicesViewModel.hideBottomSheetDialog()
+                    terminateSessionDialog.hide()
+                    bottomSheetDialog.hide()
                 })
         }
         
         val openSession by devicesViewModel.openedSession.collectAsState()
         
-        if (isVisibleBottomSheetDialog) {
+        if (bottomSheetDialog.isVisible) {
             BottomModal(
                 session = openSession,
-                onDismissRequest = { devicesViewModel.hideBottomSheetDialog() },
+                onDismissRequest = bottomSheetDialog::hide,
                 onConfirm = {
                     devicesViewModel.setConfirmDialogAction {
                         devicesViewModel.terminateSession(openSession.id)
                     }
-                    devicesViewModel.showConfirmTerminateSessionDialog()
+                    terminateSessionDialog.show()
                 })
         }
-
-//        TODO auto terminate session
-//        if (isVisibleAutoTerminateDialog) {
-//            AutoTerminateSessionDialog(onDismissRequest = {
-//                devicesViewModel.hideAutoTerminateSessionDialog()
-//            })
-//        }
     }
 }
 
@@ -290,7 +268,7 @@ private fun BottomModal(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                session.deviceName,
+                text = session.deviceName,
                 fontSize = 18.sp
             )
             

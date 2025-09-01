@@ -30,7 +30,7 @@ fun LockScreen() {
 
 @Composable
 private fun Content() {
-    val lockScreenViewModel: LockScreenViewModel = viewModel()
+    val lockScreenViewModel = viewModel<LockScreenViewModel>()
     val vibrateService = VibrateService(LocalContext.current)
 
     lockScreenViewModel.onWrongPasscode = {

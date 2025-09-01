@@ -14,7 +14,6 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,7 +32,7 @@ import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionItem
-import com.aiwazian.messenger.utils.DataStoreManager
+import com.aiwazian.messenger.services.DataStoreManager
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.flow.first
 
@@ -44,7 +43,7 @@ fun SettingsSecurityScreen() {
 
 @Composable
 private fun Content() {
-    val navViewModel: NavigationViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
     
     var deviceCount by remember { mutableIntStateOf(1) }
     var passcodeEnabled by remember { mutableStateOf(false) }
@@ -133,7 +132,7 @@ private fun Content() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val navViewModel: NavigationViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
     
     PageTopBar(
         title = { Text(stringResource(R.string.security)) },

@@ -37,6 +37,7 @@ import androidx.navigation.NavHostController
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.ui.element.CustomDialog
+import com.aiwazian.messenger.utils.VibrationPattern
 import com.aiwazian.messenger.viewModels.AuthViewModel
 import kotlinx.coroutines.launch
 
@@ -66,7 +67,7 @@ fun LoginScreen(
                         val isValidLogin = authViewModel.checkValidLogin()
                         
                         if (!isValidLogin) {
-                            vibrateService.vibrate()
+                            vibrateService.vibrate(VibrationPattern.Error)
                             return@launch
                         }
                         

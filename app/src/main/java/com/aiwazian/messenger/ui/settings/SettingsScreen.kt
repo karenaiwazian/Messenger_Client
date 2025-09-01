@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.customType.Language
+import com.aiwazian.messenger.services.LanguageService
 import com.aiwazian.messenger.ui.LogoutScreen
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
@@ -47,7 +48,6 @@ import com.aiwazian.messenger.ui.settings.chat.SettingsChatScreen
 import com.aiwazian.messenger.ui.settings.chatFolder.SettingsChatFoldersScreen
 import com.aiwazian.messenger.ui.settings.privacy.SettingsPrivacyScreen
 import com.aiwazian.messenger.ui.settings.security.SettingsSecurityScreen
-import com.aiwazian.messenger.services.LanguageService
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -57,16 +57,17 @@ fun SettingsScreen() {
 
 @Composable
 private fun Content() {
-    val navViewModel: NavigationViewModel = viewModel()
-
+    val navViewModel = viewModel<NavigationViewModel>()
+    
     val languageService = LanguageService(LocalContext.current)
+    
     val selectedLanguage = when (languageService.languageCode.collectAsState().value) {
         Language.RU -> stringResource(R.string.russian_untranslatable)
         Language.EN -> stringResource(R.string.english_untranslatable)
     }
-
+    
     val scrollState = rememberScrollState()
-
+    
     Scaffold(
         topBar = {
             TopBar()
@@ -79,7 +80,7 @@ private fun Content() {
                 .verticalScroll(scrollState)
         ) {
             SectionHeader(stringResource(R.string.account))
-
+            
             SectionContainer {
                 SectionItem(
                     text = stringResource(R.string.profile),
@@ -87,7 +88,7 @@ private fun Content() {
                     onClick = {
                         navViewModel.addScreenInStack { SettingsProfileScreen() }
                     })
-
+                
                 SectionItem(
                     text = stringResource(R.string.security),
                     description = stringResource(R.string.protect_your_account),
@@ -95,9 +96,9 @@ private fun Content() {
                         navViewModel.addScreenInStack { SettingsSecurityScreen() }
                     })
             }
-
+            
             SectionHeader(stringResource(R.string.settings))
-
+            
             SectionContainer {
                 SectionItem(
                     icon = Icons.Outlined.ChatBubbleOutline,
@@ -105,35 +106,35 @@ private fun Content() {
                     onClick = {
                         navViewModel.addScreenInStack { SettingsChatScreen() }
                     })
-
+                
                 SectionItem(
                     icon = Icons.Outlined.Lock,
                     text = stringResource(R.string.confidentiality),
                     onClick = {
                         navViewModel.addScreenInStack { SettingsPrivacyScreen() }
                     })
-
+                
                 SectionItem(
                     icon = Icons.Outlined.Notifications,
                     text = stringResource(R.string.notifications),
                     onClick = {
                         navViewModel.addScreenInStack { SettingsNotificationsScreen() }
                     })
-
+                
                 SectionItem(
                     icon = Icons.Outlined.DataUsage,
                     text = stringResource(R.string.data_and_storage),
                     onClick = {
-                        navViewModel.addScreenInStack { SettingsDataUsageScreen() }
+                        navViewModel.addScreenInStack { SettingsDataAndStorageScreen() }
                     })
-
+                
                 SectionItem(
                     icon = Icons.Outlined.Folder,
                     text = stringResource(R.string.chat_folders),
                     onClick = {
                         navViewModel.addScreenInStack { SettingsChatFoldersScreen() }
                     })
-
+                
                 SectionItem(
                     icon = Icons.Outlined.Language,
                     text = stringResource(R.string.language),
@@ -142,30 +143,33 @@ private fun Content() {
                         navViewModel.addScreenInStack { SettingsLanguageScreen() }
                     })
             }
-
+            
             SectionHeader(stringResource(R.string.help))
-
+            
             SectionContainer {
                 SectionItem(
                     icon = Icons.Outlined.QuestionMark,
                     text = stringResource(R.string.faq),
                 )
-
+                
                 SectionItem(
                     icon = Icons.Outlined.Shield,
                     text = stringResource(R.string.privacy_policy),
                 )
             }
-
+            
             val context = LocalContext.current
-
+            
             val packageInfo = remember {
-                context.packageManager.getPackageInfo(context.packageName, 0)
+                context.packageManager.getPackageInfo(
+                    context.packageName,
+                    0
+                )
             }
-
+            
             val versionName = packageInfo.versionName
             val versionCode = packageInfo.longVersionCode
-
+            
             SectionDescription(text = "${stringResource(R.string.app_name)} v${versionName} (${versionCode})")
         }
     }
@@ -174,48 +178,54 @@ private fun Content() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val navViewModel: NavigationViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
+    
     var menuExpanded by remember { mutableStateOf(false) }
-
-    PageTopBar(navigationIcon = {
-        IconButton(onClick = {
-            navViewModel.removeLastScreenInStack()
-        }) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = null,
-            )
-        }
-    }, actions = {
-        Box {
-            IconButton(onClick = { menuExpanded = true }) {
+    
+    PageTopBar(
+        navigationIcon = {
+            IconButton(onClick = {
+                navViewModel.removeLastScreenInStack()
+            }) {
                 Icon(
-                    imageVector = Icons.Outlined.MoreVert,
+                    Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,
                 )
             }
-
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false },
-            ) {
-                DropdownMenuItem(leadingIcon = {
+        },
+        actions = {
+            Box {
+                IconButton(onClick = { menuExpanded = true }) {
                     Icon(
-                        Icons.AutoMirrored.Filled.ExitToApp,
-                        contentDescription = stringResource(R.string.log_out),
+                        imageVector = Icons.Outlined.MoreVert,
+                        contentDescription = null,
                     )
-                }, text = {
-                    Text(
-                        text = stringResource(R.string.log_out)
-                    )
-                }, onClick = {
-                    menuExpanded = false
-                    navViewModel.addScreenInStack {
-                        LogoutScreen()
-                    }
-                })
+                }
+                
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                ) {
+                    DropdownMenuItem(
+                        leadingIcon = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ExitToApp,
+                                contentDescription = stringResource(R.string.log_out),
+                            )
+                        },
+                        text = {
+                            Text(
+                                text = stringResource(R.string.log_out)
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            navViewModel.addScreenInStack {
+                                LogoutScreen()
+                            }
+                        })
+                }
             }
         }
-    }
     )
 }

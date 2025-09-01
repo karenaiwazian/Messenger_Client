@@ -12,7 +12,8 @@ import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.Notification
 import com.aiwazian.messenger.data.NotificationTokenRequest
 import com.aiwazian.messenger.interfaces.NotificationService
-import com.aiwazian.messenger.utils.ChatStateManager
+import com.aiwazian.messenger.utils.ChatState
+import com.aiwazian.messenger.utils.NotificationChannelConstants
 import com.aiwazian.messenger.utils.VibrationPattern
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -20,100 +21,180 @@ import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.random.Random
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
+
+private data class ChatNotificationData(
+    val chatId: Int,
+    val title: String,
+    val messages: MutableList<String>
+)
+
+private val chatNotifications = mutableMapOf<Int, ChatNotificationData>()
 
 class NotificationService : FirebaseMessagingService(), NotificationService {
+    
+    override fun onCreate() {
+        super.onCreate()
+        createNotificationChannel()
+    }
+    
+    private fun createNotificationChannel() {
+        val personalMessages = NotificationChannelConstants.PERSONAL_MESSAGES
 
+        val importance = NotificationManager.IMPORTANCE_HIGH
+
+        val channel = NotificationChannel(
+            personalMessages.id,
+            personalMessages.name,
+            importance
+        ).apply {
+            description = personalMessages.description
+            enableVibration(true)
+            vibrationPattern = VibrationPattern.Notification
+        }
+
+        val notificationManager: NotificationManager =
+            getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        notificationManager.createNotificationChannel(channel)
+    }
+    
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-
+        
         CoroutineScope(Dispatchers.IO).launch {
             sendTokenToServer(token)
         }
     }
-
-    fun getFirebaseToken(): String {
-        val token = FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Log.e("FCM", "Error ${task.exception}")
+    
+    suspend fun getFirebaseToken(): String {
+        return suspendCoroutine { continuation ->
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    if (token != null) {
+                        continuation.resume(token)
+                    } else {
+                        continuation.resumeWithException(IllegalStateException("Token is null"))
+                    }
+                } else {
+                    continuation.resumeWithException(
+                        task.exception ?: IllegalStateException("Unknown error")
+                    )
+                }
             }
-        }.result
-
-        return token
+        }
     }
-
+    
     suspend fun sendTokenToServer(token: String) {
         try {
             val request = NotificationTokenRequest(token)
             val response = RetrofitInstance.api.updateFcmToken(request)
-
+            
             if (response.isSuccessful) {
-                Log.d("FCM", "FCM token updated on server")
+                Log.d(
+                    "FCM",
+                    "FCM token updated on server"
+                )
             } else {
-                Log.e("FCM", "Failed to update token: ${response.code()}")
+                Log.e(
+                    "FCM",
+                    "Failed to update token: ${response.code()}"
+                )
             }
         } catch (e: Exception) {
-            Log.e("FCM", "Error updating token: ${e.message}")
+            Log.e(
+                "FCM",
+                "Error updating token: ${e.message}"
+            )
         }
     }
-
+    
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         val chatId = remoteMessage.data["chatId"]?.toIntOrNull() ?: return
         val title = remoteMessage.data["title"] ?: "Messenger"
         val body = remoteMessage.data["body"] ?: ""
-
-        if (!ChatStateManager.isChatOpen(chatId)) {
-            val notification = Notification(chatId, title, body)
-            showNotification(notification = notification)
+        
+        if (!ChatState.isChatOpen(chatId)) {
+            val chatData = chatNotifications.getOrPut(chatId) {
+                ChatNotificationData(
+                    chatId = chatId,
+                    title = title,
+                    messages = mutableListOf()
+                )
+            }
+            
+            if (chatData.messages.size >= 5) {
+                chatData.messages.removeAt(0)
+            }
+            
+            chatData.messages.add(body)
+            
+            val notification = Notification(
+                chatId,
+                title,
+                body
+            )
+            
+            showNotification(
+                notification = notification,
+                messages = chatData.messages
+            )
         }
     }
-
-    override fun showNotification(notification: Notification) {
+    
+    override fun showNotification(
+        notification: Notification,
+        messages: List<String>
+    ) {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "chat_channel"
-
-        val vibrationPattern = VibrationPattern.Notification
-
-        val channel = NotificationChannel(
-            channelId,
-            "Личные сообщения",
-            NotificationManager.IMPORTANCE_HIGH
+        val channelId = NotificationChannelConstants.PERSONAL_MESSAGES.id
+        val groupKey = "CHAT_GROUP_${notification.chatId}"
+        
+        val notificationText = messages.joinToString(separator = "\n")
+        
+        val bigTextStyle = NotificationCompat.BigTextStyle()
+            .bigText(notificationText)
+            .setSummaryText(notification.title)
+        
+        val intent = Intent(
+            this,
+            MainActivity::class.java
         ).apply {
-            enableVibration(true)
-            this.vibrationPattern = vibrationPattern
-        }
-
-        notificationManager.createNotificationChannel(channel)
-
-        val intent = Intent(this, MainActivity::class.java)
-        intent.putExtra("chatId", notification.chatId)
-
-        val requestCode = System.currentTimeMillis().toInt()
-
-        val pendingIntent: PendingIntent =
-            PendingIntent.getActivity(
-                this,
-                requestCode,
-                intent,
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            putExtra(
+                "chatId",
+                notification.chatId
             )
-
-        val groupKey = notification.chatId.toString()
-
-        val inboxStyle = NotificationCompat.InboxStyle()
-
-        val notification = NotificationCompat.Builder(this, channelId)
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            notification.chatId,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        
+        val summaryNotification = NotificationCompat.Builder(
+            this,
+            channelId
+        )
             .setContentTitle(notification.title)
-            .setContentText(notification.message)
+            .setContentText(notificationText)
+            .setStyle(bigTextStyle)
             .setSmallIcon(R.mipmap.new_app_icon_round)
-            .setAutoCancel(true)
             .setGroup(groupKey)
             .setGroupSummary(true)
-            .setStyle(inboxStyle)
             .setContentIntent(pendingIntent)
-            .setVibrate(vibrationPattern)
+            .setVibrate(VibrationPattern.Notification)
+            .setAutoCancel(true)
             .build()
-
-        notificationManager.notify(Random.Default.nextInt(), notification)
+        
+        notificationManager.notify(
+            notification.chatId,
+            summaryNotification
+        )
     }
 }

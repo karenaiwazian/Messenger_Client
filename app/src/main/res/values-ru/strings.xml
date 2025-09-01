@@ -76,4 +76,11 @@
     <string name="turn_off">Отключить</string>
     <string name="turn_passcode_off">Выключить код-пароль</string>
     <string name="copy">Копировать</string>
+    <string name="new_folder">Новая папка</string>
+    <string name="change_passcode">Сменить код-пароль</string>
+    <string name="ok">Ок</string>
+    <string name="chat_archived">Чат в архиве</string>
+    <string name="delete_message">Удалить сообщение</string>
+    <string name="also_delete_for">Также удалить для</string>
+    <string name="delete_message_description">Вы точно хотите удалить это сообщение?</string>
 </resources>

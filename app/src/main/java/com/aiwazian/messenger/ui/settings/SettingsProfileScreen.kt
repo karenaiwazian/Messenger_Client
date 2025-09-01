@@ -22,12 +22,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.InputField
@@ -67,17 +69,25 @@ private fun TopBar(onBack: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content() {
-    val navViewModel: NavigationViewModel = viewModel()
-    val settingsProfileViewModel: SettingsProfileViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
     
-    val firstName by settingsProfileViewModel.firstName.collectAsState()
-    val lastName by settingsProfileViewModel.lastName.collectAsState()
-    val bio by settingsProfileViewModel.bio.collectAsState()
-    val username by settingsProfileViewModel.username.collectAsState()
-    val dateOfBirth by settingsProfileViewModel.dateOfBirth.collectAsState()
+    val settingsProfileViewModel = hiltViewModel<SettingsProfileViewModel>()
+    
+    val isVisibleDatePicker = settingsProfileViewModel.dataOfBirthDialog
+    
+    val user by settingsProfileViewModel.user.collectAsState()
     
     val scope = rememberCoroutineScope()
+    
     val scrollState = rememberScrollState()
+    
+    DisposableEffect(Unit) {
+        onDispose {
+            scope.launch {
+                settingsProfileViewModel.save()
+            }
+        }
+    }
     
     Scaffold(
         topBar = {
@@ -103,7 +113,7 @@ private fun Content() {
                 SectionContainer {
                     InputField(
                         placeholder = stringResource(R.string.first_name),
-                        value = firstName,
+                        value = user.firstName,
                         onValueChange = settingsProfileViewModel::onChangeFirstName
                     )
                     
@@ -114,7 +124,7 @@ private fun Content() {
                     
                     InputField(
                         placeholder = stringResource(R.string.last_name),
-                        value = lastName,
+                        value = user.lastName,
                         onValueChange = settingsProfileViewModel::onChangeLastName
                     )
                 }
@@ -124,20 +134,27 @@ private fun Content() {
                 SectionContainer {
                     InputField(
                         placeholder = "Напишите что-нибудь о себе",
-                        value = bio,
+                        value = user.bio,
                         onValueChange = settingsProfileViewModel::onChangeBio
                     )
                 }
                 
                 SectionDescription("В настройках можно выбрать, кому они будут видны.")
                 
-                SectionHeader("Задать имя пользователя")
+                SectionHeader("Имя пользователя")
                 
                 SectionContainer {
-                    InputField(
-                        placeholder = stringResource(R.string.username),
-                        value = username ?: "",
-                        onValueChange = settingsProfileViewModel::onChangeUsername
+                    SectionItem(
+                        text = if (user.username != null) {
+                            "@${user.username}"
+                        } else {
+                            "Задать имя пользователя"
+                        },
+                        onClick = {
+                            navViewModel.addScreenInStack {
+                                SettingsUsernameScreen()
+                            }
+                        }
                     )
                 }
                 
@@ -148,20 +165,18 @@ private fun Content() {
                 SectionContainer {
                     SectionItem(
                         text = "Дата Вашего рождения",
-                        primaryText = if (dateOfBirth != null) {
+                        primaryText = if (user.dateOfBirth != null) {
                             SimpleDateFormat(
                                 "d MMM yyyy",
                                 Locale.getDefault()
-                            ).format(dateOfBirth)
+                            ).format(user.dateOfBirth)
                         } else {
                             "Указать"
                         },
-                        onClick = {
-                            settingsProfileViewModel.showDataPicker()
-                        }
+                        onClick = isVisibleDatePicker::show
                     )
                     
-                    if (dateOfBirth != null) {
+                    if (user.dateOfBirth != null) {
                         SectionItem(
                             text = "Удалить дату рождения",
                             onClick = {
@@ -172,15 +187,11 @@ private fun Content() {
                     }
                 }
                 
-                val isVisibleDatePicker by settingsProfileViewModel.isVisibleDataPicker.collectAsState()
-                
-                if (isVisibleDatePicker) {
-                    val initialDate by settingsProfileViewModel.dateOfBirth.collectAsState()
-                    
-                    val datePickerState = rememberDatePickerState(initialDate)
+                if (isVisibleDatePicker.isVisible) {
+                    val datePickerState = rememberDatePickerState(user.dateOfBirth)
                     
                     DatePickerDialog(
-                        onDismissRequest = settingsProfileViewModel::hideDataPicker,
+                        onDismissRequest = isVisibleDatePicker::hide,
                         confirmButton = {
                             TextButton(
                                 onClick = {
@@ -188,7 +199,7 @@ private fun Content() {
                                     if (selected != null) {
                                         settingsProfileViewModel.onChangeDateOfBirth(selected)
                                     }
-                                    settingsProfileViewModel.hideDataPicker()
+                                    isVisibleDatePicker.hide()
                                 },
                                 modifier = Modifier.padding(end = 4.dp),
                                 colors = ButtonDefaults.textButtonColors(
@@ -200,9 +211,7 @@ private fun Content() {
                         },
                         dismissButton = {
                             TextButton(
-                                onClick = {
-                                    settingsProfileViewModel.hideDataPicker()
-                                },
+                                onClick = isVisibleDatePicker::hide,
                                 colors = ButtonDefaults.textButtonColors(
                                     contentColor = MaterialTheme.colorScheme.primary
                                 )
@@ -211,9 +220,7 @@ private fun Content() {
                             }
                         }) {
                         DatePicker(
-                            title = {
-                            
-                            },
+                            title = { },
                             state = datePickerState
                         )
                     }

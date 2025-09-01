@@ -5,31 +5,47 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.gms)
-
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
+    
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.10"
+    
+    id("com.google.dagger.hilt.android")
+    id("com.google.devtools.ksp")
+    
 }
 
 android {
     namespace = "com.aiwazian.messenger"
     compileSdk = 36
-
+    
     defaultConfig {
         applicationId = "com.aiwazian.messenger"
         minSdk = 30
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
+        
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
+    
     buildTypes {
+        debug {
+            buildConfigField(
+                "String",
+                "SERVER_IP",
+                "\"192.168.113.102\""
+            )
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            buildConfigField(
+                "String",
+                "SERVER_IP",
+                "\"5.129.242.233\""
+            )
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-
+                
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("debug")
@@ -45,13 +61,14 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
+        buildConfig = true
     }
     buildToolsVersion = "36.0.0"
 }
 
 dependencies {
     implementation(libs.firebase.messaging)
-
+    
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.ui)
@@ -66,25 +83,29 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-
+    
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.navigation.material)
     implementation(libs.accompanist.navigation.animation)
-
+    
     implementation(libs.protobuf.javalite)
-
+    
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.kotlinx.serialization.json)
-
+    
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.websockets)
-
+    
     implementation(libs.coil.compose)
-
+    
     implementation(libs.lottie.compose)
     implementation(libs.zxing.android.embedded)
-
+    
     implementation(libs.okhttp)
+    
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
 }

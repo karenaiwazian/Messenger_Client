@@ -2,7 +2,6 @@ package com.aiwazian.messenger
 
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -18,6 +17,8 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.services.AppLockService
+import com.aiwazian.messenger.services.DataStoreManager
+import com.aiwazian.messenger.services.LanguageService
 import com.aiwazian.messenger.services.NotificationService
 import com.aiwazian.messenger.services.ThemeService
 import com.aiwazian.messenger.services.TokenManager
@@ -27,19 +28,24 @@ import com.aiwazian.messenger.ui.LockScreen
 import com.aiwazian.messenger.ui.MainScreen
 import com.aiwazian.messenger.ui.element.NavigationController
 import com.aiwazian.messenger.ui.theme.ApplicationTheme
-import com.aiwazian.messenger.utils.DataStoreManager
 import com.aiwazian.messenger.utils.WebSocketManager
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import com.google.firebase.FirebaseApp
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.util.Locale
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private lateinit var appLockService: AppLockService
-    private lateinit var themeService: ThemeService
+    
+    @Inject
+    lateinit var appLockService: AppLockService
+    
+    @Inject
+    lateinit var themeService: ThemeService
     
     override fun attachBaseContext(newBase: Context) {
         DataStoreManager.initialize(newBase)
@@ -47,15 +53,13 @@ class MainActivity : ComponentActivity() {
         
         val savedLanguageCode = runBlocking {
             TokenManager.init()
-            dataStoreManager.getLanguage().first().lowercase()
+            dataStoreManager.getLanguage()
+                .first()
+                .lowercase()
         }
         
-        val locale = Locale(savedLanguageCode)
-        Locale.setDefault(locale)
-        
-        val config = Configuration(newBase.resources.configuration)
-        config.setLocale(locale)
-        val context = newBase.createConfigurationContext(config)
+        val languageService = LanguageService(newBase)
+        val context = languageService.selLanguage(savedLanguageCode)
         
         super.attachBaseContext(context)
     }
@@ -77,9 +81,6 @@ class MainActivity : ComponentActivity() {
             this@MainActivity.startActivity(intent)
             this@MainActivity.finish()
         }
-        
-        appLockService = AppLockService()
-        themeService = ThemeService()
         
         setContent {
             val isLockApp by appLockService.isLockApp.collectAsState()
@@ -105,9 +106,11 @@ class MainActivity : ComponentActivity() {
                             UserManager.loadUserData()
                         }
                     }
+                    
                     WebSocketManager.onClose = { code ->
                         if (code == 1008) {
-                            TokenManager.getUnauthorizedCallback()?.invoke()
+                            TokenManager.getUnauthorizedCallback()
+                                ?.invoke()
                         } else {
                             lifecycleScope.launch {
                                 delay(1000)
@@ -137,12 +140,10 @@ class MainActivity : ComponentActivity() {
                 dynamicColor = isDynamicColorEnable,
                 primaryColor = selectedColor.color
             ) {
-                val navViewModel: NavigationViewModel = viewModel()
+                val navViewModel = viewModel<NavigationViewModel>()
                 
-                if (!isLockApp) {
-                    NavigationController(startScreen = {
-                        MainScreen()
-                    })
+                NavigationController {
+                    MainScreen()
                 }
                 
                 AnimatedVisibility(
@@ -154,7 +155,8 @@ class MainActivity : ComponentActivity() {
                 }
                 
                 LaunchedEffect(Unit) {
-                    val chatId = intent.getStringExtra("chatId")?.toIntOrNull()
+                    val chatId = intent.getStringExtra("chatId")
+                        ?.toIntOrNull()
                     
                     if (chatId != null) {
                         navViewModel.addScreenInStack {

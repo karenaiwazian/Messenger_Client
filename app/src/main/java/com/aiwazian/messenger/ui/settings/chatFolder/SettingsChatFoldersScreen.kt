@@ -2,6 +2,7 @@ package com.aiwazian.messenger.ui.settings.chatFolder
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,12 +34,12 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.aiwazian.messenger.utils.LottieAnimation
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
+import com.aiwazian.messenger.utils.LottieAnimation
 import com.aiwazian.messenger.viewModels.FolderViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
@@ -49,15 +50,11 @@ fun SettingsChatFoldersScreen() {
 
 @Composable
 private fun Content() {
-    val navViewModel: NavigationViewModel = viewModel()
-    val folderViewModel: FolderViewModel = viewModel()
-
+    val navViewModel = viewModel<NavigationViewModel>()
+    val folderViewModel = viewModel<FolderViewModel>()
+    
     val folders by folderViewModel.folders.collectAsState()
-
-    LaunchedEffect(Unit) {
-        folderViewModel.loadFolders()
-    }
-
+    
     Scaffold(
         topBar = {
             TopBar()
@@ -74,14 +71,14 @@ private fun Content() {
                 val composition by rememberLottieComposition(
                     spec = LottieCompositionSpec.Asset(LottieAnimation.FOLDERS)
                 )
-
+                
                 LottieAnimation(
                     composition = composition,
                     modifier = Modifier.size(100.dp),
                     iterations = LottieConstants.IterateForever,
                     isPlaying = true
                 )
-
+                
                 Text(
                     text = stringResource(R.string.chat_folders_description),
                     fontSize = 14.sp,
@@ -90,26 +87,28 @@ private fun Content() {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-
+            
             SectionHeader(title = stringResource(R.string.chat_folders))
-
+            
             SectionContainer {
-                SectionItem(text = stringResource(R.string.all_chats), icon = Icons.Outlined.Menu)
-
                 LazyColumn {
-                    items(folders, key = { it.id }) { folder ->
+                    items(
+                        folders,
+                        { it.id }) { folder ->
                         SectionItem(
                             text = folder.folderName,
                             icon = Icons.Outlined.Menu,
                             onClick = {
-                                navViewModel.addScreenInStack {
-                                    SettingsFolderScreen(folder.id)
+                                if (folder.id != 0) {
+                                    navViewModel.addScreenInStack {
+                                        SettingsFolderScreen(folder.id)
+                                    }
                                 }
                             }
                         )
                     }
                 }
-
+                
                 SectionItem(
                     text = stringResource(R.string.create_new_folder),
                     icon = Icons.Filled.AddCircle,
@@ -132,8 +131,8 @@ private fun Content() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val navViewModel: NavigationViewModel = viewModel()
-
+    val navViewModel = viewModel<NavigationViewModel>()
+    
     PageTopBar(
         title = { Text(stringResource(R.string.chat_folders)) },
         navigationIcon = {

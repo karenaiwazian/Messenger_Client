@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -31,51 +33,63 @@ import kotlin.math.roundToInt
 
 @Composable
 fun NavigationController(startScreen: @Composable () -> Unit) {
-    val navViewModel: NavigationViewModel = viewModel()
-    val screenStack = navViewModel.screenStack
-    val offsetStack = navViewModel.offsetStack
-
+    val navViewModel = viewModel<NavigationViewModel>()
+    val screenStack by navViewModel.screenStack.collectAsState()
+    val offsetStack by navViewModel.offsetStack.collectAsState()
+    
     val tweenDurationMillis = navViewModel.tweenDurationMillis
-
+    
     val screenWidthPx = with(LocalDensity.current) {
         LocalConfiguration.current.screenWidthDp.dp.toPx()
     }
-
+    
     navViewModel.screenWidth = screenWidthPx
-
+    
     val scope = rememberCoroutineScope()
-
+    
     val keyboardController = LocalSoftwareKeyboardController.current
-
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
         startScreen()
-
+        
         screenStack.forEachIndexed { index, screenEntry ->
             val offsetX = offsetStack[index]
             val isTop = index == screenStack.lastIndex
-
+            
             val canGoBackBySwipe = screenEntry.canGoBackBySwipe
-
+            
             BackHandler(enabled = screenStack.isNotEmpty() && canGoBackBySwipe) {
                 navViewModel.removeLastScreenInStack()
             }
-
+            
             LaunchedEffect(key1 = screenEntry.content) {
-                offsetX.animateTo(0f, tween(tweenDurationMillis))
+                offsetX.animateTo(
+                    0f,
+                    tween(tweenDurationMillis)
+                )
             }
-
-            val backgroundAlpha = ((1f - (offsetX.value / screenWidthPx)).coerceIn(0f, 1f)) * 0.5f
-
-            BoxShadow(index, backgroundAlpha)
-
+            
+            val backgroundAlpha = ((1f - (offsetX.value / screenWidthPx)).coerceIn(
+                0f,
+                1f
+            )) * 0.5f
+            
+            BoxShadow(
+                index,
+                backgroundAlpha
+            )
+            
             Box(
                 Modifier
                     .fillMaxSize()
                     .offset {
-                        IntOffset(offsetX.value.roundToInt(), 0)
+                        IntOffset(
+                            offsetX.value.roundToInt(),
+                            0
+                        )
                     }
                     .background(MaterialTheme.colorScheme.background)
                     .zIndex(index + 0.2f)
@@ -94,7 +108,10 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
                                         if (offsetX.value > screenWidthPx / 4) {
                                             navViewModel.removeLastScreenInStack()
                                         } else {
-                                            offsetX.animateTo(0f, tween(tweenDurationMillis))
+                                            offsetX.animateTo(
+                                                0f,
+                                                tween(tweenDurationMillis)
+                                            )
                                         }
                                     }
                                 }
@@ -109,7 +126,10 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
 }
 
 @Composable
-private fun BoxShadow(index: Int, backgroundAlpha: Float) {
+private fun BoxShadow(
+    index: Int,
+    backgroundAlpha: Float
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()

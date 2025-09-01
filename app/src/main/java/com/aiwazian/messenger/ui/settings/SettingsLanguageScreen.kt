@@ -99,7 +99,7 @@ private fun Content() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
-    val navViewModel: NavigationViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
 
     PageTopBar(
         title = { Text(stringResource(R.string.language)) },

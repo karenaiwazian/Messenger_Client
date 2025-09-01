@@ -60,8 +60,8 @@ import com.aiwazian.messenger.viewModels.SearchViewModel
 
 @Composable
 fun SearchScreen() {
-    val navViewModel: NavigationViewModel = viewModel()
-    val searchViewModel: SearchViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
+    val searchViewModel = viewModel<SearchViewModel>()
     
     val searchResults by searchViewModel.searchResults.collectAsState()
     val query by searchViewModel.query.collectAsState()
@@ -144,8 +144,12 @@ fun SearchScreen() {
                             Text(
                                 text = buildAnnotatedString {
                                     if (startIndex in username.indices) {
+                                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                                            append("@")
+                                        }
+                                        
                                         append(
-                                            "@" + username.substring(
+                                            username.substring(
                                                 0,
                                                 startIndex
                                             )
@@ -181,7 +185,7 @@ private fun TopBar(
     value: String,
     onValueChange: (String) -> Unit
 ) {
-    val navViewModel: NavigationViewModel = viewModel()
+    val navViewModel = viewModel<NavigationViewModel>()
     
     PageTopBar(
         title = {

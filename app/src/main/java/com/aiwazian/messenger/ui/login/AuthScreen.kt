@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.aiwazian.messenger.viewModels.AuthViewModel
 import androidx.navigation.compose.NavHost
+import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 object Screen {
     const val LOGIN = "login"
@@ -28,13 +29,13 @@ fun AuthScreen() {
 @Composable
 private fun Content() {
     val navController = rememberNavController()
+    
+    val authViewModel = viewModel<AuthViewModel>()
 
     val transition = tween<IntOffset>(
         durationMillis = 500,
         easing = FastOutSlowInEasing
     )
-
-    val authViewModel: AuthViewModel = viewModel()
 
     NavHost(
         navController = navController,
