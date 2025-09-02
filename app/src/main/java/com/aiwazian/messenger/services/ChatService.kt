@@ -22,6 +22,18 @@ class ChatService @Inject constructor() {
         return response.body()
     }
     
+    suspend fun makeAsReadMessage(
+        chatId: Int,
+        messageId: Int
+    ): Boolean {
+        val response = RetrofitInstance.api.makeAsReadMessage(
+            chatId,
+            messageId
+        )
+        
+        return response.isSuccessful
+    }
+    
     suspend fun getChatLastMessage(chatId: Int): Message? {
         val response = RetrofitInstance.api.getChatLastMessage(chatId)
         return response.body()

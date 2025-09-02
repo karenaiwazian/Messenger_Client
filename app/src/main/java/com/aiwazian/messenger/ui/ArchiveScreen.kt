@@ -149,23 +149,24 @@ private fun Content() {
                 items(
                     chatList,
                     key = { it.id }) { chat ->
-                    var chatName = chat.chatName
                     
-                    if (chat.id == user.id) {
-                        chatName = stringResource(R.string.saved_messages)
+                    var chatInfo = chat
+                    
+                    if (chatInfo.id == user.id) {
+                        chatInfo = chat.copy(chatName = stringResource(R.string.saved_messages))
                     }
                     
                     SwipeableChatCard(
-                        chatName = chatName,
+                        chatInfo = chatInfo,
                         onClick = {
                             navViewModel.addScreenInStack {
-                                ChatScreen(chatId = chat.id)
+                                ChatScreen(chatId = chatInfo.id)
                             }
                         },
                         backgroundIcon = Icons.Outlined.Unarchive,
                         onDismiss = {
                             scope.launch {
-                                mainScreenViewModel.unarchiveChat(chat.id)
+                                mainScreenViewModel.unarchiveChat(chatInfo.id)
                             }
                         })
                 }

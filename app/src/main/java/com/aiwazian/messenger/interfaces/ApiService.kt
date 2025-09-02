@@ -111,6 +111,12 @@ interface ApiService {
         @Query("deleteForAllUsers") deleteForAllUsers: Boolean
     ): Response<ApiResponse>
     
+    @PATCH(Route.MAKE_AS_READ_MESSAGE)
+    suspend fun makeAsReadMessage(
+        @Path("chatId") chatId: Int,
+        @Path("messageId") messageId: Int
+    ): Response<ApiResponse>
+    
     @POST(Route.FOLDER)
     suspend fun saveFolder(@Body requestBody: ChatFolder): Response<ApiResponse>
     

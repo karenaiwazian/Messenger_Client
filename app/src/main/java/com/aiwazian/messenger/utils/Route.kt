@@ -1,6 +1,7 @@
 package com.aiwazian.messenger.utils
 
 object Route {
+    /** User **/
     const val ME = "me"
     const val LOGIN = "login"
     const val REGISTER = "register"
@@ -19,6 +20,7 @@ object Route {
     const val UPDATE_FCM_TOKEN = "updateFcmToken"
     const val TERMINATE_ALL_SESSIONS = "terminateAllSessions"
     const val CHANGE_CLOUD_PASSWORD = "changeCloudPassword"
+    /** Chat **/
     const val CHATS = "chats"
     const val CHAT_MESSAGES = "chat/{id}/messages"
     const val GET_CHAT_LAST_MESSAGE = "chat/{chatId}/messages/last"
@@ -30,7 +32,7 @@ object Route {
     const val DELETE_CHAT_FROM_ARCHIVE = "chat/{id}/archive"
     const val SEND_MESSAGE = "message"
     const val DELETE_MESSAGE = "chat/{chatId}/messages/{messageId}"
-    const val MAKE_AS_READ_MESSAGE = "chat/{chatId}/messages"
+    const val MAKE_AS_READ_MESSAGE = "chat/{chatId}/messages/{messageId}/read"
     /** Folder **/
     const val FOLDER = "folder"
     const val FOLDERS = "folders"

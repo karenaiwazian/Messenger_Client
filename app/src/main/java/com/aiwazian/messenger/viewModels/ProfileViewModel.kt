@@ -7,6 +7,7 @@ import com.aiwazian.messenger.services.UserService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
@@ -18,7 +19,7 @@ class ProfileViewModel @Inject constructor(private val userService: UserService)
     
     suspend fun open(profileId: Int) {
         if (profileId == UserManager.user.value.id) {
-            UserManager.user.collect { collect ->
+            UserManager.user.collectLatest { collect ->
                 _user.update { collect }
             }
         }

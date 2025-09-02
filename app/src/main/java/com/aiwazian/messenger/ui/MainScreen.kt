@@ -412,7 +412,7 @@ private fun Content(
                         
                         if (archiveChats.isNotEmpty()) {
                             ChatCard(
-                                chatName = stringResource(R.string.archive),
+                                chatInfo = ChatInfo(chatName = stringResource(R.string.archive)),
                                 onClickChat = {
                                     if (selectedChats.isEmpty()) {
                                         navViewModel.addScreenInStack {
@@ -495,31 +495,29 @@ private fun ChatListSection(
         items(
             chatList,
             { it.lastMessage?.sendTime ?: it.id }) { chat ->
-            var chatName = chat.chatName
+            var chatInfo = chat
             
-            if (chat.id == user.id) {
-                chatName = stringResource(R.string.saved_messages)
+            if (chatInfo.id == user.id) {
+                chatInfo = chat.copy(chatName = stringResource(R.string.saved_messages))
             }
             
             if (enableSwipeable) {
                 SwipeableChatCard(
-                    chatName = chatName,
-                    lastMessage = chat.lastMessage,
-                    selected = chat.id in selectedChats,
-                    pinned = chat.isPinned,
+                    chatInfo = chatInfo,
+                    selected = chatInfo.id in selectedChats,
+                    pinned = chatInfo.isPinned,
                     enableSwipeable = selectedChats.isEmpty(),
-                    onClick = { onChatClick(chat) },
-                    onLongClick = { onChatLongClick(chat) },
+                    onClick = { onChatClick(chatInfo) },
+                    onLongClick = { onChatLongClick(chatInfo) },
                     backgroundIcon = Icons.Outlined.Archive,
-                    onDismiss = { onChatSwipe(chat) })
+                    onDismiss = { onChatSwipe(chatInfo) })
             } else {
                 ChatCard(
-                    chatName = chatName,
-                    lastMessage = chat.lastMessage,
-                    selected = chat.id in selectedChats,
-                    pinned = chat.isPinned,
-                    onClickChat = { onChatClick(chat) },
-                    onLongClickChat = { onChatLongClick(chat) },
+                    chatInfo = chatInfo,
+                    selected = chatInfo.id in selectedChats,
+                    pinned = chatInfo.isPinned,
+                    onClickChat = { onChatClick(chatInfo) },
+                    onLongClickChat = { onChatLongClick(chatInfo) },
                 )
             }
         }

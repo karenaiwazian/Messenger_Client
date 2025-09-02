@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.AttachFile
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.EmojiEmotions
@@ -57,6 +58,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -223,6 +226,13 @@ private fun Content(chatId: Int) {
                             },
                             onCopy = {
                                 clipboardHelper.copy(message.text)
+                            },
+                            onSeen = {
+                                if (!message.isRead) {
+                                    scope.launch {
+                                        chatViewModel.markAsRead(message)
+                                    }
+                                }
                             })
                     }
                 }
@@ -570,7 +580,8 @@ private fun MessageBubble(
     message: Message,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
-    onCopy: () -> Unit
+    onCopy: () -> Unit,
+    onSeen: (Int) -> Unit
 ) {
     val user by UserManager.user.collectAsState()
     val currentUserId = remember { user.id }
@@ -589,14 +600,33 @@ private fun MessageBubble(
         Alignment.CenterStart
     }
     
+    var isVisible by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(isVisible) {
+        if (isVisible) {
+            onSeen(message.id)
+        }
+    }
+    
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier.fillMaxWidth()
-    ) {
+        modifier = Modifier
+            .fillMaxWidth()
+            .onGloballyPositioned { coordinates ->
+                val position = coordinates.positionInParent()
+                
+                val isElementVisible =
+                    position.y >= 0 && position.y < coordinates.parentLayoutCoordinates!!.size.height
+                if (isElementVisible) {
+                    isVisible = true
+                }
+            }) {
+        
         MessageText(
             text = message.text,
             time = sendMessageTime,
+            isRead = message.isRead,
             alignment = alignment,
             onClick = { expanded = true })
         
@@ -644,6 +674,7 @@ private fun MessageBubble(
 private fun MessageText(
     text: String,
     time: String,
+    isRead: Boolean,
     alignment: Alignment,
     onClick: () -> Unit
 ) {
@@ -744,27 +775,46 @@ private fun MessageText(
                     },
                     modifier = Modifier.padding(
                         start = 8.dp,
-                        top = 4.dp,
+                        top = 6.dp,
                         end = 40.dp,
-                        bottom = 4.dp
+                        bottom = 6.dp
                     ),
                     lineHeight = 18.sp
                 )
                 
-                Text(
-                    text = time,
-                    style = TextStyle(
-                        textAlign = TextAlign.Center
-                    ),
-                    fontSize = 10.sp,
-                    color = Color.White,
-                    modifier = Modifier
-                        .padding(
-                            end = 8.dp,
-                            bottom = 4.dp
+                Row(
+                    modifier = Modifier.align(Alignment.BottomEnd),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Text(
+                        text = time,
+                        style = TextStyle(
+                            textAlign = TextAlign.Center
+                        ),
+                        fontSize = 9.sp,
+                        color = Color.White
+                    )
+                    
+                    Box(
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        Icon(
+                            Icons.Outlined.Check,
+                            null,
+                            Modifier.size(16.dp)
                         )
-                        .align(Alignment.BottomEnd)
-                )
+                        
+                        if (isRead) {
+                            Icon(
+                                Icons.Outlined.Check,
+                                null,
+                                Modifier
+                                    .padding(end = 6.dp)
+                                    .size(16.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     }

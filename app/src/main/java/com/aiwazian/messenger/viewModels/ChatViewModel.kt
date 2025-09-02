@@ -7,6 +7,7 @@ import com.aiwazian.messenger.data.ChatInfo
 import com.aiwazian.messenger.data.DeleteChatPayload
 import com.aiwazian.messenger.data.DeleteMessagePayload
 import com.aiwazian.messenger.data.Message
+import com.aiwazian.messenger.data.ReadMessagePayload
 import com.aiwazian.messenger.services.ChatService
 import com.aiwazian.messenger.services.DialogController
 import com.aiwazian.messenger.services.UserManager
@@ -40,22 +41,26 @@ class ChatViewModel @Inject constructor(private val chatService: ChatService) : 
     val deleteMessageDialog = DialogController()
     
     init {
-        WebSocketManager.registerTypedMessageHandler<Message>(WebSocketAction.NEW_MESSAGE) { message ->
+        WebSocketManager.registerMessageHandler<Message>(WebSocketAction.NEW_MESSAGE) { message ->
             if (_chatInfo.value.id == message.senderId && message.senderId != _currentUserId) {
                 _messages.value += message
             }
         }
         
-        WebSocketManager.registerTypedMessageHandler<DeleteChatPayload>(WebSocketAction.DELETE_CHAT) { chat ->
+        WebSocketManager.registerMessageHandler<DeleteChatPayload>(WebSocketAction.DELETE_CHAT) { chat ->
             if (chat.chatId == _chatInfo.value.id) {
                 deleteAllMessages()
             }
         }
         
-        WebSocketManager.registerTypedMessageHandler<DeleteMessagePayload>(WebSocketAction.DELETE_MESSAGE) { message ->
+        WebSocketManager.registerMessageHandler<DeleteMessagePayload>(WebSocketAction.DELETE_MESSAGE) { message ->
             if (_chatInfo.value.id == message.chatId) {
                 deleteMessage(message.messageId)
             }
+        }
+        
+        WebSocketManager.registerMessageHandler<ReadMessagePayload>(WebSocketAction.READ_MESSAGE) { message ->
+            readMessage(message.messageId)
         }
     }
     
@@ -123,6 +128,7 @@ class ChatViewModel @Inject constructor(private val chatService: ChatService) : 
             senderId = _currentUserId,
             chatId = _chatInfo.value.id,
             text = validText,
+            isRead = _currentUserId == _chatInfo.value.id,
             sendTime = System.currentTimeMillis()
         )
         
@@ -155,6 +161,21 @@ class ChatViewModel @Inject constructor(private val chatService: ChatService) : 
             )
             
             return null
+        }
+    }
+    
+    suspend fun markAsRead(message: Message) {
+        if (message.senderId == _currentUserId) {
+            return
+        }
+        
+        val isRead = chatService.makeAsReadMessage(
+            _chatInfo.value.id,
+            message.id
+        )
+        
+        if (isRead) {
+            readMessage(message.id)
         }
     }
     
@@ -204,6 +225,19 @@ class ChatViewModel @Inject constructor(private val chatService: ChatService) : 
             )
             
             return false
+        }
+    }
+    
+    private fun readMessage(messageId: Int) {
+        _messages.update { currentList ->
+            currentList.map { message ->
+                if (message.id == messageId) {
+                    val newMessage = message.copy(isRead = true)
+                    newMessage
+                } else {
+                    message
+                }
+            }
         }
     }
     

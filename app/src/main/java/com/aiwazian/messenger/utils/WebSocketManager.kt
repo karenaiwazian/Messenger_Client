@@ -43,7 +43,7 @@ object WebSocketManager {
         handlersList.add(handler)
     }
     
-    internal inline fun <reified T> registerTypedMessageHandler(
+    internal inline fun <reified T> registerMessageHandler(
         action: WebSocketAction,
         crossinline handler: (T) -> Unit
     ) {

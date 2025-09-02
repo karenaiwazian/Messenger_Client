@@ -32,7 +32,7 @@ android {
             buildConfigField(
                 "String",
                 "SERVER_IP",
-                "\"192.168.113.102\""
+                "\"10.24.236.101\""
             )
         }
         release {

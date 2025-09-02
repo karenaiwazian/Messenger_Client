@@ -10,5 +10,6 @@ data class Message(
     @Keep val senderId: Int = 0,
     @Keep val chatId: Int = 0,
     @Keep val text: String = "",
-    @Keep val sendTime: Long = 0
+    @Keep val sendTime: Long = 0,
+    @Keep var isRead: Boolean = false
 )

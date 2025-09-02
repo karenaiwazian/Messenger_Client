@@ -9,6 +9,7 @@ import com.aiwazian.messenger.data.ChatFolder
 import com.aiwazian.messenger.data.ChatInfo
 import com.aiwazian.messenger.data.DeleteMessagePayload
 import com.aiwazian.messenger.data.Message
+import com.aiwazian.messenger.data.ReadMessagePayload
 import com.aiwazian.messenger.services.ChatService
 import com.aiwazian.messenger.services.FolderService
 import com.aiwazian.messenger.utils.WebSocketManager
@@ -42,14 +43,21 @@ class MainScreenViewModel @Inject constructor(
     val allSelectedArePinned = _allSelectedArePinned.asStateFlow()
     
     init {
-        WebSocketManager.registerTypedMessageHandler<Message>(WebSocketAction.NEW_MESSAGE) { message ->
+        WebSocketManager.registerMessageHandler<Message>(WebSocketAction.NEW_MESSAGE) { message ->
             onReceivingMessage(message)
         }
         
-        WebSocketManager.registerTypedMessageHandler<DeleteMessagePayload>(WebSocketAction.DELETE_MESSAGE) { message ->
+        WebSocketManager.registerMessageHandler<DeleteMessagePayload>(WebSocketAction.DELETE_MESSAGE) { message ->
             onMessageDeleted(
                 message.messageId,
                 message.chatId
+            )
+        }
+        
+        WebSocketManager.registerMessageHandler<ReadMessagePayload>(WebSocketAction.READ_MESSAGE) { message ->
+            onReadMessage(
+                message.chatId,
+                message.messageId
             )
         }
         
@@ -80,6 +88,44 @@ class MainScreenViewModel @Inject constructor(
             message.senderId,
             message
         )
+    }
+    
+    private fun onReadMessage(
+        chatId: Int,
+        messageId: Int
+    ) {
+        _chatFolders.update { currentFolders ->
+            currentFolders.map { folder ->
+                val chatToUpdate = folder.chats.find { it.id == chatId }
+                
+                if (chatToUpdate == null || chatToUpdate.lastMessage?.id != messageId) {
+                    return@map folder
+                }
+                
+                try {
+                    if (chatToUpdate.lastMessage == null) {
+                        return
+                    }
+
+                    val lastMessage = chatToUpdate.lastMessage!!.copy(isRead = true)
+                    
+                    val updatedChat = chatToUpdate.copy(lastMessage = lastMessage)
+                    
+                    val updatedChats = folder.chats.map {
+                        if (it.id == chatId) updatedChat else it
+                    }
+                    
+                    folder.copy(chats = updatedChats)
+                } catch (e: Exception) {
+                    Log.e(
+                        "MainScreenViewModel",
+                        "Error updating last message after deletion",
+                        e
+                    )
+                    folder
+                }
+            }
+        }
     }
     
     private fun onMessageDeleted(
