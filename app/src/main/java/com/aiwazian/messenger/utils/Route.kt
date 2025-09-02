@@ -29,7 +29,9 @@ object Route {
     const val ADD_CHAT_TO_ARCHIVE = "chat/{id}/archive"
     const val DELETE_CHAT_FROM_ARCHIVE = "chat/{id}/archive"
     const val SEND_MESSAGE = "message"
-    const val DELETE_MESSAGE = "chat/{chatId}/message/{messageId}"
+    const val DELETE_MESSAGE = "chat/{chatId}/messages/{messageId}"
+    const val MAKE_AS_READ_MESSAGE = "chat/{chatId}/messages"
+    /** Folder **/
     const val FOLDER = "folder"
     const val FOLDERS = "folders"
     const val DELETE_FOLDER = "folder/{id}"
