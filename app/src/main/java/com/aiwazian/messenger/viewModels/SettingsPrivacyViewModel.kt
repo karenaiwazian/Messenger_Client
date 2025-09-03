@@ -1,5 +1,6 @@
 package com.aiwazian.messenger.viewModels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aiwazian.messenger.customType.PrivacyLevel
@@ -23,7 +24,7 @@ class SettingsPrivacyViewModel @Inject constructor(private val privacyService: P
     val deleteAccountDialog = DialogController()
     
     init {
-        loadValues()
+        tryLoadValues()
     }
     
     fun updateBioValue(privacyLevel: PrivacyLevel) {
@@ -36,12 +37,20 @@ class SettingsPrivacyViewModel @Inject constructor(private val privacyService: P
         _privacySettings.update { newValue }
     }
     
-    fun loadValues() {
+    fun tryLoadValues() {
         viewModelScope.launch {
-            val myPrivacy = privacyService.getMyPrivacy()
-            
-            if (myPrivacy != null) {
-                _privacySettings.update { myPrivacy }
+            try {
+                val myPrivacy = privacyService.getMyPrivacy()
+                
+                if (myPrivacy != null) {
+                    _privacySettings.update { myPrivacy }
+                }
+            } catch (e: Exception) {
+                Log.e(
+                    "SettingPrivacyViewModel",
+                    "Ошибка при получении настроек конфиденциальности",
+                    e
+                )
             }
         }
     }
