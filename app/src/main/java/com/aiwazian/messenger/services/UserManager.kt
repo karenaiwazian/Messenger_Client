@@ -1,45 +1,32 @@
 package com.aiwazian.messenger.services
 
-import android.util.Log
-import com.aiwazian.messenger.api.RetrofitInstance
-import com.aiwazian.messenger.data.User
+import com.aiwazian.messenger.data.UserInfo
+import com.aiwazian.messenger.database.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 object UserManager {
     
-    private val _user = MutableStateFlow(User())
-    val user = _user.asStateFlow()
+    private val _userInfo = MutableStateFlow(UserInfo())
+    val user = _userInfo.asStateFlow()
     
-    fun updateUserInfo(updatedUser: User) {
-        val newUserInfo = _user.value.copy(
-            firstName = updatedUser.firstName,
-            lastName = updatedUser.lastName,
-            bio = updatedUser.bio,
-            username = updatedUser.username,
-            dateOfBirth = updatedUser.dateOfBirth,
+    fun updateUserInfo(updatedUserInfo: UserInfo) {
+        val newUserInfo = _userInfo.value.copy(
+            firstName = updatedUserInfo.firstName,
+            lastName = updatedUserInfo.lastName,
+            bio = updatedUserInfo.bio,
+            username = updatedUserInfo.username,
+            dateOfBirth = updatedUserInfo.dateOfBirth,
         )
-        _user.update { newUserInfo }
+        _userInfo.update { newUserInfo }
     }
     
-    suspend fun loadUserData() {
-        try {
-            val response = RetrofitInstance.api.getMe()
-            
-            if (response.isSuccessful) {
-                val responseBody = response.body()
-                
-                if (responseBody != null) {
-                    _user.update { responseBody }
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(
-                "UserManager",
-                "An unexpected error occurred while loading user",
-                e
-            )
+    suspend fun loadUserData(userRepository: UserRepository) {
+        val user = userRepository.getMe()
+        
+        if (user != null) {
+            _userInfo.update { user }
         }
     }
 }

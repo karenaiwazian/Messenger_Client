@@ -107,7 +107,8 @@ class NotificationService : FirebaseMessagingService(), NotificationService {
         } catch (e: Exception) {
             Log.e(
                 "FCM",
-                "Error updating token: ${e.message}"
+                "Error updating token:",
+                e
             )
         }
     }

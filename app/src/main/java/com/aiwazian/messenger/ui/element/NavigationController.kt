@@ -1,6 +1,7 @@
 package com.aiwazian.messenger.ui.element
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,14 +12,17 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -34,6 +38,7 @@ import kotlin.math.roundToInt
 @Composable
 fun NavigationController(startScreen: @Composable () -> Unit) {
     val navViewModel = viewModel<NavigationViewModel>()
+    
     val screenStack by navViewModel.screenStack.collectAsState()
     val offsetStack by navViewModel.offsetStack.collectAsState()
     
@@ -47,12 +52,11 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
     
     val scope = rememberCoroutineScope()
     
+    navViewModel.scope = scope
+    
     val keyboardController = LocalSoftwareKeyboardController.current
     
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         startScreen()
         
         screenStack.forEachIndexed { index, screenEntry ->
@@ -66,6 +70,7 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
             }
             
             LaunchedEffect(key1 = screenEntry.content) {
+                keyboardController?.hide()
                 offsetX.animateTo(
                     0f,
                     tween(tweenDurationMillis)
@@ -82,8 +87,20 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
                 backgroundAlpha
             )
             
+            var inSwipe by remember { mutableStateOf(false) }
+            
+            val cornerRadius by animateDpAsState(targetValue = if (inSwipe) 16.dp else 0.dp)
+            
+            val draggableState = rememberDraggableState { delta ->
+                keyboardController?.hide()
+                inSwipe = true
+                scope.launch {
+                    offsetX.snapTo((offsetX.value + delta).coerceAtLeast(0f))
+                }
+            }
+            
             Box(
-                Modifier
+                modifier = Modifier
                     .fillMaxSize()
                     .offset {
                         IntOffset(
@@ -91,18 +108,18 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
                             0
                         )
                     }
-                    .background(MaterialTheme.colorScheme.background)
                     .zIndex(index + 0.2f)
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = cornerRadius,
+                            bottomStart = cornerRadius
+                        )
+                    )
                     .then(
                         if (isTop && canGoBackBySwipe) {
                             Modifier.draggable(
                                 orientation = Orientation.Horizontal,
-                                state = rememberDraggableState { delta ->
-                                    keyboardController?.hide()
-                                    scope.launch {
-                                        offsetX.snapTo((offsetX.value + delta).coerceAtLeast(0f))
-                                    }
-                                },
+                                state = draggableState,
                                 onDragStopped = {
                                     scope.launch {
                                         if (offsetX.value > screenWidthPx / 4) {
@@ -112,10 +129,10 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
                                                 0f,
                                                 tween(tweenDurationMillis)
                                             )
+                                            inSwipe = false
                                         }
                                     }
-                                }
-                            )
+                                })
                         } else Modifier
                     )
             ) {
@@ -139,7 +156,5 @@ private fun BoxShadow(
                 indication = null,
                 interactionSource = remember {
                     MutableInteractionSource()
-                }
-            ) { }
-    )
+                }) { })
 }

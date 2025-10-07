@@ -11,6 +11,7 @@ import com.aiwazian.messenger.services.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,18 +35,18 @@ class AuthViewModel @Inject constructor(
     private val _isUserFound = MutableStateFlow(false)
     
     fun setUserFoundState(state: Boolean) {
-        _isUserFound.value = state
+        _isUserFound.update { state }
     }
     
     fun getUserFoundState() = _isUserFound.value
     
     fun onLoginChanged(newLogin: String) {
-        _login.value = newLogin.trim()
+        _login.update { newLogin.trim() }
         clearError()
     }
     
     fun onPasswordChanged(newPassword: String) {
-        _password.value = newPassword.trim()
+        _password.update { newPassword.trim() }
         clearError()
     }
     
@@ -118,38 +119,38 @@ class AuthViewModel @Inject constructor(
     
     fun checkValidLogin(): Boolean {
         if (_login.value.isBlank()) {
-            _loginFieldError.value = "Введите логин"
+            _loginFieldError.update { "Введите логин" }
             return false
         }
         
         if (_login.value.trim().length < 5) {
-            _loginFieldError.value = "Минимум 5 символов"
+            _loginFieldError.update { "Минимум 5 символов" }
             return false
         }
         
-        _loginFieldError.value = null
+        _loginFieldError.update { null }
         
         return true
     }
     
     fun checkValidPassword(): Boolean {
         if (_password.value.isBlank()) {
-            _passwordFieldError.value = "Введите пароль"
+            _passwordFieldError.update { "Введите пароль" }
             return false
         }
         
         if (_password.value.trim().length < 5) {
-            _passwordFieldError.value = "Минимум 5 символов"
+            _passwordFieldError.update { "Минимум 5 символов" }
             return false
         }
         
-        _passwordFieldError.value = null
+        _passwordFieldError.update { null }
         
         return true
     }
     
     private fun clearError() {
-        _loginFieldError.value = null
-        _passwordFieldError.value = null
+        _loginFieldError.update { null }
+        _passwordFieldError.update { null }
     }
 }

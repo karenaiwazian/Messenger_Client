@@ -2,7 +2,7 @@ package com.aiwazian.messenger.viewModels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.aiwazian.messenger.data.Session
+import com.aiwazian.messenger.data.SessionInfo
 import com.aiwazian.messenger.services.DeviceHelper
 import com.aiwazian.messenger.services.DialogController
 import com.aiwazian.messenger.services.SessionService
@@ -18,10 +18,10 @@ class DevicesViewModel @Inject constructor(
     private val sessionService: SessionService
 ) : ViewModel() {
     
-    private val _currentSession = MutableStateFlow(Session())
-    val currentSession = _currentSession.asStateFlow()
+    private val _currentSessionInfo = MutableStateFlow(SessionInfo())
+    val currentSession = _currentSessionInfo.asStateFlow()
     
-    private val _sessions = MutableStateFlow<List<Session>>(emptyList())
+    private val _sessions = MutableStateFlow<Set<SessionInfo>>(emptySet())
     val sessions = _sessions.asStateFlow()
     
     val terminateSessionDialog = DialogController()
@@ -30,18 +30,14 @@ class DevicesViewModel @Inject constructor(
     
     private var _confirmDialogAction: (suspend () -> Unit)? = null
     
-    private val _openedSession = MutableStateFlow(
-        Session(
-            0, "", ""
-        )
-    )
+    private val _openedSessionInfo = MutableStateFlow(SessionInfo())
     
-    val openedSession = _openedSession.asStateFlow()
+    val openedSession = _openedSessionInfo.asStateFlow()
     
     init {
         val deviceName = deviceHelper.getDeviceName()
         
-        _currentSession.update { session ->
+        _currentSessionInfo.update { session ->
             session.deviceName = deviceName
             session
         }
@@ -52,16 +48,15 @@ class DevicesViewModel @Inject constructor(
             val isTerminated = sessionService.terminateSession(sessionId)
             
             if (isTerminated) {
-                val sessionList = _sessions.value.toMutableList()
-                val session = sessionList.find { it.id == sessionId }
+                val sessionList = _sessions.value.filter { it.id == sessionId }.toSet()
                 
-                sessionList.remove(session)
-                
-                _sessions.value = sessionList.toList()
+                _sessions.update { sessionList }
             }
         } catch (e: Exception) {
             Log.e(
-                "DeviceSettings", "${e.message}"
+                "DeviceSettings",
+                "Ошибка при отключении сессии",
+                e
             )
         }
     }
@@ -71,11 +66,13 @@ class DevicesViewModel @Inject constructor(
             val sessions = sessionService.getSessions()
             
             if (sessions?.isNotEmpty() == true) {
-                _sessions.value = sessions
+                _sessions.update { sessions.toSet() }
             }
         } catch (e: Exception) {
             Log.e(
-                "DeviceSettings", "${e.message}"
+                "DeviceSettings",
+                "Ошибка при получении сессий",
+                e
             )
         }
     }
@@ -85,11 +82,12 @@ class DevicesViewModel @Inject constructor(
             val isTerminated = sessionService.terminateAllSessions()
             
             if (isTerminated) {
-                _sessions.value = emptyList()
+                _sessions.update { emptySet() }
             }
         } catch (e: Exception) {
             Log.e(
-                "DeviceSettings", "${e.message}"
+                "DeviceSettings",
+                "${e.message}"
             )
         }
     }
@@ -98,11 +96,15 @@ class DevicesViewModel @Inject constructor(
         if (sessionId == 0) {
             val deviceName = deviceHelper.getDeviceName()
             
-            _openedSession.value = Session(
-                0, deviceName, ""
-            )
+            _openedSessionInfo.update {
+                SessionInfo(
+                    0,
+                    deviceName,
+                    ""
+                )
+            }
         } else {
-            _openedSession.value = _sessions.value.first { it.id == sessionId }
+            _openedSessionInfo.update { _sessions.value.first { it.id == sessionId } }
         }
     }
     

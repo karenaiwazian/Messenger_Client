@@ -4,7 +4,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,38 +17,48 @@ class AppLockService @Inject constructor() {
     val isLockApp = _isLockApp.asStateFlow()
     
     private val _passcode = MutableStateFlow("")
-    val passcode = _passcode.asStateFlow()
     
     private val _hasPasscode = MutableStateFlow(false)
     val hasPasscode = _hasPasscode.asStateFlow()
     
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
-    private val dataStorage = DataStoreManager.Companion.getInstance()
+    
+    private val dataStoreManager = DataStoreManager.getInstance()
     
     init {
         coroutineScope.launch {
-            dataStorage.getIsLockApp().collectLatest {
-                _isLockApp.value = it
-            }
-        }
-        
-        coroutineScope.launch {
-            dataStorage.getPasscode().collectLatest {
-                _passcode.value = it
-                _hasPasscode.value = it.isNotBlank()
-            }
+            val passcode = dataStoreManager.getPasscode().first()
+            _passcode.update { passcode }
+            
+            _hasPasscode.update { _passcode.value.isNotBlank() }
+            
+            val isLock = dataStoreManager.getIsLockApp().first()
+            _isLockApp.update { isLock }
         }
     }
     
-    suspend fun lockApp() {
-        dataStorage.saveIsLockApp(true)
+    suspend fun lock() {
+        _isLockApp.update { true }
+        dataStoreManager.saveIsLockApp(true)
     }
     
-    suspend fun unlockApp() {
-        dataStorage.saveIsLockApp(false)
+    suspend fun unlock() {
+        _isLockApp.update { false }
+        dataStoreManager.saveIsLockApp(false)
+    }
+    
+    suspend fun disablePasscode() {
+        _hasPasscode.update { false }
+        dataStoreManager.savePasscode("")
     }
     
     suspend fun changePasscode(newPasscode: String) {
-        dataStorage.savePasscode(newPasscode)
+        _passcode.update { newPasscode }
+        _hasPasscode.update { true }
+        dataStoreManager.savePasscode(newPasscode)
+    }
+    
+    fun checkPasscode(passcode: String): Boolean {
+        return passcode == _passcode.value
     }
 }

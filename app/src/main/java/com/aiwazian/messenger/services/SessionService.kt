@@ -1,7 +1,7 @@
 package com.aiwazian.messenger.services
 
 import com.aiwazian.messenger.api.RetrofitInstance
-import com.aiwazian.messenger.data.Session
+import com.aiwazian.messenger.data.SessionInfo
 import javax.inject.Inject
 
 class SessionService @Inject constructor() {
@@ -16,7 +16,7 @@ class SessionService @Inject constructor() {
         return response.isSuccessful
     }
     
-    suspend fun getSessions(): List<Session>? {
+    suspend fun getSessions(): List<SessionInfo>? {
         val response = RetrofitInstance.api.getSessions()
         
         if (response.isSuccessful) {

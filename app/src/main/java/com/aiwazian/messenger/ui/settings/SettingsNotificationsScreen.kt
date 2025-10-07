@@ -6,10 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.data.NavigationIcon
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionHeader
@@ -34,8 +32,7 @@ private fun Content() {
     
     Scaffold(
         topBar = { TopBar() },
-        
-        ) {
+    ) {
         Column(
             modifier = Modifier
                 .padding(it)
@@ -45,17 +42,25 @@ private fun Content() {
             SectionHeader("Уведомления из чатов")
             
             SectionContainer {
-                SectionToggleItem(text = "Личные чаты")
+                SectionToggleItem(
+                    text = "Личные чаты",
+                    isChecked = false,
+                    onCheckedChange = {})
                 
-                SectionToggleItem(text = "Группы")
+                SectionToggleItem(
+                    text = "Группы",
+                    isChecked = false,
+                    onCheckedChange = {})
                 
-                SectionToggleItem(text = "Каналы")
+                SectionToggleItem(
+                    text = "Каналы",
+                    isChecked = false,
+                    onCheckedChange = {})
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
     val navViewModel = viewModel<NavigationViewModel>()
@@ -64,17 +69,9 @@ private fun TopBar() {
         title = {
             Text(stringResource(R.string.notifications))
         },
-        navigationIcon = {
-            IconButton(
-                onClick = {
-                    navViewModel.removeLastScreenInStack()
-                }
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null,
-                )
-            }
-        }
+        navigationIcon = NavigationIcon(
+            icon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onClick = navViewModel::removeLastScreenInStack
+        )
     )
 }

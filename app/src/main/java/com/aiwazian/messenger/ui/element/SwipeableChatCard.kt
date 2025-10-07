@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import com.aiwazian.messenger.data.ChatInfo
 import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.utils.VibrationPattern
-import kotlinx.coroutines.launch
 
 @Composable
 fun SwipeableChatCard(
@@ -41,54 +39,37 @@ fun SwipeableChatCard(
     backgroundIcon: ImageVector? = null
 ) {
     val context = LocalContext.current
-
-    val dismissDirection = SwipeToDismissBoxValue.EndToStart
-
-    val scope = rememberCoroutineScope()
-
-    var canArchive by remember { mutableStateOf(false) }
-
-    val swipeToDismissBoxState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { dismissValue ->
-            if (dismissValue == dismissDirection && canArchive) {
-                scope.launch {
-                    onDismiss.invoke()
-                }
-                true
-            } else {
-                false
-            }
-        }
-    )
-
-    val swipedValueForDelete = 0.5f
-
-    canArchive =
-        swipeToDismissBoxState.progress > swipedValueForDelete
-
+    
+    val swipeToDismissBoxState = rememberSwipeToDismissBoxState()
+    
     val backgroundColor by animateColorAsState(
-        targetValue = if (canArchive) {
+        targetValue = if (swipeToDismissBoxState.progress > 0.5f && swipeToDismissBoxState.progress < 1f) {
             MaterialTheme.colorScheme.onSurfaceVariant
         } else {
             MaterialTheme.colorScheme.primary
         }
     )
-
+    
     val vibrateService = VibrateService(context)
-
+    
     var leftVibration by remember { mutableStateOf(false) }
-
-    if (swipeToDismissBoxState.progress > 0.5f && swipeToDismissBoxState.progress < 0.6 && !leftVibration) {
+    
+    if (swipeToDismissBoxState.progress > 0.5f && swipeToDismissBoxState.progress < 0.9f && !leftVibration) {
         vibrateService.vibrate(VibrationPattern.TactileResponse)
         leftVibration = true
-    } else if (swipeToDismissBoxState.progress < 0.5 && swipeToDismissBoxState.progress > 0.4 && leftVibration) {
+    } else if (swipeToDismissBoxState.progress == 1f && leftVibration) {
         vibrateService.vibrate(VibrationPattern.TactileResponse)
         leftVibration = false
     }
-
+    
     SwipeToDismissBox(
+        onDismiss = { it ->
+            if (it == SwipeToDismissBoxValue.EndToStart) {
+                onDismiss()
+            }
+        },
         enableDismissFromStartToEnd = false,
-        enableDismissFromEndToStart = enableSwipeable,
+        enableDismissFromEndToStart = false, // TODO enableSwipeable
         state = swipeToDismissBoxState,
         backgroundContent = {
             Column(
@@ -102,7 +83,9 @@ fun SwipeableChatCard(
             ) {
                 if (backgroundIcon != null) {
                     Icon(
-                        imageVector = backgroundIcon, contentDescription = null, tint = Color.White
+                        imageVector = backgroundIcon,
+                        contentDescription = null,
+                        tint = Color.White
                     )
                 }
             }

@@ -3,7 +3,7 @@ package com.aiwazian.messenger.viewModels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aiwazian.messenger.customType.PrivacyLevel
+import com.aiwazian.messenger.enums.PrivacyLevel
 import com.aiwazian.messenger.data.PrivacySettings
 import com.aiwazian.messenger.services.DialogController
 import com.aiwazian.messenger.services.PrivacyService

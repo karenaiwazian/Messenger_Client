@@ -2,13 +2,17 @@ package com.aiwazian.messenger.viewModels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.aiwazian.messenger.customType.WebSocketAction
+import androidx.lifecycle.viewModelScope
 import com.aiwazian.messenger.data.ChatInfo
 import com.aiwazian.messenger.data.DeleteChatPayload
 import com.aiwazian.messenger.data.DeleteMessagePayload
 import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.data.ReadMessagePayload
-import com.aiwazian.messenger.services.ChatService
+import com.aiwazian.messenger.database.repository.ChannelRepository
+import com.aiwazian.messenger.database.repository.ChatRepository
+import com.aiwazian.messenger.enums.ChatType
+import com.aiwazian.messenger.enums.WebSocketAction
+import com.aiwazian.messenger.interfaces.Profile
 import com.aiwazian.messenger.services.DialogController
 import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.utils.ChatState
@@ -17,12 +21,19 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ChatViewModel @Inject constructor(private val chatService: ChatService) : ViewModel() {
+class ChatViewModel @Inject constructor(
+    private val chatRepository: ChatRepository,
+    private val channelRepository: ChannelRepository
+) : ViewModel() {
     
-    private val _currentUserId = UserManager.user.value.id
+    val myId = UserManager.user.value.id
+    
+    private val _profile = MutableStateFlow<Profile?>(null)
+    val profile = _profile.asStateFlow()
     
     private val _chatInfo = MutableStateFlow(ChatInfo())
     val chatInfo = _chatInfo.asStateFlow()
@@ -38,12 +49,14 @@ class ChatViewModel @Inject constructor(private val chatService: ChatService) : 
     
     val deleteChatDialog = DialogController()
     
+    val clearHistoryDialog = DialogController()
+    
     val deleteMessageDialog = DialogController()
     
     init {
         WebSocketManager.registerMessageHandler<Message>(WebSocketAction.NEW_MESSAGE) { message ->
-            if (_chatInfo.value.id == message.senderId && message.senderId != _currentUserId) {
-                _messages.value += message
+            if (_chatInfo.value.id == message.senderId && message.senderId != myId) {
+                _messages.update { it + message }
             }
         }
         
@@ -65,47 +78,53 @@ class ChatViewModel @Inject constructor(private val chatService: ChatService) : 
     }
     
     fun changeText(newText: String) {
-        _messageText.value = newText
+        _messageText.update { newText }
     }
     
     fun selectMessage(message: Message) {
-        _selectedMessages.value += message
+        _selectedMessages.update { it + message }
     }
     
     fun unselectMessage(message: Message) {
-        _selectedMessages.value -= message
+        _selectedMessages.update { it - message }
     }
     
-    suspend fun openChat(chatId: Int) {
+    suspend fun open(chatId: Int) {
         ChatState.openChat(chatId)
         
+        _profile.update { null }
+        
         _chatInfo.update { chatInfo ->
-            chatInfo.id = chatId
-            chatInfo
+            chatInfo.copy(id = chatId)
         }
         
-        try {
-            val chatInfo = chatService.getChatInfo(chatId)
+        val chatInfo = chatRepository.get(chatId)
+        
+        if (chatInfo == null) {
+            _messages.update { emptyList() }
+            return
+        }
+        
+        _chatInfo.update { chatInfo }
+        
+        viewModelScope.launch {
+            val chatMessages = chatRepository.getMessages(chatId)
             
-            if (chatInfo == null) {
-                return
-            }
+            _messages.update { chatMessages }
+        }
+        
+        if (chatInfo.chatType == ChatType.CHANNEL) {
+            val channel = channelRepository.get(chatId)
             
-            _chatInfo.value = chatInfo
+            _profile.update { channel }
             
-            val chatMessages = chatService.getChatMessages(chatId)
-            
-            _messages.value = chatMessages.orEmpty()
-        } catch (e: Exception) {
-            Log.e(
-                "ChatVM",
-                "Ошибка загрузки сообщений: ${e.message}"
-            )
+            return
         }
     }
     
-    fun closeChat() {
+    fun close() {
         _chatInfo.update { ChatInfo() }
+        _messages.update { emptyList() }
         
         ChatState.closeChat()
     }
@@ -117,18 +136,20 @@ class ChatViewModel @Inject constructor(private val chatService: ChatService) : 
         
         val validText = _messageText.value.trim()
         
-        val messageId = if (_messages.value.isNotEmpty()) {
-            messages.value.last().id + 1
-        } else {
-            1
+        val messageId = _messages.value.let {
+            if (it.isNotEmpty()) {
+                it.last().id + 1
+            } else {
+                1
+            }
         }
         
         val message = Message(
             id = messageId,
-            senderId = _currentUserId,
+            senderId = myId,
             chatId = _chatInfo.value.id,
             text = validText,
-            isRead = _currentUserId == _chatInfo.value.id,
+            isRead = myId == _chatInfo.value.id,
             sendTime = System.currentTimeMillis()
         )
         
@@ -137,7 +158,7 @@ class ChatViewModel @Inject constructor(private val chatService: ChatService) : 
         _messages.update { it + message }
         
         try {
-            val sentMessage = chatService.sendMessage(message)
+            val sentMessage = chatRepository.sendMessage(message)
             
             if (sentMessage == null) {
                 return null
@@ -157,19 +178,20 @@ class ChatViewModel @Inject constructor(private val chatService: ChatService) : 
         } catch (e: Exception) {
             Log.e(
                 "ChatVM",
-                "Ошибка отпаравки сррбщения: ${e.message}"
+                "Ошибка отпаравки сррбщения",
+                e
             )
             
             return null
         }
     }
     
-    suspend fun markAsRead(message: Message) {
-        if (message.senderId == _currentUserId) {
+    suspend fun markAsReadMessage(message: Message) {
+        if (message.senderId == myId) {
             return
         }
         
-        val isRead = chatService.makeAsReadMessage(
+        val isRead = chatRepository.makeAsRead(
             _chatInfo.value.id,
             message.id
         )
@@ -184,7 +206,7 @@ class ChatViewModel @Inject constructor(private val chatService: ChatService) : 
         deleteForAll: Boolean
     ): Boolean {
         try {
-            val isDeleted = chatService.deleteMessage(
+            val isDeleted = chatRepository.deleteMessage(
                 _chatInfo.value.id,
                 messageId,
                 deleteForAll
@@ -208,7 +230,7 @@ class ChatViewModel @Inject constructor(private val chatService: ChatService) : 
     
     suspend fun tryDeleteChat(deleteForReceiver: Boolean): Boolean {
         try {
-            val isDeleted = chatService.deleteChat(
+            val isDeleted = chatRepository.deleteChat(
                 _chatInfo.value.id,
                 deleteForReceiver
             )
@@ -221,7 +243,31 @@ class ChatViewModel @Inject constructor(private val chatService: ChatService) : 
         } catch (e: Exception) {
             Log.e(
                 "DeleteChat",
-                e.message.toString()
+                "Ошибка при удалении чата",
+                e
+            )
+            
+            return false
+        }
+    }
+    
+    suspend fun tryDeleteChatMessages(deleteForReceiver: Boolean): Boolean {
+        try {
+            val isDeleted = chatRepository.deleteChatMessages(
+                _chatInfo.value.id,
+                deleteForReceiver
+            )
+            
+            if (isDeleted) {
+                deleteAllMessages()
+            }
+            
+            return isDeleted
+        } catch (e: Exception) {
+            Log.e(
+                "DeleteChat",
+                "Ошибка при удалении сообщений в чате",
+                e
             )
             
             return false

@@ -1,7 +1,7 @@
 package com.aiwazian.messenger.data
 
 import androidx.annotation.Keep
-import com.aiwazian.messenger.customType.WebSocketAction
+import com.aiwazian.messenger.enums.WebSocketAction
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 

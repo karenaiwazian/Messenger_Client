@@ -3,7 +3,7 @@ package com.aiwazian.messenger.viewModels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.aiwazian.messenger.api.RetrofitInstance
-import com.aiwazian.messenger.customType.PrivacyLevel
+import com.aiwazian.messenger.enums.PrivacyLevel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -21,6 +21,7 @@ class SettingsBioViewModel : ViewModel() {
     fun init(initialValue: PrivacyLevel) {
         _initialLevel.update { initialValue }
         _currentLevel.update { initialValue }
+        hideSaveButton()
     }
     
     fun selectValue(value: PrivacyLevel) {
@@ -41,7 +42,8 @@ class SettingsBioViewModel : ViewModel() {
         } catch (e: Exception) {
             Log.e(
                 "SettingsBioViewModel",
-                "Ошибка при отправке настроек конфиденциальности для раздела о себе"
+                "Ошибка при отправке настроек конфиденциальности для раздела о себе",
+                e
             )
             
             return false

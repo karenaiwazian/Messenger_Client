@@ -9,11 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Key
-import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,9 +21,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.data.NavigationIcon
 import com.aiwazian.messenger.services.AppLockService
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
@@ -66,12 +63,12 @@ private fun Content() {
             SectionHeader(title = stringResource(R.string.alternative_options))
             
             SectionContainer {
-                SectionItem(
-                    icon = Icons.Outlined.PersonAdd,
-                    text = "Добавить аккаунт",
-                    description = "Подключите несколько аккаунтов и легко переключайтесь между ними."
-                )
-                
+                //                SectionItem(
+                //                    icon = Icons.Outlined.PersonAdd,
+                //                    text = "Добавить аккаунт",
+                //                    description = "Подключите несколько аккаунтов и легко переключайтесь между ними."
+                //                )
+                //
                 SectionItem(
                     icon = Icons.Outlined.Delete,
                     text = stringResource(R.string.clear_cache),
@@ -144,22 +141,15 @@ private fun LogoutModal(
         })
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
     val navViewModel = viewModel<NavigationViewModel>()
     
     PageTopBar(
         title = { Text(stringResource(R.string.log_out)) },
-        navigationIcon = {
-            IconButton(
-                onClick = {
-                    navViewModel.removeLastScreenInStack()
-                }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = null,
-                )
-            }
-        })
+        navigationIcon = NavigationIcon(
+            icon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onClick = navViewModel::removeLastScreenInStack
+        )
+    )
 }

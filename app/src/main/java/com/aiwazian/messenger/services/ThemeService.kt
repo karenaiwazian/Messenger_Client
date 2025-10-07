@@ -1,12 +1,13 @@
 package com.aiwazian.messenger.services
 
-import com.aiwazian.messenger.customType.PrimaryColorOption
-import com.aiwazian.messenger.customType.ThemeOption
+import com.aiwazian.messenger.enums.PrimaryColorOption
+import com.aiwazian.messenger.enums.ThemeOption
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,38 +24,39 @@ class ThemeService @Inject constructor() {
     private val _dynamicColor = MutableStateFlow(false)
     val dynamicColor = _dynamicColor.asStateFlow()
     
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val dataStorage = DataStoreManager.Companion.getInstance()
     
     init {
+        val coroutineScope = CoroutineScope(Dispatchers.IO)
+        
         coroutineScope.launch {
-            dataStorage.getTheme().collectLatest { themeName ->
-                _currentTheme.value = ThemeOption.Companion.fromString(themeName)
-            }
+            val theme = dataStorage.getTheme().first()
+            _currentTheme.update { ThemeOption.fromString(theme) }
         }
         
         coroutineScope.launch {
-            dataStorage.getPrimaryColor().collectLatest { colorName ->
-                _primaryColor.value = PrimaryColorOption.Companion.fromString(colorName)
-            }
+            val primaryColor = dataStorage.getPrimaryColor().first()
+            _primaryColor.update { PrimaryColorOption.fromString(primaryColor) }
         }
         
         coroutineScope.launch {
-            dataStorage.getDynamicColor().collectLatest { dynamicColor ->
-                _dynamicColor.value = dynamicColor
-            }
+            val dynamicColor = dataStorage.getDynamicColor().first()
+            _dynamicColor.update { dynamicColor }
         }
     }
     
     suspend fun setDynamicColor(dynamicColor: Boolean) {
+        _dynamicColor.update { dynamicColor }
         dataStorage.saveDynamicColor(dynamicColor)
     }
     
     suspend fun setTheme(theme: ThemeOption) {
+        _currentTheme.update { theme }
         dataStorage.saveTheme(theme)
     }
     
     suspend fun setPrimaryColor(color: PrimaryColorOption) {
+        _primaryColor.update { color }
         dataStorage.savePrimaryColor(color.name)
     }
 }

@@ -29,6 +29,7 @@ object Route {
     const val CHAT_MESSAGES = "api/chat/{id}/messages"
     const val GET_CHAT_LAST_MESSAGE = "api/chat/{chatId}/messages/last"
     const val DELETE_CHAT = "api/chat/{id}"
+    const val DELETE_CHAT_MESSAGES = "api/chat/{id}/messages"
     const val GET_CHAT_INFO = "api/chat/{id}"
     const val PIN_CHAT = "api/chat/{id}/pin"
     const val UNPIN_CHAT = "api/chat/{id}/pin"
@@ -47,4 +48,13 @@ object Route {
     const val GET_MY_PRIVACY = "api/me/privacy"
     const val CHANGE_BIO_PRIVACY = "api/userPrivacy/bio/{value}"
     const val CHANGE_DATE_OF_BIRTH_PRIVACY = "api/userPrivacy/dateOfBirth/{value}"
+    
+    /** Channel **/
+    const val SAVE_CHANNEL = "api/channel"
+    const val DELETE_CHANNEL = "api/channel/{id}"
+    const val GET_CHANNEL = "api/channel/{id}"
+    const val JOIN_CHANNEL = "api/channel/{id}/join"
+    const val LEAVE_CHANNEL = "api/channel/{id}/leave"
+    const val GET_CHANNEL_SUBSCRIBERS = "api/channel/{id}/subscribers"
+    const val CHECK_CHANNEL_PUBLIC_LINK = "api/channel/q/{link}"
 }

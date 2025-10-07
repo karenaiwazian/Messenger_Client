@@ -15,13 +15,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.ui.element.CodeBlocks
 import com.aiwazian.messenger.ui.element.CustomNumberBoard
-import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.utils.VibrationPattern
 import com.aiwazian.messenger.viewModels.LockScreenViewModel
-import com.aiwazian.messenger.viewModels.PasscodeViewModel
+import com.aiwazian.messenger.viewModels.PasscodeLockViewModel
 
 @Composable
 fun LockScreen() {
@@ -30,14 +30,15 @@ fun LockScreen() {
 
 @Composable
 private fun Content() {
-    val lockScreenViewModel = viewModel<LockScreenViewModel>()
-    val vibrateService = VibrateService(LocalContext.current)
-
+    val context = LocalContext.current
+    
+    val lockScreenViewModel = hiltViewModel<LockScreenViewModel>()
+    
     lockScreenViewModel.onWrongPasscode = {
+        val vibrateService = VibrateService(context)
         vibrateService.vibrate(VibrationPattern.Error)
-        lockScreenViewModel.clearPasscode()
     }
-
+    
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
@@ -55,20 +56,36 @@ private fun Content() {
                     contentDescription = "Lock",
                     modifier = Modifier.size(40.dp),
                 )
-
+                
                 CodeBlocks(
-                    count = PasscodeViewModel.MAX_LENGTH_PASSCODE,
+                    count = PasscodeLockViewModel.MAX_LENGTH_PASSCODE,
                     showInput = false,
                     code = lockScreenViewModel.passcode
                 )
-
+                
                 val boardButtons = listOf(
-                    listOf("1", "2", "3"),
-                    listOf("4", "5", "6"),
-                    listOf("7", "8", "9"),
-                    listOf(null, "0", Icons.AutoMirrored.Outlined.Backspace),
+                    listOf(
+                        "1",
+                        "2",
+                        "3"
+                    ),
+                    listOf(
+                        "4",
+                        "5",
+                        "6"
+                    ),
+                    listOf(
+                        "7",
+                        "8",
+                        "9"
+                    ),
+                    listOf(
+                        null,
+                        "0",
+                        Icons.AutoMirrored.Outlined.Backspace
+                    ),
                 )
-
+                
                 CustomNumberBoard(
                     value = lockScreenViewModel.passcode,
                     buttons = boardButtons,

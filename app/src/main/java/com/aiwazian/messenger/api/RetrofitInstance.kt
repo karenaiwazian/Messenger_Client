@@ -21,15 +21,15 @@ object RetrofitInstance {
     
     private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(
-            15,
+            5,
             TimeUnit.SECONDS
         )
         .readTimeout(
-            15,
+            5,
             TimeUnit.SECONDS
         )
         .writeTimeout(
-            15,
+            5,
             TimeUnit.SECONDS
         )
         .addInterceptor(

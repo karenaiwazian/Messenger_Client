@@ -8,8 +8,10 @@ import androidx.compose.ui.platform.AndroidUiDispatcher
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aiwazian.messenger.data.ScreenEntry
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -27,15 +29,19 @@ class NavigationViewModel() : ViewModel() {
     
     var screenWidth = 0f
     
+    lateinit var scope: CoroutineScope
+    
     fun addScreenInStack(
         canGoBackBySwipe: Boolean = true,
         screen: @Composable () -> Unit
     ) {
-        _screenStack.value += ScreenEntry(
-            screen,
-            canGoBackBySwipe
-        )
-        _offsetStack.value += Animatable(screenWidth)
+        _screenStack.update {
+            it + ScreenEntry(
+                screen,
+                canGoBackBySwipe
+            )
+        }
+        _offsetStack.update { it + Animatable(screenWidth) }
     }
     
     fun removeLastScreenInStack() {
@@ -43,31 +49,32 @@ class NavigationViewModel() : ViewModel() {
             return
         }
         
-        viewModelScope.launch {
-            val screenStack = _screenStack.value.toMutableList()
-            val offsetStack = _offsetStack.value.toMutableList()
-            
-            val lastIndex = screenStack.lastIndex
-            
-            if (lastIndex >= offsetStack.size) {
-                return@launch
-            }
-            
-            val topOffset = offsetStack[lastIndex]
-            
-            withContext(AndroidUiDispatcher.Main) {
-                topOffset.animateTo(
-                    screenWidth,
-                    tween(tweenDurationMillis)
-                )
-            }
-            
-            if (lastIndex < screenStack.size && lastIndex < offsetStack.size) {
-                screenStack.removeAt(lastIndex)
-                offsetStack.removeAt(lastIndex)
-                _screenStack.value = screenStack
-                _offsetStack.value = offsetStack
+        val screenStack = _screenStack.value.toMutableList()
+        val offsetStack = _offsetStack.value.toMutableList()
+        
+        val lastIndex = screenStack.lastIndex
+        
+        if (lastIndex >= offsetStack.size) {
+            return
+        }
+        
+        if (lastIndex < screenStack.size) {
+            viewModelScope.launch {
+                withContext(AndroidUiDispatcher.Main) {
+                    offsetStack.last().animateTo(
+                        screenWidth,
+                        tween(tweenDurationMillis)
+                    )
+                    
+                    _screenStack.update { it.dropLast(1) }
+                    _offsetStack.update { it.dropLast(1) }
+                }
             }
         }
+    }
+    
+    fun goToMain() {
+        _screenStack.update { emptyList() }
+        _offsetStack.update { emptyList() }
     }
 }

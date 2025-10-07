@@ -8,8 +8,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,11 +21,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.ChatInfo
+import com.aiwazian.messenger.data.NavigationIcon
+import com.aiwazian.messenger.data.TopBarAction
 import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.ui.element.InputField
 import com.aiwazian.messenger.ui.element.MinimizeChatCard
@@ -37,14 +37,12 @@ import com.aiwazian.messenger.viewModels.FolderViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
-fun SettingsChatInFolderScreen(
-    onConfirmSelect: (List<ChatInfo>) -> Unit = { }
-) {
+fun SettingsChatInFolderScreen(onConfirmSelect: (List<ChatInfo>) -> Unit) {
     Content(onConfirmSelect)
 }
 
 @Composable
-private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit = { }) {
+private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit) {
     val navViewModel = viewModel<NavigationViewModel>()
     val folderViewModel = hiltViewModel<FolderViewModel>()
     
@@ -55,46 +53,56 @@ private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit = { }) {
     var currentSelectedChats by remember { mutableStateOf(openFolder.chats) }
     
     val filteredChats = allChats.filter { chatInfo ->
-        chatInfo.chatName.contains(searchQuery.trim(), ignoreCase = true)
+        chatInfo.chatName.contains(
+            other = searchQuery.trim(),
+            ignoreCase = true
+        )
     }
+    
+    val action = arrayOf(
+        TopBarAction(
+            icon = Icons.Outlined.Check,
+            onClick = {
+                onConfirmSelect(currentSelectedChats)
+                navViewModel.removeLastScreenInStack()
+            })
+    )
     
     LaunchedEffect(Unit) {
         try {
             val request = RetrofitInstance.api.getAllChats()
             if (request.isSuccessful) {
-                allChats = request.body() ?: emptyList()
+                allChats = request.body()?.map { it.toChatInto() } ?: emptyList()
             }
         } catch (e: Exception) {
-            Log.e("SettingsChatInFolderScreen", "Error get all chats" + e.message)
+            Log.e(
+                "SettingsChatInFolderScreen",
+                "Ошибка при получении всех чатов",
+                e
+            )
         }
     }
     
     Scaffold(
         topBar = {
-            PageTopBar(title = {
-                Column {
-                    Text("Чаты в папке")
-                    Text(
-                        "Количество чатов не ограничено",
-                        fontSize = 12.sp,
-                        lineHeight = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }, navigationIcon = {
-                IconButton(onClick = {
-                    navViewModel.removeLastScreenInStack()
-                }) {
-                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null)
-                }
-            }, actions = {
-                IconButton(onClick = {
-                    onConfirmSelect(currentSelectedChats)
-                    navViewModel.removeLastScreenInStack()
-                }) {
-                    Icon(Icons.Outlined.Check, contentDescription = null)
-                }
-            })
+            PageTopBar(
+                title = {
+                    Column {
+                        Text(text = "Чаты в папке")
+                        Text(
+                            text = "Количество чатов не ограничено",
+                            fontSize = 12.sp,
+                            lineHeight = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                navigationIcon = NavigationIcon(
+                    icon = Icons.AutoMirrored.Outlined.ArrowBack,
+                    onClick = navViewModel::removeLastScreenInStack
+                ),
+                actions = action
+            )
         }) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             SectionContainer {
@@ -110,7 +118,9 @@ private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit = { }) {
                 val user by UserManager.user.collectAsState()
                 
                 LazyColumn {
-                    items(filteredChats, { it.id }) { chat ->
+                    items(
+                        filteredChats,
+                        { it.id }) { chat ->
                         val chatName = if (chat.id == user.id) {
                             stringResource(R.string.saved_messages)
                         } else {
@@ -120,7 +130,9 @@ private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit = { }) {
                         val selected = currentSelectedChats.any { it.id == chat.id }
                         
                         MinimizeChatCard(
-                            chatName = chatName, selected = selected, onClick = {
+                            chatName = chatName,
+                            selected = selected,
+                            onClick = {
                                 currentSelectedChats = if (selected) {
                                     currentSelectedChats - chat
                                 } else {

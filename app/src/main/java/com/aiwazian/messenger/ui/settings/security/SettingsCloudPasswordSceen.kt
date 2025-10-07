@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.data.NavigationIcon
 import com.aiwazian.messenger.ui.element.AnimatedIntroScreen
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
@@ -54,16 +53,12 @@ private fun Content(enabled: Boolean) {
 @Composable
 private fun Main(navViewModel: NavigationViewModel) {
     Scaffold(topBar = {
-        PageTopBar(navigationIcon = {
-            IconButton(onClick = {
-                navViewModel.removeLastScreenInStack()
-            }) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.ArrowBack,
-                    null
-                )
-            }
-        })
+        PageTopBar(
+            navigationIcon = NavigationIcon(
+                icon = Icons.AutoMirrored.Outlined.ArrowBack,
+                onClick = navViewModel::removeLastScreenInStack
+            )
+        )
     }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             AnimatedIntroScreen(
@@ -100,24 +95,15 @@ private fun Settings(navViewModel: NavigationViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(navViewModel: NavigationViewModel) {
     PageTopBar(
         title = {
             Text(stringResource(R.string.cloud_password))
         },
-        navigationIcon = {
-            IconButton(
-                onClick = {
-                    navViewModel.removeLastScreenInStack()
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = null,
-                )
-            }
-        }
+        navigationIcon = NavigationIcon(
+            icon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onClick = navViewModel::removeLastScreenInStack
+        )
     )
 }

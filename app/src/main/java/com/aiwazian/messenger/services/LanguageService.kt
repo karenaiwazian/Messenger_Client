@@ -2,12 +2,13 @@ package com.aiwazian.messenger.services
 
 import android.content.Context
 import android.content.res.Configuration
-import com.aiwazian.messenger.customType.Language
+import com.aiwazian.messenger.enums.Language
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -21,7 +22,11 @@ class LanguageService(private val context: Context) {
     
     init {
         coroutineScope.launch {
-            _languageCode.value = Language.Companion.fromString(dataStorage.getLanguage().first())
+            _languageCode.update {
+                Language.Companion.fromString(
+                    dataStorage.getLanguage().first()
+                )
+            }
         }
     }
     

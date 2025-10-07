@@ -1,5 +1,6 @@
 package com.aiwazian.messenger.viewModels
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -28,12 +29,14 @@ class SettingsUsernameViewModel @Inject constructor(private val userService: Use
     var errorText by mutableStateOf<String?>(null)
         private set
     
-    init {
+    fun init() {
         viewModelScope.launch {
             UserManager.user.collectLatest { collect ->
                 _username.update { collect.username.orEmpty() }
             }
         }
+        
+        updateErrorMessage(null)
     }
     
     fun onChangeUsername(newUsername: String) {
@@ -68,17 +71,22 @@ class SettingsUsernameViewModel @Inject constructor(private val userService: Use
         updateErrorMessage("Проверка имени")
         
         viewModelScope.launch {
-            val isBusy = userService.checkUsername(_username.value)
-            
-            updateErrorMessage(
-                if (isBusy) {
-                    "Имя пользователя занято"
-                } else {
-                    "Имя пользователя свободно"
-                }
-            )
-            
-            _canSave.update { !isBusy }
+            try {
+                val isBusy = userService.checkUsername(_username.value)
+                
+                updateErrorMessage(
+                    if (isBusy) {
+                        "Имя пользователя занято"
+                    } else {
+                        "Имя пользователя свободно"
+                    }
+                )
+                
+                _canSave.update { !isBusy }
+            } catch (e: Exception) {
+                _canSave.update { false }
+                Log.e("SettingsUsernameVM", e.toString())
+            }
         }
     }
     
@@ -92,12 +100,9 @@ class SettingsUsernameViewModel @Inject constructor(private val userService: Use
         val isSaved = userService.saveUsername(username ?: "")
         
         if (isSaved) {
-            
             val updatedUser = UserManager.user.value.copy(username = username)
             
             UserManager.updateUserInfo(updatedUser)
-            
-            onChangeUsername(username ?: "")
         }
         
         return isSaved

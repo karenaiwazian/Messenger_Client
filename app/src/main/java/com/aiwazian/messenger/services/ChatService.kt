@@ -15,11 +15,9 @@ class ChatService @Inject constructor() {
     suspend fun getChatInfo(chatId: Int): ChatInfo? {
         val response = RetrofitInstance.api.getChatInfo(chatId)
         
-        if (response.code() != 200) {
-            return null
-        }
+        val responseChatInfo = response.body()?.toChatInto()
         
-        return response.body()
+        return responseChatInfo
     }
     
     suspend fun makeAsReadMessage(
@@ -54,7 +52,7 @@ class ChatService @Inject constructor() {
         return response.isSuccessful
     }
     
-    suspend fun pinChat(
+    suspend fun pin(
         chatId: Int,
         folderId: Int
     ): Boolean {
@@ -70,7 +68,7 @@ class ChatService @Inject constructor() {
         return response.isSuccessful
     }
     
-    suspend fun unpinChat(
+    suspend fun unpin(
         chatId: Int,
         folderId: Int
     ): Boolean {
@@ -105,6 +103,18 @@ class ChatService @Inject constructor() {
         deleteForReceiver: Boolean
     ): Boolean {
         val response = RetrofitInstance.api.deleteChat(
+            chatId,
+            deleteForReceiver
+        )
+        
+        return response.isSuccessful
+    }
+    
+    suspend fun deleteChatMessages(
+        chatId: Int,
+        deleteForReceiver: Boolean
+    ): Boolean {
+        val response = RetrofitInstance.api.deleteChatMessages(
             chatId,
             deleteForReceiver
         )

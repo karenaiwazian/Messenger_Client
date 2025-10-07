@@ -6,11 +6,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.data.NavigationIcon
+import com.aiwazian.messenger.ui.channel.CreateChannelScreen
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionItem
@@ -46,13 +45,6 @@ private fun Content() {
             SectionContainer {
                 SectionItem(
                     icon = Icons.Outlined.Group,
-                    text = stringResource(R.string.create_group),
-                    onClick = {
-                        navViewModel.addScreenInStack { CreateGroupScreen() }
-                    })
-                
-                SectionItem(
-                    icon = Icons.Outlined.Group,
                     text = stringResource(R.string.create_channel),
                     onClick = {
                         navViewModel.addScreenInStack { CreateChannelScreen() }
@@ -62,22 +54,15 @@ private fun Content() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
     val navViewModel = viewModel<NavigationViewModel>()
     
     PageTopBar(
         title = { Text(stringResource(R.string.new_message)) },
-        navigationIcon = {
-            IconButton(
-                onClick = {
-                    navViewModel.removeLastScreenInStack()
-                }) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                )
-            }
-        })
+        navigationIcon = NavigationIcon(
+            icon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onClick = navViewModel::removeLastScreenInStack
+        )
+    )
 }

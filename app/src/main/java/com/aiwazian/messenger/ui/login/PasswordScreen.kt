@@ -212,7 +212,7 @@ private fun PasswordField(
     label: String,
     isError: Boolean,
 ) {
-    val passwordVisible = remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(false) }
     
     OutlinedTextField(
         modifier = Modifier.fillMaxWidth(),
@@ -230,13 +230,13 @@ private fun PasswordField(
         label = { Text(label) },
         singleLine = true,
         isError = isError,
-        visualTransformation = if (!passwordVisible.value) PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = if (!passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
         trailingIcon = {
             IconButton(onClick = {
-                passwordVisible.value = !passwordVisible.value
+                passwordVisible = !passwordVisible
             }) {
                 Icon(
-                    imageVector = if (passwordVisible.value) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                    imageVector = if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
                     contentDescription = null,
                     tint = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                 )

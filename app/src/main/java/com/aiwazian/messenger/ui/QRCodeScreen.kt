@@ -15,9 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,15 +23,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.data.NavigationIcon
+import com.aiwazian.messenger.services.QrCodeService
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.utils.Constants
-import com.aiwazian.messenger.services.QrCodeService
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -49,7 +46,7 @@ private fun Content() {
             TopBar()
         },
         
-    ) { innerPadding ->
+        ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -57,17 +54,20 @@ private fun Content() {
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
+            
             val url = "${Constants.DOMAIN_NAME}//TODO username"
-
+            
             val qrCodeService = QrCodeService()
-
+            
             val qrBitmap: Bitmap? = remember(url) {
-                qrCodeService.createQrCode(url, 500)
+                qrCodeService.createQrCode(
+                    url,
+                    500
+                )
             }
-
+            
             Box {}
-
+            
             qrBitmap?.let {
                 Image(
                     bitmap = it.asImageBitmap(),
@@ -77,9 +77,12 @@ private fun Content() {
                         .clip(RoundedCornerShape(20.dp)),
                 )
             } ?: run {
-                Log.e("QRCodeScreen", "QR code generation failed")
+                Log.e(
+                    "QRCodeScreen",
+                    "QR code generation failed"
+                )
             }
-
+            
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -100,24 +103,14 @@ private fun Content() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
     val navViewModel = viewModel<NavigationViewModel>()
-
+    
     PageTopBar(
-        title = { },
-        navigationIcon = {
-            IconButton(
-                onClick = {
-                    navViewModel.removeLastScreenInStack()
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = null,
-                )
-            }
-        }
+        navigationIcon = NavigationIcon(
+            icon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onClick = navViewModel::removeLastScreenInStack
+        )
     )
 }

@@ -26,12 +26,12 @@ import com.aiwazian.messenger.utils.VibrationPattern
 fun CustomNumberBoard(
     value: String = "",
     buttons: List<List<Any?>>,
-    onChange: (String) -> Unit = { }
+    onChange: (String) -> Unit
 ) {
     val context = LocalContext.current
-
+    
     val vibrateService = VibrateService(context)
-
+    
     Column(
         modifier = Modifier
             .padding(10.dp),
@@ -40,12 +40,12 @@ fun CustomNumberBoard(
         buttons.forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { key ->
-
+                    
                     if (key == null) {
                         Box(modifier = Modifier.weight(1f))
                         return@forEach
                     }
-
+                    
                     NumberButton(
                         onClick = {
                             if (key is ImageVector) {
@@ -53,7 +53,7 @@ fun CustomNumberBoard(
                             } else {
                                 onChange(value + key)
                             }
-
+                            
                             vibrateService.vibrate(
                                 pattern = VibrationPattern.TactileResponse
                             )
@@ -63,8 +63,11 @@ fun CustomNumberBoard(
                             .padding(vertical = 2.dp)
                     ) {
                         if (key is ImageVector) {
-                            Text(text = "", lineHeight = 30.sp)
-
+                            Text(
+                                text = "",
+                                lineHeight = 30.sp
+                            )
+                            
                             Icon(
                                 imageVector = Icons.AutoMirrored.Outlined.Backspace,
                                 contentDescription = null,

@@ -40,14 +40,14 @@ fun SectionItem(
         shape = RectangleShape,
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
-        colors = colors ?: ButtonDefaults.textButtonColors(),
+        colors = colors ?: ButtonDefaults.textButtonColors()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             if (icon != null) {
                 Icon(
@@ -57,7 +57,7 @@ fun SectionItem(
                     modifier = Modifier.padding(end = 16.dp)
                 )
             }
-
+            
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = text,
@@ -65,7 +65,7 @@ fun SectionItem(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal
                 )
-
+                
                 if (description != null) {
                     Text(
                         text = description,
@@ -76,7 +76,7 @@ fun SectionItem(
                     )
                 }
             }
-
+            
             if (primaryText != null) {
                 Text(
                     text = primaryText,

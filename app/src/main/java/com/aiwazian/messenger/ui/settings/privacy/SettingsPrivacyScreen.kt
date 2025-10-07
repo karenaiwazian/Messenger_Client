@@ -7,11 +7,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -24,14 +21,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.customType.PrivacyLevel
+import com.aiwazian.messenger.data.NavigationIcon
+import com.aiwazian.messenger.enums.PrivacyLevel
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
-import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionRadioItem
@@ -96,19 +93,19 @@ private fun Content() {
                         }
                     })
             }
-            
-            SectionHeader("Удалить мой аккаунт")
-            
-            SectionContainer {
-                SectionItem(
-                    text = "Если я не захожу",
-                    primaryText = "12 месяцев",
-                    onClick = settingsPrivacyViewModel.deleteAccountDialog::show
-                )
-            }
-            
-            SectionDescription("Если Вы ни разу не загляните в ${stringResource(R.string.app_name)} за это время, аккаунт будет удален.")
-            
+            //
+            //            SectionHeader("Удалить мой аккаунт")
+            //
+            //            SectionContainer {
+            //                SectionItem(
+            //                    text = "Если я не захожу",
+            //                    primaryText = "12 месяцев",
+            //                    onClick = settingsPrivacyViewModel.deleteAccountDialog::show
+            //                )
+            //            }
+            //
+            //            SectionDescription("Если Вы ни разу не загляните в ${stringResource(R.string.app_name)} за это время, аккаунт будет удален.")
+            //
             if (settingsPrivacyViewModel.deleteAccountDialog.isVisible) {
                 DeleteAccountIfINotLoginDialog(
                     onDismissRequest = settingsPrivacyViewModel.deleteAccountDialog::hide,
@@ -155,21 +152,15 @@ private fun DeleteAccountIfINotLoginDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
     val navViewModel = viewModel<NavigationViewModel>()
     
     PageTopBar(
         title = { Text(stringResource(R.string.confidentiality)) },
-        navigationIcon = {
-            IconButton(onClick = {
-                navViewModel.removeLastScreenInStack()
-            }) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                )
-            }
-        })
+        navigationIcon = NavigationIcon(
+            icon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onClick = navViewModel::removeLastScreenInStack
+        )
+    )
 }

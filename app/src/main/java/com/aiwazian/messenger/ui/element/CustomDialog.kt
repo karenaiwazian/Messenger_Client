@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,13 +14,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.aiwazian.messenger.utils.Shape
 
 @Composable
 fun CustomDialog(
     title: String,
     onDismissRequest: () -> Unit,
-    content: @Composable () -> Unit,
     buttons: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -31,9 +31,8 @@ fun CustomDialog(
         )
     ) {
         Card(
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp)
+            modifier = Modifier.fillMaxWidth(),
+            shape = Shape.Dialog
         ) {
             Column {
                 Text(

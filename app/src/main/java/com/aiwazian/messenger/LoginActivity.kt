@@ -13,11 +13,11 @@ class LoginActivity : ComponentActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        
         enableEdgeToEdge()
-
+        
         setContent {
-            ApplicationTheme {
+            ApplicationTheme(dynamicColor = true) {
                 AuthScreen()
             }
         }

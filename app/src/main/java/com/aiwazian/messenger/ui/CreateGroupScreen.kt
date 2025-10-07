@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,12 +27,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.data.NavigationIcon
 import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionHeader
 import com.aiwazian.messenger.utils.VibrationPattern
-import com.aiwazian.messenger.viewModels.CreateGroupViewModel
+import com.aiwazian.messenger.viewModels.GroupViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -41,14 +41,13 @@ fun CreateGroupScreen() {
     Content()
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content() {
     val context = LocalContext.current
     
-    val createGroupViewModel = viewModel<CreateGroupViewModel>()
+    val groupViewModel = viewModel<GroupViewModel>()
     
-    createGroupViewModel.onError = {
+    groupViewModel.onError = {
         val vibrateService = VibrateService(context)
         vibrateService.vibrate(VibrationPattern.Error)
     }
@@ -63,15 +62,14 @@ private fun Content() {
             FloatingActionButton(
                 modifier = Modifier.imePadding(),
                 onClick = {
-                    createGroupViewModel.createGroup()
+                    groupViewModel.createGroup()
                 },
                 containerColor = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Check,
-                    contentDescription = null,
-                    tint = Color.White
+                    contentDescription = null
                 )
             }
         },
@@ -87,9 +85,9 @@ private fun Content() {
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    value = createGroupViewModel.groupName,
+                    value = groupViewModel.groupName,
                     onValueChange = { newGroupName ->
-                        createGroupViewModel.changeGroupName(newGroupName)
+                        groupViewModel.changeGroupName(newGroupName)
                     },
                     placeholder = { Text("Название группы") },
                     colors = TextFieldDefaults.colors(
@@ -122,22 +120,15 @@ private fun Content() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
     val navViewModel = viewModel<NavigationViewModel>()
     
     PageTopBar(
         title = { Text(text = stringResource(R.string.create_group)) },
-        navigationIcon = {
-            IconButton(
-                onClick = {
-                    navViewModel.removeLastScreenInStack()
-                }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = null,
-                )
-            }
-        })
+        navigationIcon = NavigationIcon(
+            icon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onClick = navViewModel::removeLastScreenInStack
+        )
+    )
 }

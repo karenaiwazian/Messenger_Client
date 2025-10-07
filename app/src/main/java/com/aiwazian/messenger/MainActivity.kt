@@ -16,6 +16,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.aiwazian.messenger.database.repository.UserRepository
+import com.aiwazian.messenger.enums.ChatType
 import com.aiwazian.messenger.services.AppLockService
 import com.aiwazian.messenger.services.DataStoreManager
 import com.aiwazian.messenger.services.LanguageService
@@ -47,15 +49,16 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var themeService: ThemeService
     
+    @Inject
+    lateinit var userRepository: UserRepository
+    
     override fun attachBaseContext(newBase: Context) {
         DataStoreManager.initialize(newBase)
         val dataStoreManager = DataStoreManager.getInstance()
         
         val savedLanguageCode = runBlocking {
             TokenManager.init()
-            dataStoreManager.getLanguage()
-                .first()
-                .lowercase()
+            dataStoreManager.getLanguage().first().lowercase()
         }
         
         val languageService = LanguageService(newBase)
@@ -90,27 +93,15 @@ class MainActivity : ComponentActivity() {
             
             LaunchedEffect(Unit) {
                 try {
-                    val notificationService = NotificationService()
-                    val token = notificationService.getFirebaseToken()
-                    notificationService.sendTokenToServer(token)
-                } catch (e: Exception) {
-                    Log.e(
-                        "MainActivity",
-                        "Error while try send notification token to server" + e.message.toString()
-                    )
-                }
-                
-                try {
                     WebSocketManager.onConnect = {
                         lifecycleScope.launch {
-                            UserManager.loadUserData()
+                            UserManager.loadUserData(userRepository)
                         }
                     }
                     
                     WebSocketManager.onClose = { code ->
                         if (code == 1008) {
-                            TokenManager.getUnauthorizedCallback()
-                                ?.invoke()
+                            TokenManager.getUnauthorizedCallback()?.invoke()
                         } else {
                             lifecycleScope.launch {
                                 delay(1000)
@@ -127,10 +118,25 @@ class MainActivity : ComponentActivity() {
                     }
                     
                     WebSocketManager.connect()
+                    
+                    UserManager.loadUserData(userRepository)
                 } catch (e: Exception) {
                     Log.e(
                         "MainActivity",
-                        e.message.toString()
+                        "Ошибка подключения вебсокета",
+                        e
+                    )
+                }
+                
+                try {
+                    val notificationService = NotificationService()
+                    val token = notificationService.getFirebaseToken()
+                    notificationService.sendTokenToServer(token)
+                } catch (e: Exception) {
+                    Log.e(
+                        "MainActivity",
+                        "Ошибка при отправке токена для уведомлений на сервер",
+                        e
                     )
                 }
             }
@@ -154,13 +160,15 @@ class MainActivity : ComponentActivity() {
                     LockScreen()
                 }
                 
-                LaunchedEffect(Unit) {
-                    val chatId = intent.getStringExtra("chatId")
-                        ?.toIntOrNull()
+                LaunchedEffect(Unit) { //TODO Open chat from intent
+                    val chatId = intent.getStringExtra("chatId")?.toIntOrNull()
                     
                     if (chatId != null) {
                         navViewModel.addScreenInStack {
-                            ChatScreen(chatId)
+                            ChatScreen(
+                                chatId,
+                                ChatType.UNKNOWN
+                            )
                         }
                     }
                 }

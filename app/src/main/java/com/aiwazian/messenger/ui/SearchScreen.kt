@@ -20,7 +20,6 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +52,8 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.data.NavigationIcon
+import com.aiwazian.messenger.enums.ChatType
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.utils.LottieAnimation
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -114,29 +115,33 @@ fun SearchScreen() {
             }
             
             LazyColumn {
-                items(searchResults) { user ->
+                items(searchResults) { search ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RectangleShape,
                         onClick = {
                             navViewModel.addScreenInStack {
-                                ChatScreen(user.id)
+                                ChatScreen(
+                                    chatId = search.chatId,
+                                    chatType = if (search.chatId < 0) {
+                                        ChatType.CHANNEL
+                                    } else {
+                                        ChatType.PRIVATE
+                                    }
+                                )
                             }
                         },
                         colors = CardDefaults.cardColors(
                             containerColor = Color.Transparent
-                        ),
+                        )
                     ) {
                         Column(modifier = Modifier.padding(8.dp)) {
                             Text(
-                                text = user.firstName,
+                                text = search.name,
                                 modifier = Modifier.padding(bottom = 4.dp),
                             )
                             
-                            val username = user.username
-                            if (username == null) {
-                                return@Column
-                            }
+                            val username = search.publicLink
                             
                             val startIndex = username.indexOf(query)
                             val endIndex = startIndex + query.length
@@ -179,7 +184,6 @@ fun SearchScreen() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(
     value: String,
@@ -194,17 +198,11 @@ private fun TopBar(
                 onValueChange,
             )
         },
-        navigationIcon = {
-            IconButton(
-                onClick = {
-                    navViewModel.removeLastScreenInStack()
-                }) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = null,
-                )
-            }
-        })
+        navigationIcon = NavigationIcon(
+            icon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onClick = navViewModel::removeLastScreenInStack
+        )
+    )
 }
 
 @Composable

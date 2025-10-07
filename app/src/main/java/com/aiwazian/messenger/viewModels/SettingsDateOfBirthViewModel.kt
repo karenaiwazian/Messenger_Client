@@ -3,7 +3,7 @@ package com.aiwazian.messenger.viewModels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.aiwazian.messenger.api.RetrofitInstance
-import com.aiwazian.messenger.customType.PrivacyLevel
+import com.aiwazian.messenger.enums.PrivacyLevel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -21,6 +21,7 @@ class SettingsDateOfBirthViewModel : ViewModel() {
     fun init(initialValue: PrivacyLevel) {
         _initialLevel.update { initialValue }
         _currentLevel.update { initialValue }
+        hideSaveButton()
     }
     
     fun selectValue(value: PrivacyLevel) {
@@ -42,7 +43,8 @@ class SettingsDateOfBirthViewModel : ViewModel() {
         } catch (e: Exception) {
             Log.e(
                 "SettingsBioViewModel",
-                "Ошибка при отправке настроек конфиденциальности для раздела даты рождения"
+                "Ошибка при отправке настроек конфиденциальности для раздела даты рождения",
+                e
             )
             
             return false
@@ -50,10 +52,10 @@ class SettingsDateOfBirthViewModel : ViewModel() {
     }
     
     private fun showSaveButton() {
-        _showSaveButton.value = true
+        _showSaveButton.update { true }
     }
     
     private fun hideSaveButton() {
-        _showSaveButton.value = false
+        _showSaveButton.update { false }
     }
 }

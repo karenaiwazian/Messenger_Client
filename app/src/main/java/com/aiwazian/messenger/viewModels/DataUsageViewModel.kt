@@ -8,7 +8,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.aiwazian.messenger.services.DialogController
-import kotlinx.coroutines.flow.asStateFlow
 
 class DataUsageViewModel : ViewModel() {
     

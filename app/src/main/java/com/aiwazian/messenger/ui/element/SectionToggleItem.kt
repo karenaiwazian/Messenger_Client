@@ -25,8 +25,8 @@ fun SectionToggleItem(
     icon: ImageVector? = null,
     text: String,
     description: String? = null,
-    isChecked: Boolean = false,
-    onCheckedChange: () -> Unit = {},
+    isChecked: Boolean,
+    onCheckedChange: () -> Unit,
 ) {
     Card(
         shape = RectangleShape,
@@ -50,7 +50,7 @@ fun SectionToggleItem(
                     modifier = Modifier.padding(end = 16.dp)
                 )
             }
-
+            
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = text,
@@ -62,7 +62,7 @@ fun SectionToggleItem(
                     )
                 }
             }
-
+            
             Box(Modifier.pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
@@ -70,7 +70,10 @@ fun SectionToggleItem(
                     }
                 }
             }) {
-                CustomSwitch(checked = isChecked, onCheckedChange = null)
+                CustomSwitch(
+                    checked = isChecked,
+                    onCheckedChange = null
+                )
             }
         }
     }

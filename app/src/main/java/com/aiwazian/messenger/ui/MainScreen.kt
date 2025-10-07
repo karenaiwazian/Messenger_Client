@@ -36,7 +36,6 @@ import androidx.compose.material.icons.automirrored.outlined.Reply
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.BookmarkBorder
@@ -44,17 +43,15 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalDrawerSheet
@@ -93,7 +90,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -101,19 +98,22 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.data.ChatInfo
-import com.aiwazian.messenger.services.AppLockService
+import com.aiwazian.messenger.data.DropdownMenuAction
+import com.aiwazian.messenger.data.NavigationIcon
+import com.aiwazian.messenger.data.TopBarAction
+import com.aiwazian.messenger.enums.ChatType
 import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.ui.element.ChatCard
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SwipeableChatCard
 import com.aiwazian.messenger.ui.settings.SettingsScreen
 import com.aiwazian.messenger.utils.LottieAnimation
+import com.aiwazian.messenger.utils.Shape
 import com.aiwazian.messenger.utils.WebSocketManager
-import com.aiwazian.messenger.viewModels.MainScreenViewModel
+import com.aiwazian.messenger.viewModels.MainViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     MainScreenContent()
@@ -164,7 +164,15 @@ private fun MainScreenContent() {
         }
     }
     
+    val scope = rememberCoroutineScope()
+    
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    
+    BackHandler(drawerState.currentValue == DrawerValue.Open) {
+        scope.launch {
+            drawerState.close()
+        }
+    }
     
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -250,19 +258,18 @@ private fun NotificationBottomModal(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Content(
-    drawerState: DrawerState
-) {
+private fun Content(drawerState: DrawerState) {
     val navViewModel = viewModel<NavigationViewModel>()
     
-    val mainScreenViewModel = hiltViewModel<MainScreenViewModel>()
+    val mainViewModel = hiltViewModel<MainViewModel>()
     
-    val folders by mainScreenViewModel.chatFolders.collectAsState()
-    val archiveChats by mainScreenViewModel.archivedChats.collectAsState()
-    val selectedChats by mainScreenViewModel.selectedChats.collectAsState()
-    val allSelectedChatsArePinned by mainScreenViewModel.allSelectedArePinned.collectAsState()
+    val folders by mainViewModel.chatFolders.collectAsState()
+    val archiveChats by mainViewModel.archivedChats.collectAsState()
+    val selectedChats by mainViewModel.selectedChats.collectAsState()
+    val allSelectedChatsArePinned by mainViewModel.allSelectedArePinned.collectAsState()
+    
+    val hasPasscode by mainViewModel.hasPasscode.collectAsState()
     
     val snackbarHostState = remember { SnackbarHostState() }
     
@@ -270,9 +277,7 @@ private fun Content(
     
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     
-    val pagerState = rememberPagerState {
-        folders.size
-    }
+    val pagerState = rememberPagerState { folders.size }
     
     LaunchedEffect(selectedTabIndex) {
         pagerState.animateScrollToPage(selectedTabIndex)
@@ -287,36 +292,35 @@ private fun Content(
     }
     
     BackHandler(selectedChats.isNotEmpty()) {
-        mainScreenViewModel.unselectAllChats()
+        mainViewModel.unselectAllChats()
     }
     
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            DefaultTopBar(drawerState)
+            DefaultTopBar(
+                drawerState = drawerState,
+                isLockApp = hasPasscode,
+                onLockClick = {
+                    scope.launch {
+                        mainViewModel.lockApp()
+                    }
+                })
             
             val selectedChatCount = selectedChats.values.sumOf { it.size }
             
             AnimatedVisibility(
                 visible = selectedChats.isNotEmpty(),
-                enter = fadeIn(tween(100)),
-                exit = fadeOut(tween(100))
+                enter = fadeIn(tween(200)),
+                exit = fadeOut(tween(200))
             ) {
                 SelectedChatTopBar(
-                    onBack = mainScreenViewModel::unselectAllChats,
+                    onBack = mainViewModel::unselectAllChats,
                     selectedCount = selectedChatCount,
-                    onClickArchive = {
-                        scope.launch {
-                            selectedChats.forEach { selectedChat ->
-                                mainScreenViewModel.archiveChat(selectedChat.key)
-                            }
-                        }
-                        mainScreenViewModel.unselectAllChats()
-                    },
                     dropdownActions = arrayOf(
-                        SelectedChatsAction(
+                        DropdownMenuAction(
                             icon = Icons.Outlined.PushPin,
-                            title = if (allSelectedChatsArePinned) {
+                            text = if (allSelectedChatsArePinned) {
                                 stringResource(R.string.unpin)
                             } else {
                                 stringResource(R.string.pin)
@@ -326,7 +330,7 @@ private fun Content(
                                     if (allSelectedChatsArePinned) {
                                         selectedChats.forEach { folder ->
                                             folder.value.forEach { chatId ->
-                                                mainScreenViewModel.unpinChat(
+                                                mainViewModel.unpinChat(
                                                     chatId = chatId,
                                                     folderId = folder.key
                                                 )
@@ -335,7 +339,7 @@ private fun Content(
                                     } else {
                                         selectedChats.forEach { folder ->
                                             folder.value.forEach { chatId ->
-                                                mainScreenViewModel.pinChat(
+                                                mainViewModel.pinChat(
                                                     chatId = chatId,
                                                     folderId = folder.key
                                                 )
@@ -343,7 +347,7 @@ private fun Content(
                                         }
                                     }
                                 }
-                                mainScreenViewModel.unselectAllChats()
+                                mainViewModel.unselectAllChats()
                             })
                     )
                 )
@@ -378,17 +382,13 @@ private fun Content(
                             onClick = {
                                 selectedTabIndex = index
                             },
-                            modifier = Modifier.clip(
-                                RoundedCornerShape(
-                                    topStart = 10.dp,
-                                    topEnd = 10.dp
-                                )
-                            ),
+                            modifier = Modifier.clip(shape = Shape.PrimaryTab),
                             text = {
-                                Text(text = folder.folderName)
+                                Text(text = folder.name)
                             },
                             unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        
                     }
                 }
             }
@@ -416,7 +416,7 @@ private fun Content(
                                 onClickChat = {
                                     if (selectedChats.isEmpty()) {
                                         navViewModel.addScreenInStack {
-                                            ArchiveScreen()
+                                            ArchiveScreen(mainViewModel)
                                         }
                                     }
                                 })
@@ -431,9 +431,9 @@ private fun Content(
                         return@Column
                     }
                     
-                    val snackBarActionLabel = stringResource(R.string.cancel).uppercase()
-                    
                     val selectedChatsInFolder = selectedChats[folder.id] ?: emptyList()
+                    
+                    val snackBarActionLabel = stringResource(R.string.cancel).uppercase()
                     
                     val snackBarMessage = stringResource(R.string.chat_archived)
                     
@@ -444,33 +444,36 @@ private fun Content(
                         onChatClick = { chat ->
                             if (selectedChats.isEmpty()) {
                                 navViewModel.addScreenInStack {
-                                    ChatScreen(chatId = chat.id)
+                                    ChatScreen(
+                                        chat.id,
+                                        chat.chatType
+                                    )
                                 }
                             } else {
-                                mainScreenViewModel.selectChat(
+                                mainViewModel.selectChat(
                                     chat.id,
                                     folder.id
                                 )
                             }
                         },
                         onChatLongClick = { chat ->
-                            mainScreenViewModel.selectChat(
+                            mainViewModel.selectChat(
                                 chat.id,
                                 folder.id
                             )
                         },
                         onChatSwipe = { chat ->
+                            mainViewModel.archiveChat(chat.id)
+                            
                             scope.launch {
-                                mainScreenViewModel.archiveChat(chat.id)
-                                
                                 val result = snackbarHostState.showSnackbar(
                                     message = snackBarMessage,
                                     actionLabel = snackBarActionLabel,
-                                    duration = SnackbarDuration.Long
+                                    duration = SnackbarDuration.Short
                                 )
                                 
                                 if (result == SnackbarResult.ActionPerformed) {
-                                    mainScreenViewModel.unarchiveChat(chat.id)
+                                    mainViewModel.unarchiveChat(chat.id)
                                 }
                             }
                         })
@@ -644,21 +647,18 @@ private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
     }
 }
 
-private data class SelectedChatsAction(
-    val icon: ImageVector,
-    val title: String,
-    val onClick: () -> Unit,
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SelectedChatTopBar(
     onBack: () -> Unit,
     selectedCount: Int,
-    onClickArchive: () -> Unit,
-    vararg dropdownActions: SelectedChatsAction
+    dropdownActions: Array<DropdownMenuAction>
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    val actions = arrayOf(
+        TopBarAction(
+            icon = Icons.Outlined.MoreVert,
+            dropdownActions = dropdownActions
+        )
+    )
     
     PageTopBar(
         title = {
@@ -682,53 +682,51 @@ private fun SelectedChatTopBar(
                 Text(text = count.toString())
             }
         },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.Outlined.Close,
-                    contentDescription = null,
-                )
-            }
-        },
-        actions = {
-            IconButton(onClick = { expanded = true }) {
-                Icon(
-                    imageVector = Icons.Outlined.MoreVert,
-                    contentDescription = null,
-                )
-            }
-            
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }) {
-                dropdownActions.forEach { action ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(text = action.title)
-                        },
-                        onClick = action.onClick,
-                        leadingIcon = {
-                            Icon(
-                                imageVector = action.icon,
-                                contentDescription = null,
-                            )
-                        })
-                }
-            }
-        })
+        navigationIcon = NavigationIcon(
+            icon = Icons.Outlined.Close,
+            onClick = onBack::invoke
+        ),
+        actions = actions
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DefaultTopBar(drawerState: DrawerState) {
+private fun DefaultTopBar(
+    drawerState: DrawerState,
+    isLockApp: Boolean,
+    onLockClick: () -> Unit
+) {
     val isConnected by WebSocketManager.isConnectedState.collectAsState()
     
     val navViewModel = viewModel<NavigationViewModel>()
     
     val scope = rememberCoroutineScope()
     
-    val appLockService = AppLockService()
-    val showLockIcon = appLockService.passcode.collectAsState().value.isNotBlank()
+    val actions = if (isLockApp) {
+        arrayOf(
+            TopBarAction(
+                icon = Icons.Outlined.LockOpen,
+                onClick = onLockClick
+            ),
+            TopBarAction(
+                icon = Icons.Outlined.Search,
+                onClick = {
+                    navViewModel.addScreenInStack {
+                        SearchScreen()
+                    }
+                })
+        )
+    } else {
+        arrayOf(
+            TopBarAction(
+                icon = Icons.Outlined.Search,
+                onClick = {
+                    navViewModel.addScreenInStack {
+                        SearchScreen()
+                    }
+                })
+        )
+    }
     
     PageTopBar(
         title = {
@@ -758,62 +756,26 @@ private fun DefaultTopBar(drawerState: DrawerState) {
                 )
             }
         },
-        navigationIcon = {
-            IconButton(
-                onClick = {
-                    scope.launch {
-                        drawerState.open()
-                    }
-                }) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = null
-                )
-            }
-        },
-        actions = {
-            if (showLockIcon) {
-                IconButton(
-                    onClick = {
-                        scope.launch {
-                            appLockService.lockApp()
-                        }
-                    }) {
-                    Icon(
-                        imageVector = Icons.Outlined.LockOpen,
-                        contentDescription = null,
-                    )
+        navigationIcon = NavigationIcon(
+            icon = Icons.Default.Menu,
+            onClick = {
+                scope.launch {
+                    drawerState.open()
                 }
-            }
-            
-            IconButton(
-                onClick = {
-                    navViewModel.addScreenInStack {
-                        SearchScreen()
-                    }
-                }) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = null,
-                )
-            }
-        },
+            }),
+        actions = actions
     )
 }
 
 @Composable
-private fun DrawerContent(
-    drawerState: DrawerState
-) {
+private fun DrawerContent(drawerState: DrawerState) {
     val navViewModel = viewModel<NavigationViewModel>()
     val user by UserManager.user.collectAsState()
     val scope = rememberCoroutineScope()
     
     ModalDrawerSheet(
-        drawerShape = RectangleShape,
         modifier = Modifier.fillMaxWidth(0.7f)
     ) {
-        
         Text(
             text = "${user.firstName} ${user.lastName}",
             modifier = Modifier.padding(
@@ -847,7 +809,10 @@ private fun DrawerContent(
                 drawerState.close()
             }
             navViewModel.addScreenInStack {
-                ChatScreen(user.id)
+                ChatScreen(
+                    user.id,
+                    ChatType.PRIVATE
+                )
             }
         }
         

@@ -6,13 +6,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -29,8 +27,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.data.NavigationIcon
 import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.ui.element.PageTopBar
+import com.aiwazian.messenger.utils.Shape
 import com.aiwazian.messenger.utils.VibrationPattern
 import com.aiwazian.messenger.viewModels.CloudPasswordViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -56,16 +56,12 @@ fun SettingsChangeCloudPasswordScreen() {
     
     Scaffold(
         topBar = {
-            PageTopBar(navigationIcon = {
-                IconButton(onClick = {
-                    navViewModel.removeLastScreenInStack()
-                }) {
-                    Icon(
-                        Icons.AutoMirrored.Outlined.ArrowBack,
-                        null
-                    )
-                }
-            })
+            PageTopBar(
+                navigationIcon = NavigationIcon(
+                    icon = Icons.AutoMirrored.Outlined.ArrowBack,
+                    onClick = navViewModel::removeLastScreenInStack
+                )
+            )
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -106,7 +102,7 @@ fun SettingsChangeCloudPasswordScreen() {
                     .padding(horizontal = 40.dp),
                 value = newPassword,
                 onValueChange = cloudPasswordViewModel::onInputNewPassword,
-                shape = RoundedCornerShape(10.dp),
+                shape = Shape.TextField,
                 label = {
                     Text(errorMessage ?: stringResource(R.string.enter_password))
                 },

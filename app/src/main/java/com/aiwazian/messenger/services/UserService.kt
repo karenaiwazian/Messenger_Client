@@ -1,17 +1,17 @@
 package com.aiwazian.messenger.services
 
 import com.aiwazian.messenger.api.RetrofitInstance
-import com.aiwazian.messenger.data.User
+import com.aiwazian.messenger.data.UserInfo
 import javax.inject.Inject
 
 class UserService @Inject constructor() {
     
-    suspend fun updateProfile(user: User): Boolean {
-        val response = RetrofitInstance.api.updateProfile(user)
+    suspend fun updateProfile(userInfo: UserInfo): Boolean {
+        val response = RetrofitInstance.api.updateProfile(userInfo)
         return response.isSuccessful
     }
     
-    suspend fun getUserById(userId: Int): User? {
+    suspend fun getUserById(userId: Int): UserInfo? {
         val response = RetrofitInstance.api.getUserById(userId)
         return response.body()
     }

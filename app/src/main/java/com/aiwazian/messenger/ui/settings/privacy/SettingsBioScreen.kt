@@ -1,6 +1,5 @@
 package com.aiwazian.messenger.ui.settings.privacy
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -8,8 +7,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,7 +19,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.customType.PrivacyLevel
+import com.aiwazian.messenger.data.NavigationIcon
+import com.aiwazian.messenger.data.TopBarAction
+import com.aiwazian.messenger.enums.PrivacyLevel
 import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
@@ -64,6 +63,27 @@ private fun Content(
     
     val vibrateService = VibrateService(context)
     
+    val actions = if (showSaveButton) {
+        arrayOf(
+            TopBarAction(
+                icon = Icons.Outlined.Check,
+                onClick = {
+                    scope.launch {
+                        val isSaved = settingsPrivacyViewModel.trySave()
+                        
+                        if (isSaved) {
+                            onChange.invoke(currentValue)
+                            navViewModel.removeLastScreenInStack()
+                        } else {
+                            vibrateService.vibrate(VibrationPattern.Error)
+                        }
+                    }
+                })
+        )
+    } else {
+        emptyArray()
+    }
+    
     LaunchedEffect(Unit) {
         settingsPrivacyViewModel.init(initialLevel)
     }
@@ -74,38 +94,12 @@ private fun Content(
                 title = {
                     Text(stringResource(R.string.bio))
                 },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            navViewModel.removeLastScreenInStack()
-                        }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = null,
-                        )
-                    }
-                },
-                actions = {
-                    AnimatedVisibility(visible = showSaveButton) {
-                        IconButton(onClick = {
-                            scope.launch {
-                                val isSaved = settingsPrivacyViewModel.trySave()
-                                
-                                if (isSaved) {
-                                    onChange.invoke(currentValue)
-                                    navViewModel.removeLastScreenInStack()
-                                } else {
-                                    vibrateService.vibrate(VibrationPattern.Error)
-                                }
-                            }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Outlined.Check,
-                                contentDescription = null
-                            )
-                        }
-                    }
-                })
+                navigationIcon = NavigationIcon(
+                    icon = Icons.AutoMirrored.Outlined.ArrowBack,
+                    onClick = navViewModel::removeLastScreenInStack
+                ),
+                actions = actions
+            )
         }) {
         Column(
             modifier = Modifier

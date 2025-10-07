@@ -1,16 +1,13 @@
-import org.gradle.api.JavaVersion.VERSION_11
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.gms)
     
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.10"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
     
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
-    
 }
 
 android {
@@ -21,7 +18,7 @@ android {
         applicationId = "com.aiwazian.messenger"
         minSdk = 30
         targetSdk = 36
-        versionCode = 1
+        versionCode = 6
         versionName = "1.0"
         
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -32,7 +29,7 @@ android {
             buildConfigField(
                 "String",
                 "SERVER_IP",
-                "\"10.24.236.101\""
+                "\"10.18.166.101\""
             )
         }
         release {
@@ -41,7 +38,7 @@ android {
             buildConfigField(
                 "String",
                 "SERVER_IP",
-                "\"5.129.242.233\""
+                "\"89.23.99.80\""
             )
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -52,8 +49,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = VERSION_11
-        targetCompatibility = VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -64,6 +61,10 @@ android {
         buildConfig = true
     }
     buildToolsVersion = "36.0.0"
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
 }
 
 dependencies {
@@ -80,9 +81,11 @@ dependencies {
     implementation(libs.androidx.material.icons.extended.android)
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    
+    // DataStore
+    implementation(libs.androidx.datastore.preferences)
     
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.navigation.material)
@@ -94,18 +97,31 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.kotlinx.serialization.json)
     
+    // Ktor
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.websockets)
     
     implementation(libs.coil.compose)
     
+    // Lottie animation
     implementation(libs.lottie.compose)
+    
     implementation(libs.zxing.android.embedded)
     
     implementation(libs.okhttp)
     
+    // Dagger Hilt
     implementation(libs.hilt.android)
+    implementation(libs.androidx.graphics.shapes)
+    debugImplementation(libs.androidx.compose.ui.tooling)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+    
+    // Room database
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+    
+    implementation(libs.material.icons.extended)
 }

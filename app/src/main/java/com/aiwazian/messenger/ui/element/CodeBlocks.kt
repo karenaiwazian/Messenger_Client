@@ -27,9 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -38,53 +35,62 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun CodeBlocks(
-    count: Int, showInput: Boolean = true, code: String
+    count: Int,
+    showInput: Boolean = true,
+    code: String
 ) {
-    val color = MaterialTheme.colorScheme.outline
-    var borderColor by remember { mutableStateOf(color) }
-
     val durationMills = 150
-
+    
     val fadeInSpec = fadeIn(tween(durationMills))
-
+    
     val fadeOutSpec = fadeOut(tween(durationMills))
-
+    
     val inputAnimation = slideInVertically(
         tween(durationMills)
     ) { it } + fadeInSpec togetherWith slideOutVertically(
         tween(durationMills)
     ) { -it } + fadeOutSpec
-
+    
     val outputAnimation = slideInVertically(
         tween(durationMills)
     ) { -it } + fadeInSpec togetherWith slideOutVertically(
         tween(durationMills)
     ) { it } + fadeOutSpec
-
+    
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         repeat(times = count) { index ->
             val char = code.getOrNull(index)?.toString() ?: ""
-
+            
             val isCurrent = index == code.length && char.isEmpty()
-
+            
             val cellBorderColor by animateColorAsState(
-                targetValue = if (isCurrent) MaterialTheme.colorScheme.primary else borderColor, animationSpec = tween(
-                    durationMillis = 200, easing = FastOutSlowInEasing
+                targetValue = if (isCurrent) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.outline
+                },
+                animationSpec = tween(
+                    durationMillis = 200,
+                    easing = FastOutSlowInEasing
                 )
             )
-
+            
             Column(
                 modifier = Modifier
                     .width(44.dp)
                     .height(48.dp)
                     .border(
-                        width = 2.dp, color = cellBorderColor, shape = RoundedCornerShape(8.dp)
-                    ), verticalArrangement = Arrangement.Center
+                        width = 2.dp,
+                        color = cellBorderColor,
+                        shape = RoundedCornerShape(8.dp)
+                    ),
+                verticalArrangement = Arrangement.Center
             ) {
                 AnimatedContent(
-                    targetState = char, transitionSpec = {
+                    targetState = char,
+                    transitionSpec = {
                         if (targetState > initialState) {
                             inputAnimation
                         } else {

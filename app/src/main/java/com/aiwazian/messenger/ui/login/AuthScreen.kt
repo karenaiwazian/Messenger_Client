@@ -12,7 +12,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.aiwazian.messenger.viewModels.AuthViewModel
 import androidx.navigation.compose.NavHost
-import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 object Screen {
     const val LOGIN = "login"

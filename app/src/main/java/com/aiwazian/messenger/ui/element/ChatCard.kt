@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -170,10 +172,10 @@ private fun Leading(visible: Boolean) {
                 .align(Alignment.BottomEnd)
         ) {
             AnimatedVisibility(
-                modifier = Modifier.background(Color.Green),
                 visible = visible,
-                enter = fadeIn(tween(100)),
-                exit = fadeOut(tween(100))
+                modifier = Modifier.background(Color.Green),
+                enter = scaleIn(tween(200)) + fadeIn(tween(100)),
+                exit = scaleOut(tween(200)) + fadeOut(tween(100))
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Check,
@@ -188,20 +190,16 @@ private fun Leading(visible: Boolean) {
 
 private fun formatTimestamp(timestamp: Long): String {
     val currentDateTime = LocalDateTime.now()
-    val providedDateTime = Instant.ofEpochMilli(timestamp)
-        .atZone(ZoneId.systemDefault())
-        .toLocalDateTime()
+    val providedDateTime =
+        Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDateTime()
     
-    if (providedDateTime.toLocalDate()
-            .isEqual(currentDateTime.toLocalDate())
-    ) {
+    if (providedDateTime.toLocalDate().isEqual(currentDateTime.toLocalDate())) {
         return providedDateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
     }
     
-    val startOfWeek = currentDateTime.toLocalDate()
-        .minusDays(currentDateTime.dayOfWeek.ordinal.toLong())
-    if (providedDateTime.toLocalDate()
-            .isAfter(startOfWeek) && providedDateTime.toLocalDate()
+    val startOfWeek =
+        currentDateTime.toLocalDate().minusDays(currentDateTime.dayOfWeek.ordinal.toLong())
+    if (providedDateTime.toLocalDate().isAfter(startOfWeek) && providedDateTime.toLocalDate()
             .isBefore(currentDateTime.toLocalDate())
     ) {
         val dayOfWeekFormatter = DateTimeFormatter.ofPattern("E")

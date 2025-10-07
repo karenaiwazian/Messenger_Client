@@ -1,42 +1,32 @@
 package com.aiwazian.messenger.ui.settings
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.DataUsage
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.QuestionMark
-import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.customType.Language
+import com.aiwazian.messenger.data.DropdownMenuAction
+import com.aiwazian.messenger.data.NavigationIcon
+import com.aiwazian.messenger.data.TopBarAction
+import com.aiwazian.messenger.enums.Language
 import com.aiwazian.messenger.services.LanguageService
 import com.aiwazian.messenger.ui.LogoutScreen
 import com.aiwazian.messenger.ui.element.PageTopBar
@@ -47,6 +37,7 @@ import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.settings.chat.SettingsChatScreen
 import com.aiwazian.messenger.ui.settings.chatFolder.SettingsChatFoldersScreen
 import com.aiwazian.messenger.ui.settings.privacy.SettingsPrivacyScreen
+import com.aiwazian.messenger.ui.settings.profile.SettingsProfileScreen
 import com.aiwazian.messenger.ui.settings.security.SettingsSecurityScreen
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
@@ -102,7 +93,7 @@ private fun Content() {
             SectionContainer {
                 SectionItem(
                     icon = Icons.Outlined.ChatBubbleOutline,
-                    text = stringResource(R.string.design),
+                    text = stringResource(R.string.appearance),
                     onClick = {
                         navViewModel.addScreenInStack { SettingsChatScreen() }
                     })
@@ -112,13 +103,6 @@ private fun Content() {
                     text = stringResource(R.string.confidentiality),
                     onClick = {
                         navViewModel.addScreenInStack { SettingsPrivacyScreen() }
-                    })
-                
-                SectionItem(
-                    icon = Icons.Outlined.Notifications,
-                    text = stringResource(R.string.notifications),
-                    onClick = {
-                        navViewModel.addScreenInStack { SettingsNotificationsScreen() }
                     })
                 
                 SectionItem(
@@ -144,19 +128,19 @@ private fun Content() {
                     })
             }
             
-            SectionHeader(stringResource(R.string.help))
-            
-            SectionContainer {
-                SectionItem(
-                    icon = Icons.Outlined.QuestionMark,
-                    text = stringResource(R.string.faq),
-                )
-                
-                SectionItem(
-                    icon = Icons.Outlined.Shield,
-                    text = stringResource(R.string.privacy_policy),
-                )
-            }
+            //            SectionHeader(stringResource(R.string.help))
+            //
+            //            SectionContainer {
+            //                SectionItem(
+            //                    icon = Icons.Outlined.QuestionMark,
+            //                    text = stringResource(R.string.faq),
+            //                )
+            //
+            //                SectionItem(
+            //                    icon = Icons.Outlined.Shield,
+            //                    text = stringResource(R.string.privacy_policy),
+            //                )
+            //            }
             
             val context = LocalContext.current
             
@@ -175,57 +159,31 @@ private fun Content() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar() {
     val navViewModel = viewModel<NavigationViewModel>()
     
-    var menuExpanded by remember { mutableStateOf(false) }
+    val actions = arrayOf(
+        TopBarAction(
+            icon = Icons.Outlined.MoreVert,
+            dropdownActions = arrayOf(
+                DropdownMenuAction(
+                    icon = Icons.AutoMirrored.Outlined.Logout,
+                    text = stringResource(R.string.log_out),
+                    onClick = {
+                        navViewModel.addScreenInStack {
+                            LogoutScreen()
+                        }
+                    })
+            )
+        )
+    )
     
     PageTopBar(
-        navigationIcon = {
-            IconButton(onClick = {
-                navViewModel.removeLastScreenInStack()
-            }) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null,
-                )
-            }
-        },
-        actions = {
-            Box {
-                IconButton(onClick = { menuExpanded = true }) {
-                    Icon(
-                        imageVector = Icons.Outlined.MoreVert,
-                        contentDescription = null,
-                    )
-                }
-                
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        leadingIcon = {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ExitToApp,
-                                contentDescription = stringResource(R.string.log_out),
-                            )
-                        },
-                        text = {
-                            Text(
-                                text = stringResource(R.string.log_out)
-                            )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            navViewModel.addScreenInStack {
-                                LogoutScreen()
-                            }
-                        })
-                }
-            }
-        }
+        navigationIcon = NavigationIcon(
+            icon = Icons.AutoMirrored.Outlined.ArrowBack,
+            onClick = navViewModel::removeLastScreenInStack
+        ),
+        actions = actions
     )
 }

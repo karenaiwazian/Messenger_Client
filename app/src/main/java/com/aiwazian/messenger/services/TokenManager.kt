@@ -2,6 +2,7 @@ package com.aiwazian.messenger.services
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 
 object TokenManager {
     
@@ -21,17 +22,17 @@ object TokenManager {
     
     suspend fun init() {
         val dataStore = DataStoreManager.getInstance()
-        _token.value = dataStore.getToken().first()
+        _token.update { dataStore.getToken().first() }
     }
     
     suspend fun saveToken(token: String) {
-        _token.value = token
+        _token.update { token }
         val dataStore = DataStoreManager.getInstance()
         dataStore.saveToken(token)
     }
     
     suspend fun removeToken() {
-        _token.value = ""
+        _token.update { "" }
         val dataStore = DataStoreManager.getInstance()
         dataStore.saveToken("")
     }

@@ -1,7 +1,7 @@
 package com.aiwazian.messenger.data
 
 import androidx.annotation.Keep
-import com.aiwazian.messenger.customType.PrivacyLevel
+import com.aiwazian.messenger.enums.PrivacyLevel
 
 @Keep
 data class PrivacySettings(

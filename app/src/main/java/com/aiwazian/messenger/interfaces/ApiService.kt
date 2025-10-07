@@ -4,14 +4,17 @@ import androidx.annotation.Keep
 import com.aiwazian.messenger.data.ApiResponse
 import com.aiwazian.messenger.data.AuthRequest
 import com.aiwazian.messenger.data.ChangeCloudPasswordRequest
-import com.aiwazian.messenger.data.ChatFolder
+import com.aiwazian.messenger.data.ChannelInfo
 import com.aiwazian.messenger.data.ChatInfo
+import com.aiwazian.messenger.data.FolderInfo
 import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.data.NotificationTokenRequest
 import com.aiwazian.messenger.data.PrivacySettings
 import com.aiwazian.messenger.data.RegisterRequest
-import com.aiwazian.messenger.data.Session
-import com.aiwazian.messenger.data.User
+import com.aiwazian.messenger.data.ResponseChatInfo
+import com.aiwazian.messenger.data.SearchInfo
+import com.aiwazian.messenger.data.SessionInfo
+import com.aiwazian.messenger.data.UserInfo
 import com.aiwazian.messenger.utils.Route
 import retrofit2.Response
 import retrofit2.http.Body
@@ -39,16 +42,16 @@ interface ApiService {
     suspend fun logout(): Response<ApiResponse>
     
     @GET(Route.ME)
-    suspend fun getMe(): Response<User>
+    suspend fun getMe(): Response<UserInfo>
     
     @GET(Route.UNARCHIVED_CHATS)
-    suspend fun getUnarchivedChats(): Response<List<ChatInfo>>
+    suspend fun getUnarchivedChats(): Response<List<ResponseChatInfo>>
     
     @GET(Route.ARCHIVED_CHATS)
     suspend fun getArchivedChats(): Response<List<ChatInfo>>
     
     @GET(Route.GET_SESSIONS)
-    suspend fun getSessions(): Response<List<Session>>
+    suspend fun getSessions(): Response<List<SessionInfo>>
     
     @POST(Route.UPDATE_FCM_TOKEN)
     suspend fun updateFcmToken(@Body newToken: NotificationTokenRequest): Response<ApiResponse>
@@ -68,6 +71,12 @@ interface ApiService {
         @Query("deleteForReceiver") deleteForReceiver: Boolean
     ): Response<ApiResponse>
     
+    @DELETE(Route.DELETE_CHAT_MESSAGES)
+    suspend fun deleteChatMessages(
+        @Path("id") id: Int,
+        @Query("deleteForReceiver") deleteForReceiver: Boolean
+    ): Response<ApiResponse>
+    
     @PATCH(Route.CHANGE_CLOUD_PASSWORD)
     suspend fun changeCloudPassword(@Body body: ChangeCloudPasswordRequest): Response<ApiResponse>
     
@@ -84,16 +93,16 @@ interface ApiService {
     suspend fun getChatLastMessage(@Path("chatId") chatId: Int): Response<Message>
     
     @GET(Route.GET_CHAT_INFO)
-    suspend fun getChatInfo(@Path("id") id: Int): Response<ChatInfo?>
+    suspend fun getChatInfo(@Path("id") id: Int): Response<ResponseChatInfo?>
     
     @PUT(Route.PROFILE_UPDATE)
-    suspend fun updateProfile(@Body profile: User): Response<Unit>
+    suspend fun updateProfile(@Body profile: UserInfo): Response<Unit>
     
     @GET(Route.SEARCH_USER)
-    suspend fun searchUser(@Query("search") query: String): Response<List<User>>
+    suspend fun searchUser(@Query("search") query: String): Response<List<SearchInfo>>
     
     @GET(Route.GE_USER_BY_ID)
-    suspend fun getUserById(@Path("id") id: Int): Response<User>
+    suspend fun getUserById(@Path("id") id: Int): Response<UserInfo>
     
     @POST(Route.ADD_CHAT_TO_ARCHIVE)
     suspend fun archiveChat(@Path("id") chatId: Int): Response<ApiResponse>
@@ -118,16 +127,16 @@ interface ApiService {
     ): Response<ApiResponse>
     
     @POST(Route.FOLDER)
-    suspend fun saveFolder(@Body requestBody: ChatFolder): Response<ApiResponse>
+    suspend fun saveFolder(@Body requestBody: FolderInfo): Response<ApiResponse>
     
     @DELETE(Route.DELETE_FOLDER)
     suspend fun deleteFolder(@Path("id") id: Int): Response<ApiResponse>
     
     @GET(Route.FOLDERS)
-    suspend fun getFolders(): Response<List<ChatFolder>>
+    suspend fun getFolders(): Response<List<FolderInfo>>
     
     @GET(Route.CHATS)
-    suspend fun getAllChats(): Response<List<ChatInfo>>
+    suspend fun getAllChats(): Response<List<ResponseChatInfo>>
     
     @POST(Route.PIN_CHAT)
     suspend fun pinChat(
@@ -159,4 +168,25 @@ interface ApiService {
     
     @PATCH(Route.SAVE_USERNAME)
     suspend fun saveUsername(@Path("username") username: String): Response<ApiResponse>
+    
+    @POST(Route.SAVE_CHANNEL)
+    suspend fun saveChannel(@Body channelInfo: ChannelInfo): Response<ApiResponse>
+    
+    @DELETE(Route.DELETE_CHANNEL)
+    suspend fun deleteChannel(@Path("id") id: Int): Response<ApiResponse>
+    
+    @GET(Route.GET_CHANNEL)
+    suspend fun getChannel(@Path("id") id: Int): Response<ChannelInfo>
+    
+    @POST(Route.JOIN_CHANNEL)
+    suspend fun joinChannel(@Path("id") id: Int): Response<ApiResponse>
+    
+    @DELETE(Route.LEAVE_CHANNEL)
+    suspend fun leaveChannel(@Path("id") id: Int): Response<ApiResponse>
+    
+    @GET(Route.GET_CHANNEL_SUBSCRIBERS)
+    suspend fun getChannelSubscribers(@Path("id") id: Int): Response<List<UserInfo>>
+    
+    @GET(Route.CHECK_CHANNEL_PUBLIC_LINK)
+    suspend fun checkChannelPublicLink(@Path("link") link: String): Response<ApiResponse>
 }

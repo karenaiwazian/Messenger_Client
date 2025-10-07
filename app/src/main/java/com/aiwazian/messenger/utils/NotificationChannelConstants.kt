@@ -1,15 +1,11 @@
 package com.aiwazian.messenger.utils
 
-data class NotificationChannelInfo(
-    val id: String,
-    val name: String,
-    val description: String
-)
+import com.aiwazian.messenger.data.NotificationChannelInfo
 
 object NotificationChannelConstants {
     val PERSONAL_MESSAGES = NotificationChannelInfo(
         "personal_messages",
         "Личные сообщения",
-        "Уведомления для новых сообщений в личных чатах"
+        "Уведомления для сообщений в личных чатах"
     )
 }

@@ -2,44 +2,37 @@ package com.aiwazian.messenger.viewModels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.aiwazian.messenger.data.ChatFolder
 import com.aiwazian.messenger.data.ChatInfo
+import com.aiwazian.messenger.data.FolderInfo
+import com.aiwazian.messenger.database.repository.FolderRepository
 import com.aiwazian.messenger.services.DialogController
-import com.aiwazian.messenger.services.FolderService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
-class FolderViewModel @Inject constructor(private val folderService: FolderService) : ViewModel() {
+class FolderViewModel @Inject constructor(
+    private val folderRepository: FolderRepository
+) : ViewModel() {
     
-    private val _folders = MutableStateFlow<List<ChatFolder>>(emptyList())
-    val folders = _folders.asStateFlow()
+    val folders = folderRepository.folders
     
-    private val _openFolder = MutableStateFlow(ChatFolder())
-    val openFolder = _openFolder.asStateFlow()
+    private val _openFolderInfo = MutableStateFlow(FolderInfo())
+    val openFolder = _openFolderInfo.asStateFlow()
     
     private val _canSave = MutableStateFlow(false)
     val canSave = _canSave.asStateFlow()
     
     val removeFolderDialog = DialogController()
     
-    init {
-        viewModelScope.launch {
-            folderService.folders.collectLatest { folders ->
-                _folders.value = folders
-            }
+    fun open(folderId: Int) {
+        _openFolderInfo.update {
+            _openFolderInfo.value.copy(
+                id = folderId
+            )
         }
-    }
-    
-    fun loadFolder(folderId: Int) {
-        _openFolder.value = _openFolder.value.copy(
-            id = folderId
-        )
         
         if (folderId == 0) {
             cleanData()
@@ -47,7 +40,7 @@ class FolderViewModel @Inject constructor(private val folderService: FolderServi
             return
         }
         
-        val folderList = _folders.value.toMutableList()
+        val folderList = folders.value.toMutableList()
         val folder = folderList.find { it.id == folderId }
         
         if (folder == null) {
@@ -55,61 +48,69 @@ class FolderViewModel @Inject constructor(private val folderService: FolderServi
         }
         
         try {
-            val folderChats = folderService.getFolderChats(folderId)
+            val folderChats = folderRepository.getFolderChats(folderId)
             
-            _openFolder.value = _openFolder.value.copy(
-                folderName = folder.folderName, chats = folderChats
-            )
+            _openFolderInfo.update {
+                _openFolderInfo.value.copy(
+                    name = folder.name,
+                    chats = folderChats
+                )
+            }
         } catch (e: Exception) {
             Log.e(
-                "FolderViewModel", "Error loading folder chats", e
+                "FolderViewModel",
+                "Error loading folder chats",
+                e
             )
         }
     }
     
     fun changeFolderName(newName: String) {
-        _openFolder.value = _openFolder.value.copy(folderName = newName)
+        _openFolderInfo.update { _openFolderInfo.value.copy(name = newName) }
         updateCanSaveState()
     }
     
-    suspend fun removeFolder(folderId: Int) {
+    suspend fun remove(folderId: Int) {
         try {
-            val isDeleted = folderService.removeFolder(folderId)
+            val isDeleted = folderRepository.remove(folderId)
             
             if (isDeleted) {
-                _folders.value = _folders.value.filter { it.id != folderId }
                 cleanData()
                 updateCanSaveState()
             }
         } catch (e: Exception) {
             Log.e(
-                "FolderViewModel", "Error removing folder", e
+                "FolderViewModel",
+                "Error removing folder",
+                e
             )
         }
     }
     
     fun updateFolderChats(newChats: List<ChatInfo>) {
-        _openFolder.value = _openFolder.value.copy(chats = newChats)
+        _openFolderInfo.update { _openFolderInfo.value.copy(chats = newChats) }
         updateCanSaveState()
     }
     
-    suspend fun saveFolder() {
+    suspend fun save() {
         try {
-            val folder = _openFolder.value
+            val folder = _openFolderInfo.value
             
-            folderService.saveFolder(folder)
+            folderRepository.saveFolder(folder)
         } catch (e: Exception) {
             Log.e(
-                "FolderViewModel", "Error creating folder", e
+                "FolderViewModel",
+                "Error creating folder",
+                e
             )
         }
     }
-
+    
     private fun cleanData() {
-        _openFolder.value = ChatFolder()
+        _openFolderInfo.update { FolderInfo() }
     }
     
     private fun updateCanSaveState() {
-        _canSave.value = _openFolder.value.folderName.isNotBlank()
+        _canSave.update { _openFolderInfo.value.name.isNotBlank() }
     }
 }

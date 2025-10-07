@@ -15,15 +15,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.BackHand
-import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -50,25 +46,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.aiwazian.messenger.R
-import com.aiwazian.messenger.data.Session
+import com.aiwazian.messenger.data.NavigationIcon
+import com.aiwazian.messenger.data.SessionInfo
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
-import com.aiwazian.messenger.ui.element.SectionDescription
 import com.aiwazian.messenger.ui.element.SectionHeader
-import com.aiwazian.messenger.ui.element.SectionItem
 import com.aiwazian.messenger.ui.element.SectionRadioItem
-import com.aiwazian.messenger.utils.LottieAnimation
 import com.aiwazian.messenger.viewModels.DevicesViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
@@ -78,7 +67,6 @@ fun SettingsDevicesScreen() {
     Content()
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content() {
     val navViewModel = viewModel<NavigationViewModel>()
@@ -104,19 +92,12 @@ private fun Content() {
         topBar = {
             PageTopBar(
                 title = { Text(stringResource(R.string.devices)) },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            navViewModel.removeLastScreenInStack()
-                        }) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = null,
-                        )
-                    }
-                })
+                navigationIcon = NavigationIcon(
+                    icon = Icons.AutoMirrored.Outlined.ArrowBack,
+                    onClick = navViewModel::removeLastScreenInStack
+                )
+            )
         },
-        
         snackbarHost = {
             SwipeDismissSnackbarHost(snackbarHostState)
         }) {
@@ -126,49 +107,49 @@ private fun Content() {
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val composition by rememberLottieComposition(
-                    spec = LottieCompositionSpec.Asset(LottieAnimation.APPLE_PHONE)
-                )
-                
-                LottieAnimation(
-                    composition = composition,
-                    modifier = Modifier.size(100.dp),
-                    iterations = LottieConstants.IterateForever,
-                    isPlaying = true
-                )
-                
-                Text(
-                    text = "Вы можете зайти в приложение с помощью QR-кода.",
-                    fontSize = 14.sp,
-                    lineHeight = 14.sp,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                
-                Button(
-                    onClick = { },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    shape = RoundedCornerShape(10.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.QrCode,
-                        contentDescription = null,
-                    )
-                    Text(
-                        text = stringResource(R.string.connect_device),
-                        modifier = Modifier.padding(8.dp),
-                    )
-                }
-            }
+            //            Column(
+            //                modifier = Modifier
+            //                    .fillMaxWidth()
+            //                    .padding(vertical = 10.dp),
+            //                verticalArrangement = Arrangement.spacedBy(10.dp),
+            //                horizontalAlignment = Alignment.CenterHorizontally
+            //            ) {
+            //                val composition by rememberLottieComposition(
+            //                    spec = LottieCompositionSpec.Asset(LottieAnimation.APPLE_PHONE)
+            //                )
+            //
+            //                LottieAnimation(
+            //                    composition = composition,
+            //                    modifier = Modifier.size(100.dp),
+            //                    iterations = LottieConstants.IterateForever,
+            //                    isPlaying = true
+            //                )
+            //
+            //                Text(
+            //                    text = "Вы можете зайти в приложение с помощью QR-кода.",
+            //                    fontSize = 14.sp,
+            //                    lineHeight = 14.sp,
+            //                    textAlign = TextAlign.Center,
+            //                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            //                )
+            //
+            //                Button(
+            //                    onClick = { },
+            //                    modifier = Modifier
+            //                        .fillMaxWidth()
+            //                        .padding(10.dp),
+            //                    shape = RoundedCornerShape(10.dp),
+            //                ) {
+            //                    Icon(
+            //                        imageVector = Icons.Outlined.QrCode,
+            //                        contentDescription = null,
+            //                    )
+            //                    Text(
+            //                        text = stringResource(R.string.connect_device),
+            //                        modifier = Modifier.padding(8.dp),
+            //                    )
+            //                }
+            //            }
             
             SectionHeader(stringResource(R.string.this_device))
             
@@ -181,27 +162,27 @@ private fun Content() {
                     })
                 
             }
-//
-//            if (sessions.isNotEmpty()) {
-//                SectionContainer {
-//                    SectionItem(
-//                        icon = Icons.Outlined.BackHand,
-//                        iconColor = MaterialTheme.colorScheme.error,
-//                        text = stringResource(R.string.terminate_all_other_sessions),
-//                        textColor = MaterialTheme.colorScheme.error,
-//                        colors = ButtonDefaults.textButtonColors(
-//                            contentColor = MaterialTheme.colorScheme.error
-//                        ),
-//                        onClick = {
-//                            devicesViewModel.setConfirmDialogAction {
-//                                devicesViewModel.terminateAllOtherSessions()
-//                            }
-//                            bottomSheetDialog.show()
-//                        })
-//                }
-//
-//                SectionDescription(text = stringResource(R.string.terminate_all_other_sessions_description))
-//            }
+            //
+            //            if (sessions.isNotEmpty()) {
+            //                SectionContainer {
+            //                    SectionItem(
+            //                        icon = Icons.Outlined.BackHand,
+            //                        iconColor = MaterialTheme.colorScheme.error,
+            //                        text = stringResource(R.string.terminate_all_other_sessions),
+            //                        textColor = MaterialTheme.colorScheme.error,
+            //                        colors = ButtonDefaults.textButtonColors(
+            //                            contentColor = MaterialTheme.colorScheme.error
+            //                        ),
+            //                        onClick = {
+            //                            devicesViewModel.setConfirmDialogAction {
+            //                                devicesViewModel.terminateAllOtherSessions()
+            //                            }
+            //                            bottomSheetDialog.show()
+            //                        })
+            //                }
+            //
+            //                SectionDescription(text = stringResource(R.string.terminate_all_other_sessions_description))
+            //            }
             
             if (sessions.isNotEmpty()) {
                 SectionHeader(title = stringResource(R.string.active_sessions))
@@ -237,7 +218,7 @@ private fun Content() {
         
         if (bottomSheetDialog.isVisible) {
             BottomModal(
-                session = openSession,
+                sessionInfo = openSession,
                 onDismissRequest = bottomSheetDialog::hide,
                 onConfirm = {
                     devicesViewModel.setConfirmDialogAction {
@@ -252,7 +233,7 @@ private fun Content() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BottomModal(
-    session: Session,
+    sessionInfo: SessionInfo,
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -268,13 +249,13 @@ private fun BottomModal(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = session.deviceName,
+                text = sessionInfo.deviceName,
                 fontSize = 18.sp
             )
             
-            Text(session.createdAt)
+            Text(sessionInfo.createdAt)
             
-            if (session.id != 0) {
+            if (sessionInfo.id != 0) {
                 Button(
                     onClick = onConfirm,
                     modifier = Modifier.fillMaxWidth(),
