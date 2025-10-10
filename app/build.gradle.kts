@@ -18,8 +18,8 @@ android {
         applicationId = "com.aiwazian.messenger"
         minSdk = 30
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.0"
+        versionCode = 7
+        versionName = "1.1"
         
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -68,6 +68,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.mobileads)
+    
     implementation(libs.firebase.messaging)
     
     implementation(platform(libs.androidx.compose.bom))

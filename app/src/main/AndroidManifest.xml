@@ -34,6 +34,10 @@
         tools:ignore="DataExtractionRules"
         tools:targetApi="33">
 
+        <meta-data
+            android:name="com.yandex.mobile.ads.AUTOMATIC_SDK_INITIALIZATION"
+            android:value="false" />
+
         <service
             android:name=".services.NotificationService"
             android:exported="false"
