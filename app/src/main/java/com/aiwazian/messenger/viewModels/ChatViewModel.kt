@@ -136,13 +136,7 @@ class ChatViewModel @Inject constructor(
         
         val validText = _messageText.value.trim()
         
-        val messageId = _messages.value.let {
-            if (it.isNotEmpty()) {
-                it.last().id + 1
-            } else {
-                1
-            }
-        }
+        val messageId = Math.random().toInt()
         
         val message = Message(
             id = messageId,
