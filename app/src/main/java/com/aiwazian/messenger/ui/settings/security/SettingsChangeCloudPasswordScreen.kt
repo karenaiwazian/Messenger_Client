@@ -84,10 +84,20 @@ fun SettingsChangeCloudPasswordScreen() {
                 modifier = Modifier.imePadding(),
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.ArrowForward,
-                    null
-                )
+                AnimatedContent(targetState = isLoading) { isLoading ->
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.ArrowForward,
+                            null
+                        )
+                    }
+                }
             }
         }) { innerPadding ->
         Column(
