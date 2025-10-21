@@ -21,7 +21,7 @@ import com.aiwazian.messenger.utils.Shape
 fun PageTopBar(
     title: @Composable () -> Unit = { },
     navigationIcon: NavigationIcon,
-    vararg actions: TopBarAction = emptyArray()
+    actions: List<TopBarAction> = emptyList()
 ) {
     TopAppBar(
         title = title,

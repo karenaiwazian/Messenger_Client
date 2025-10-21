@@ -1,3 +1,3 @@
 package com.aiwazian.messenger.data
 
-data class LocalAccount(val id: Int, val isCurrent: Boolean)
+data class LocalAccount(val id: Long, val isCurrent: Boolean)

@@ -3,31 +3,37 @@ package com.aiwazian.messenger.services
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.ChannelInfo
 import com.aiwazian.messenger.data.UserInfo
+import com.aiwazian.messenger.types.EntityId
 import javax.inject.Inject
 
 class ChannelService @Inject constructor() {
     
-    suspend fun save(channel: ChannelInfo): Int? {
-        val response = RetrofitInstance.api.saveChannel(channel)
-        return response.body()?.message?.toInt()
+    suspend fun create(channel: ChannelInfo): Long? {
+        val response = RetrofitInstance.api.createChannel(channel)
+        return response.body()?.message?.toLongOrNull()
     }
     
-    suspend fun delete(id: Int): Boolean {
+    suspend fun save(channel: ChannelInfo): Long? {
+        val response = RetrofitInstance.api.saveChannel(channel.id, channel)
+        return response.body()?.message?.toLongOrNull()
+    }
+    
+    suspend fun delete(id: Long): Boolean {
         val response = RetrofitInstance.api.deleteChannel(id)
         return response.isSuccessful
     }
     
-    suspend fun get(id: Int): ChannelInfo? {
+    suspend fun get(id: Long): ChannelInfo? {
         val response = RetrofitInstance.api.getChannel(id)
         return response.body()
     }
     
-    suspend fun join(id: Int): Boolean {
+    suspend fun join(id: Long): Boolean {
         val response = RetrofitInstance.api.joinChannel(id)
         return response.isSuccessful
     }
     
-    suspend fun leave(id: Int): Boolean {
+    suspend fun leave(id: Long): Boolean {
         val response = RetrofitInstance.api.leaveChannel(id)
         return response.isSuccessful
     }
@@ -37,7 +43,7 @@ class ChannelService @Inject constructor() {
         return !response.isSuccessful
     }
     
-    suspend fun getSubscribers(id:Int): List<UserInfo>? {
+    suspend fun getSubscribers(id:Long): List<UserInfo>? {
         val response = RetrofitInstance.api.getChannelSubscribers(id)
         return response.body()
     }

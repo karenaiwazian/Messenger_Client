@@ -53,7 +53,6 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.data.NavigationIcon
-import com.aiwazian.messenger.enums.ChatType
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.utils.LottieAnimation
 import com.aiwazian.messenger.viewModels.NavigationViewModel
@@ -121,14 +120,7 @@ fun SearchScreen() {
                         shape = RectangleShape,
                         onClick = {
                             navViewModel.addScreenInStack {
-                                ChatScreen(
-                                    chatId = search.chatId,
-                                    chatType = if (search.chatId < 0) {
-                                        ChatType.CHANNEL
-                                    } else {
-                                        ChatType.PRIVATE
-                                    }
-                                )
+                                ChatScreen(search.chatId)
                             }
                         },
                         colors = CardDefaults.cardColors(

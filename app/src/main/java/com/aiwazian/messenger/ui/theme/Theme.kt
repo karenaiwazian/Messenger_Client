@@ -57,14 +57,22 @@ fun ApplicationTheme(
     
     SideEffect {
         val window = activity.window
+        
+        WindowCompat.setDecorFitsSystemWindows(
+            window,
+            false
+        )
+        
         val insetsController = WindowCompat.getInsetsController(
             window,
             view
         )
         
         window.statusBarColor = Color.Transparent.toArgb()
+        window.navigationBarColor = Color.Transparent.toArgb()
         
         insetsController.isAppearanceLightStatusBars = !isDark
+        insetsController.isAppearanceLightNavigationBars = !isDark
     }
     
     val colorScheme = when {
@@ -76,7 +84,7 @@ fun ApplicationTheme(
         isDark -> darkColorSchemeMaterial(primaryColor)
         else -> lightColorSchemeMaterial(primaryColor)
     }
-
+    
     MaterialExpressiveTheme(
         motionScheme = MotionScheme.expressive(),
         colorScheme = colorScheme,

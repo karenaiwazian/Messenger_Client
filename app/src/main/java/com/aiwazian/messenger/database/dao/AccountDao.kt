@@ -15,7 +15,7 @@ interface AccountDao {
     @Query("SELECT * FROM account WHERE id = :id")
     suspend fun get(id: Int): AccountEntity?
     
-    @Query("SELECT * FROM account WHERE isCurrent = true")
+    @Query("SELECT * FROM account WHERE isCurrent = 1")
     suspend fun getMe(): AccountEntity?
     
     @Delete

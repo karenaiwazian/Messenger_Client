@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ReadMessagePayload(
-    val chatId: Int,
+    val chatId: Long,
     val messageId: Int
 )

@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +21,7 @@ import com.aiwazian.messenger.ui.channel.CreateChannelScreen
 import com.aiwazian.messenger.ui.element.PageTopBar
 import com.aiwazian.messenger.ui.element.SectionContainer
 import com.aiwazian.messenger.ui.element.SectionItem
+import com.aiwazian.messenger.ui.group.CreateGroupScreen
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
@@ -48,6 +50,12 @@ private fun Content() {
                     text = stringResource(R.string.create_channel),
                     onClick = {
                         navViewModel.addScreenInStack { CreateChannelScreen() }
+                    })
+                SectionItem(
+                    icon = Icons.Outlined.Groups,
+                    text = stringResource(R.string.create_group),
+                    onClick = {
+                        navViewModel.addScreenInStack { CreateGroupScreen() }
                     })
             }
         }

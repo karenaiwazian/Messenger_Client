@@ -113,4 +113,8 @@
     <string name="channel_name">Channel name</string>
     <string name="description">Description</string>
     <string name="remove_date_of_birth">Remove Date of Birth</string>
+    <string name="subscriberCount">Subscribers</string>
+    <string name="leave_group">Leave Group</string>
+    <string name="add_member">Add Members</string>
+    <string name="delete_group">Delete Group</string>
 </resources>

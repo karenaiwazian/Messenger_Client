@@ -98,7 +98,7 @@ private fun Content() {
     var canSave by remember { mutableStateOf(true) }
     
     val action = if (canSave) {
-        arrayOf(
+        listOf(
             TopBarAction(
                 icon = Icons.Outlined.Check,
                 onClick = {
@@ -116,7 +116,7 @@ private fun Content() {
                             return@launch
                         }
                         
-                        val savedId = channelViewModel.trySave()
+                        val savedId = channelViewModel.trySaveOrCreate()
                         
                         if (savedId == null) {
                             vibrateService.vibrate(VibrationPattern.Error)
@@ -128,7 +128,7 @@ private fun Content() {
                 })
         )
     } else {
-        emptyArray()
+        emptyList()
     }
     
     Scaffold(
@@ -315,26 +315,12 @@ private fun Content() {
                     }
                 }
             }
-            
-//            SectionHeader(title = "Сохранение контента")
-//
-//            SectionContainer {
-//                var g by remember { mutableStateOf(false) }
-//                SectionToggleItem(
-//                    text = "Запретить копирование",
-//                    isChecked = g,
-//                    onCheckedChange = {
-//                        g = !g
-//                    })
-//            }
-//
-//            SectionDescription(text = "Подписчики не смогут копировать, сохранять или пересылать материалы из канала.")
         }
     }
 }
 
 @Composable
-private fun TopBar(vararg actions: TopBarAction) {
+private fun TopBar(actions: List<TopBarAction>) {
     val navViewModel = viewModel<NavigationViewModel>()
     
     PageTopBar(

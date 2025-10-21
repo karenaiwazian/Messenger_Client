@@ -7,15 +7,15 @@ import com.aiwazian.messenger.database.dao.ChannelDao
 import com.aiwazian.messenger.database.mappers.toChannel
 import com.aiwazian.messenger.database.mappers.toEntity
 import com.aiwazian.messenger.services.ChannelService
+import com.aiwazian.messenger.types.EntityId
 import javax.inject.Inject
-import kotlin.math.abs
 
 class ChannelRepository @Inject constructor(
     private val channelService: ChannelService,
     private val channelDao: ChannelDao
 ) {
     
-    suspend fun get(id: Int): ChannelInfo? {
+    suspend fun get(id: Long): ChannelInfo? {
         try {
             val channel = channelService.get(id)
             
@@ -23,6 +23,8 @@ class ChannelRepository @Inject constructor(
                 channelDao.insert(channel.toEntity())
                 return channel
             }
+            
+            return channelDao.get(id)?.toChannel()
         } catch (e: Exception) {
             Log.e(
                 "ChannelRepository",
@@ -31,12 +33,34 @@ class ChannelRepository @Inject constructor(
             )
         }
         
-        val localChannel = channelDao.get(abs(id))
+        val localChannel = channelDao.get(id)
         
         return localChannel?.toChannel()
     }
     
-    suspend fun save(channelInfo: ChannelInfo): Int? {
+    suspend fun create(channelInfo: ChannelInfo): Long? {
+        try {
+            val createdId = channelService.create(channelInfo)
+            
+            if (createdId == null) {
+                return null
+            }
+            
+            channelDao.insert(channelInfo.toEntity())
+            
+            return createdId
+        } catch (e: Exception) {
+            Log.e(
+                "ChannelRepository",
+                "Ошибка при создании канала",
+                e
+            )
+            
+            return null
+        }
+    }
+    
+    suspend fun save(channelInfo: ChannelInfo): Long? {
         try {
             val savedId = channelService.save(channelInfo)
             
@@ -58,17 +82,15 @@ class ChannelRepository @Inject constructor(
         }
     }
     
-    suspend fun delete(channel: ChannelInfo): Boolean {
+    suspend fun delete(id: Long): Boolean {
         try {
-            val isDeleted = channelService.delete(channel.id)
+            val isDeleted = channelService.delete(id)
             
-            if (!isDeleted) {
-                return false
+            if (isDeleted) {
+                channelDao.delete(id)
             }
             
-            channelDao.delete(channel.toEntity())
-            
-            return true
+            return isDeleted
         } catch (e: Exception) {
             Log.e(
                 "ChannelRepository",
@@ -80,7 +102,7 @@ class ChannelRepository @Inject constructor(
         }
     }
     
-    suspend fun getSubscribers(id: Int): List<UserInfo> {
+    suspend fun getSubscribers(id: Long): List<UserInfo> {
         try {
             val subscribers = channelService.getSubscribers(id)
             
@@ -96,7 +118,7 @@ class ChannelRepository @Inject constructor(
         }
     }
     
-    suspend fun join(id: Int): Boolean {
+    suspend fun join(id: Long): Boolean {
         try {
             channelService.join(id)
             
@@ -132,7 +154,7 @@ class ChannelRepository @Inject constructor(
         }
     }
     
-    suspend fun leave(id: Int): Boolean {
+    suspend fun leave(id: Long): Boolean {
         try {
             val channel = channelDao.get(id)
             

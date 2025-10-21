@@ -97,7 +97,6 @@ private fun Content() {
             SectionContainer {
                 SectionItem(
                     text = stringResource(R.string.log_out),
-                    textColor = MaterialTheme.colorScheme.error,
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     onClick = logoutDialog::show
                 )

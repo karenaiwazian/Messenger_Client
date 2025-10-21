@@ -44,6 +44,10 @@ import com.aiwazian.messenger.viewModels.NavigationViewModel
 import com.yandex.mobile.ads.banner.BannerAdSize
 import com.yandex.mobile.ads.banner.BannerAdView
 import com.yandex.mobile.ads.common.AdRequest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
@@ -133,20 +137,6 @@ private fun Content() {
                     })
             }
             
-            //            SectionHeader(stringResource(R.string.help))
-            //
-            //            SectionContainer {
-            //                SectionItem(
-            //                    icon = Icons.Outlined.QuestionMark,
-            //                    text = stringResource(R.string.faq),
-            //                )
-            //
-            //                SectionItem(
-            //                    icon = Icons.Outlined.Shield,
-            //                    text = stringResource(R.string.privacy_policy),
-            //                )
-            //            }
-            
             val context = LocalContext.current
             
             val packageInfo = remember {
@@ -167,7 +157,7 @@ private fun Content() {
                         val width =
                             resources.displayMetrics.run { widthPixels / density }.roundToInt() - 20
                         val maxHeight = 200
-
+                        
                         setAdUnitId("R-M-15520718-1")
                         setAdSize(
                             BannerAdSize.inlineSize(
@@ -176,9 +166,17 @@ private fun Content() {
                                 maxHeight
                             )
                         )
-
+                        
                         val adRequest = AdRequest.Builder().build()
                         loadAd(adRequest)
+                        
+                        CoroutineScope(Dispatchers.Main).launch {
+                            while (true) {
+                                delay(60_000L)
+                                val adRequest = AdRequest.Builder().build()
+                                loadAd(adRequest)
+                            }
+                        }
                     }
                 })
             }
@@ -190,10 +188,10 @@ private fun Content() {
 private fun TopBar() {
     val navViewModel = viewModel<NavigationViewModel>()
     
-    val actions = arrayOf(
+    val actions = listOf(
         TopBarAction(
             icon = Icons.Outlined.MoreVert,
-            dropdownActions = arrayOf(
+            dropdownActions = listOf(
                 DropdownMenuAction(
                     icon = Icons.AutoMirrored.Outlined.Logout,
                     text = stringResource(R.string.log_out),

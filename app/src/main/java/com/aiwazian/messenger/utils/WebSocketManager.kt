@@ -62,7 +62,7 @@ object WebSocketManager {
                 handler.invoke(typedData)
             } catch (e: Exception) {
                 Log.e(
-                    "wss",
+                    "WebSocketManager",
                     "Ошибка при десериализации для действия ${action}: ${e.message}"
                 )
             }
@@ -79,7 +79,7 @@ object WebSocketManager {
                 handler.invoke(typedData)
             } catch (e: Exception) {
                 Log.e(
-                    "wss",
+                    "WebSocketManager",
                     "Ошибка при десериализации для действия ${action}: ${e.message}"
                 )
             }
@@ -116,11 +116,11 @@ object WebSocketManager {
                         val handlerList = messageHandlers[webSocketMessage.action]
                         
                         handlerList?.forEach { handler ->
-                            handler.invoke(webSocketMessage.data)
+                            handler.invoke(webSocketMessage.data as JsonObject)
                         }
                     } catch (e: Exception) {
                         Log.e(
-                            "wss",
+                            "WebSocketManager",
                             "Ошибка парсинга: ${e.message}"
                         )
                     }

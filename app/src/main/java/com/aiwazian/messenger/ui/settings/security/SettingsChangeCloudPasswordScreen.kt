@@ -1,14 +1,17 @@
 package com.aiwazian.messenger.ui.settings.security
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,6 +54,8 @@ fun SettingsChangeCloudPasswordScreen() {
     
     val scope = rememberCoroutineScope()
     
+    var isLoading by remember { mutableStateOf(false) }
+    
     DisposableEffect(Unit) {
         onDispose {
             cloudPasswordViewModel.cleanData()
@@ -68,9 +76,12 @@ fun SettingsChangeCloudPasswordScreen() {
                 onClick = {
                     val isValid = cloudPasswordViewModel.checkValidPassword()
                     
+                    isLoading = true
+                    
                     scope.launch {
                         if (!isValid) {
                             vibrateService.vibrate(VibrationPattern.Error)
+                            isLoading = false
                             return@launch
                         }
                         

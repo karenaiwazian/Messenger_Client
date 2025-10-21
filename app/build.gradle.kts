@@ -16,10 +16,10 @@ android {
     
     defaultConfig {
         applicationId = "com.aiwazian.messenger"
-        minSdk = 30
+        minSdk = 28
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.1"
+        versionCode = 9
+        versionName = "1.3"
         
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -29,7 +29,7 @@ android {
             buildConfigField(
                 "String",
                 "SERVER_IP",
-                "\"10.18.166.101\""
+                "\"192.168.43.167\""
             )
         }
         release {

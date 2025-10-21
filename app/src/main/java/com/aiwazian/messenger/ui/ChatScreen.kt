@@ -45,8 +45,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -72,6 +70,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -91,6 +90,7 @@ import com.aiwazian.messenger.R
 import com.aiwazian.messenger.data.ChannelInfo
 import com.aiwazian.messenger.data.ChatInfo
 import com.aiwazian.messenger.data.DropdownMenuAction
+import com.aiwazian.messenger.data.GroupInfo
 import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.data.NavigationIcon
 import com.aiwazian.messenger.data.TopBarAction
@@ -113,25 +113,12 @@ import java.util.Locale
 import java.time.format.TextStyle as MonthTextStyle
 
 @Composable
-fun ChatScreen(
-    chatId: Int,
-    chatType: ChatType
-) {
-    Content(
-        chatId,
-        chatType
-    )
+fun ChatScreen(chatId: Long) {
+    Content(chatId)
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class
-)
 @Composable
-private fun Content(
-    chatId: Int,
-    chatType: ChatType
-) {
+private fun Content(chatId: Long) {
     val context = LocalContext.current
     
     val clipboardHelper = ClipboardHelper(context)
@@ -150,6 +137,9 @@ private fun Content(
     
     LaunchedEffect(Unit) {
         chatViewModel.open(chatId)
+        chatViewModel.onChatDeleted = {
+            navViewModel.goToMain()
+        }
     }
     
     DisposableEffect(Unit) {
@@ -161,9 +151,7 @@ private fun Content(
     val profile by chatViewModel.profile.collectAsState()
     
     val deleteChatDialog = chatViewModel.deleteChatDialog
-    
     val clearHistoryChatDialog = chatViewModel.clearHistoryDialog
-    
     val deleteMessageDialog = chatViewModel.deleteMessageDialog
     
     val messageText by chatViewModel.messageText.collectAsState()
@@ -176,19 +164,16 @@ private fun Content(
     
     var isVisibleLeaveDialog by remember { mutableStateOf(false) }
     
-    val actions = when (chatType) {
+    var actions = listOf<TopBarAction>()
+    
+    when (ChatType.fromId(chatId)) {
         ChatType.PRIVATE -> {
             subTitle = ""
             
-            arrayOf(
+            actions = listOf(
                 TopBarAction(
                     icon = Icons.Outlined.MoreVert,
-                    dropdownActions = arrayOf(
-                        //                        DropdownMenuAction(
-                        //                            icon = Icons.Outlined.CleaningServices,
-                        //                            text = stringResource(R.string.clear_history),
-                        //                            onClick = clearHistoryChatDialog::show
-                        //                        ),
+                    dropdownActions = listOf(
                         DropdownMenuAction(
                             icon = Icons.Outlined.DeleteOutline,
                             text = stringResource(R.string.delete_chat),
@@ -202,14 +187,14 @@ private fun Content(
         ChatType.CHANNEL -> {
             if (profile is ChannelInfo) {
                 subTitle =
-                    "${(profile as ChannelInfo).subscribers} ${stringResource(R.string.subscribers).lowercase()}"
+                    "${(profile as ChannelInfo).subscribers} ${stringResource(R.string.subscriberCount).lowercase()}"
             }
             
             if (profile is ChannelInfo && (profile as ChannelInfo).ownerId != chatViewModel.myId) {
-                arrayOf(
+                actions = listOf(
                     TopBarAction(
                         icon = Icons.Outlined.MoreVert,
-                        dropdownActions = arrayOf(
+                        dropdownActions = listOf(
                             DropdownMenuAction(
                                 icon = Icons.AutoMirrored.Outlined.Logout,
                                 text = stringResource(R.string.leave_channel),
@@ -219,14 +204,33 @@ private fun Content(
                         )
                     )
                 )
-            } else {
-                emptyArray()
             }
         }
         
-        else -> {
-            emptyArray()
+        ChatType.GROUP -> {
+            if (profile is GroupInfo) {
+                val group = profile as GroupInfo
+                subTitle = "${group.members} ${stringResource(R.string.members)}"
+                
+                if (group.ownerId != chatViewModel.myId) {
+                    actions = listOf(
+                        TopBarAction(
+                            icon = Icons.Outlined.MoreVert,
+                            dropdownActions = listOf(
+                                DropdownMenuAction(
+                                    icon = Icons.AutoMirrored.Outlined.Logout,
+                                    text = stringResource(R.string.leave_group),
+                                    onClick = {
+                                        isVisibleLeaveDialog = true
+                                    })
+                            )
+                        )
+                    )
+                }
+            }
         }
+        
+        else -> {}
     }
     
     LaunchedEffect(messages.size) {
@@ -265,8 +269,9 @@ private fun Content(
                     itemsIndexed(
                         items = messages,
                         key = { _, message -> message.id }) { index, message ->
-                        val currentMessageSendDate = Instant.ofEpochMilli(message.sendTime)
-                            .atZone(ZoneId.systemDefault()).toLocalDate()
+                        val currentMessageSendDate =
+                            Instant.ofEpochMilli(message.sendTime).atZone(ZoneId.systemDefault())
+                                .toLocalDate()
                         
                         val monthName = currentMessageSendDate.month.getDisplayName(
                             MonthTextStyle.FULL,
@@ -335,7 +340,7 @@ private fun Content(
                 }
             }
             
-            when (chatType) {
+            when (ChatType.fromId(chatId)) {
                 ChatType.PRIVATE -> {
                     InputMessage(
                         value = messageText,
@@ -433,7 +438,23 @@ private fun Content(
                     }
                 }
                 
-                ChatType.GROUP -> {}
+                ChatType.GROUP -> {
+                    if (profile is GroupInfo) {
+                        InputMessage(
+                            value = messageText,
+                            onValueChange = chatViewModel::changeText,
+                            onSendMessage = {
+                                scope.launch {
+                                    val sentMessage = chatViewModel.sendMessage()
+                                    
+                                    if (sentMessage != null) {
+                                        mainViewModel.onSendMessage(sentMessage)
+                                    }
+                                }
+                            })
+                    }
+                }
+                
                 ChatType.UNKNOWN -> {}
             }
         }
@@ -447,6 +468,8 @@ private fun Content(
                         
                         if (isDeleted) {
                             deleteChatDialog.hide()
+                            mainViewModel.deleteChat(chatInfo.id)
+                            navViewModel.goToMain()
                         }
                     }
                 },
@@ -545,7 +568,7 @@ private fun EmptyChatPlaceholder() {
 private fun TopBar(
     chat: ChatInfo,
     subTitle: String,
-    dropdownActions: Array<TopBarAction>
+    dropdownActions: List<TopBarAction>
 ) {
     val navViewModel = viewModel<NavigationViewModel>()
     
@@ -849,8 +872,7 @@ private fun MessageBubble(
     onCopy: () -> Unit,
     onSeen: (Int) -> Unit
 ) {
-    val user by UserManager.user.collectAsState()
-    val currentUserId = remember { user.id }
+    val me by UserManager.user.collectAsState()
     
     val formatter = SimpleDateFormat(
         "HH:mm",
@@ -860,7 +882,7 @@ private fun MessageBubble(
     
     var expanded by remember { mutableStateOf(false) }
     
-    val alignment = if (message.senderId == currentUserId) {
+    val alignment = if (message.senderId == me.id) {
         Alignment.CenterEnd
     } else {
         Alignment.CenterStart
@@ -890,9 +912,9 @@ private fun MessageBubble(
             }) {
         
         MessageText(
-            text = message.text,
+            message = message,
             time = sendMessageTime,
-            isRead = if (currentUserId != message.senderId) null else message.isRead,
+            isRead = if (me.id != message.senderId) null else message.isRead,
             alignment = alignment,
             onClick = { expanded = true })
         
@@ -901,8 +923,8 @@ private fun MessageBubble(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             offset = DpOffset(
-                20.dp,
-                8.dp
+                LocalConfiguration.current.screenWidthDp.dp / 2,
+                0.dp
             ),
             properties = PopupProperties(focusable = true),
         ) {
@@ -912,11 +934,13 @@ private fun MessageBubble(
                         Icon(
                             imageVector = Icons.Outlined.ContentCopy,
                             contentDescription = null,
-                            modifier = Modifier.size(20.dp),
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 },
-                text = { Text(stringResource(R.string.copy)) },
+                text = {
+                    Text(stringResource(R.string.copy))
+                },
                 onClick = {
                     expanded = false
                     onCopy()
@@ -928,7 +952,9 @@ private fun MessageBubble(
                         contentDescription = null
                     )
                 },
-                text = { Text(stringResource(R.string.delete)) },
+                text = {
+                    Text(stringResource(R.string.delete))
+                },
                 onClick = {
                     expanded = false
                     onDelete()
@@ -939,12 +965,15 @@ private fun MessageBubble(
 
 @Composable
 private fun MessageText(
-    text: String,
+    message: Message,
     time: String,
     isRead: Boolean?,
     alignment: Alignment,
     onClick: () -> Unit
 ) {
+    val me by UserManager.user.collectAsState()
+    val text = message.text
+    
     val annotatedString = buildAnnotatedString {
         val parts = text.split(" ")
         
@@ -1033,19 +1062,50 @@ private fun MessageText(
                         shape = RoundedCornerShape(16.dp)
                     )
                     .widthIn(max = 280.dp)
+                    .padding(
+                        top = 6.dp
+                    )
             ) {
-                Text(
-                    text = annotatedString,
-                    modifier = Modifier
-                        .padding(
-                            start = 8.dp,
-                            top = 6.dp,
-                            end = 40.dp,
-                            bottom = 6.dp
-                        )
-                        .clip(shape = RoundedCornerShape(4.dp)),
-                    lineHeight = 18.sp
-                )
+                Column {
+                    if (ChatType.fromId(message.chatId) == ChatType.GROUP && message.senderId != me.id) {
+                        val chatViewModel = hiltViewModel<ChatViewModel>()
+                        
+                        LaunchedEffect(Unit) {
+                            chatViewModel.loadUserName(message.senderId)
+                        }
+                        
+                        val userNamesCache by chatViewModel.userNamesCache.collectAsState()
+                        
+                        val senderName = userNamesCache[message.senderId]
+                        
+                        senderName?.let {
+                            Text(
+                                text = it,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 14.sp,
+                                overflow = TextOverflow.Ellipsis,
+                                fontWeight = FontWeight.W500,
+                                lineHeight = 10.sp,
+                                modifier = Modifier.padding(
+                                    start = 8.dp,
+                                    end = 8.dp
+                                )
+                            )
+                        }
+                    }
+                    
+                    Text(
+                        text = annotatedString,
+                        modifier = Modifier
+                            .padding(
+                                start = 8.dp,
+                                end = 40.dp,
+                                bottom = 6.dp
+                            )
+                            .clip(shape = RoundedCornerShape(4.dp)),
+                        lineHeight = 18.sp
+                    )
+                }
                 
                 Row(
                     modifier = Modifier.align(Alignment.BottomEnd),

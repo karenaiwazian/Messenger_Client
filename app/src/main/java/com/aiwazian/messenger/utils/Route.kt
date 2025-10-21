@@ -26,6 +26,7 @@ object Route {
     
     /** Chat **/
     const val CHATS = "api/chats"
+    const val CHATS_WITH_USERS = "api/chats/users"
     const val CHAT_MESSAGES = "api/chat/{id}/messages"
     const val GET_CHAT_LAST_MESSAGE = "api/chat/{chatId}/messages/last"
     const val DELETE_CHAT = "api/chat/{id}"
@@ -50,11 +51,20 @@ object Route {
     const val CHANGE_DATE_OF_BIRTH_PRIVACY = "api/userPrivacy/dateOfBirth/{value}"
     
     /** Channel **/
-    const val SAVE_CHANNEL = "api/channel"
+    const val CREATE_CHANNEL = "api/channel"
+    const val SAVE_CHANNEL = "api/channel/{id}"
     const val DELETE_CHANNEL = "api/channel/{id}"
     const val GET_CHANNEL = "api/channel/{id}"
     const val JOIN_CHANNEL = "api/channel/{id}/join"
     const val LEAVE_CHANNEL = "api/channel/{id}/leave"
     const val GET_CHANNEL_SUBSCRIBERS = "api/channel/{id}/subscribers"
     const val CHECK_CHANNEL_PUBLIC_LINK = "api/channel/q/{link}"
+    
+    /** Group **/
+    const val CREATE_GROUP = "api/group"
+    const val GET_GROUP = "api/group/{id}"
+    const val DELETE_GROUP = "api/group/{id}"
+    const val GET_GROUP_MEMBERS = "api/group/{id}/members"
+    const val INVITE_USER_TO_GROUP = "api/group/{groupId}/invite/{userId}"
+    const val REMOVE_USER_FROM_GROUP = "api/group/{groupId}/remove/{userId}"
 }

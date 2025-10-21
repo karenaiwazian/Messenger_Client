@@ -6,8 +6,8 @@ import com.aiwazian.messenger.interfaces.Profile
 
 @Keep
 data class ChannelInfo(
-    @Keep override val id: Int = 0,
-    @Keep val ownerId: Int = 0,
+    @Keep override val id: Long = 0,
+    @Keep val ownerId: Long = 0,
     @Keep val name: String = "",
     @Keep val bio: String = "",
     @Keep val subscribers: Int = 0,

@@ -29,19 +29,19 @@ import com.aiwazian.messenger.viewModels.ChannelViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 
 @Composable
-fun ChannelSubscribersScreen(id: Int) {
+fun ChannelSubscribersScreen(id: Long) {
     Content(id)
 }
 
 @Composable
-private fun Content(id: Int) {
+private fun Content(id: Long) {
     val navViewModel = viewModel<NavigationViewModel>()
     val channelViewModel = hiltViewModel<ChannelViewModel>()
     
-    var users by remember { mutableStateOf<List<UserInfo>>(emptyList()) }
+    var subscribers by remember { mutableStateOf<List<UserInfo>>(emptyList()) }
     
     LaunchedEffect(Unit) {
-        users = channelViewModel.getSubscribers(id)
+        subscribers = channelViewModel.getSubscribers(id)
     }
     
     Scaffold(topBar = { TopBar() }) { innerPadding ->
@@ -49,7 +49,7 @@ private fun Content(id: Int) {
             SectionContainer {
                 LazyColumn {
                     items(
-                        items = users,
+                        items = subscribers,
                         key = { it.id }) { user ->
                         MinimizeChatCard(
                             chatName = "${user.firstName} ${user.lastName}",

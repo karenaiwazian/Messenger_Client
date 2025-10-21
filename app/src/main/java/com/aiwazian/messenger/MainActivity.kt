@@ -1,7 +1,11 @@
 package com.aiwazian.messenger
 
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
+import android.graphics.drawable.Icon
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -17,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.database.repository.UserRepository
-import com.aiwazian.messenger.enums.ChatType
 import com.aiwazian.messenger.services.AppLockService
 import com.aiwazian.messenger.services.DataStoreManager
 import com.aiwazian.messenger.services.LanguageService
@@ -30,6 +33,7 @@ import com.aiwazian.messenger.ui.LockScreen
 import com.aiwazian.messenger.ui.MainScreen
 import com.aiwazian.messenger.ui.element.NavigationController
 import com.aiwazian.messenger.ui.theme.ApplicationTheme
+import com.aiwazian.messenger.utils.ChatState
 import com.aiwazian.messenger.utils.WebSocketManager
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import com.google.firebase.FirebaseApp
@@ -51,6 +55,8 @@ class MainActivity : ComponentActivity() {
     
     @Inject
     lateinit var userRepository: UserRepository
+    
+    lateinit var navViewModel: NavigationViewModel
     
     override fun attachBaseContext(newBase: Context) {
         DataStoreManager.initialize(newBase)
@@ -146,7 +152,7 @@ class MainActivity : ComponentActivity() {
                 dynamicColor = isDynamicColorEnable,
                 primaryColor = selectedColor.color
             ) {
-                val navViewModel = viewModel<NavigationViewModel>()
+                navViewModel = viewModel<NavigationViewModel>()
                 
                 NavigationController {
                     MainScreen()
@@ -160,17 +166,28 @@ class MainActivity : ComponentActivity() {
                     LockScreen()
                 }
                 
-                LaunchedEffect(Unit) { //TODO Open chat from intent
-                    val chatId = intent.getStringExtra("chatId")?.toIntOrNull()
-                    
-                    if (chatId != null) {
+                LaunchedEffect(Unit) {
+                    val chatId = intent.getStringExtra("chatId")?.toLongOrNull()
+
+                    if (chatId != null && !ChatState.isChatOpen(chatId)) {
                         navViewModel.addScreenInStack {
-                            ChatScreen(
-                                chatId,
-                                ChatType.UNKNOWN
-                            )
+                            ChatScreen(chatId)
                         }
                     }
+                }
+            }
+        }
+    }
+    
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        
+        val chatId = intent.getStringExtra("chatId")?.toLongOrNull()
+        
+        if (chatId != null) {
+            if (!ChatState.isChatOpen(chatId)) {
+                navViewModel.addScreenInStack {
+                    ChatScreen(chatId)
                 }
             }
         }

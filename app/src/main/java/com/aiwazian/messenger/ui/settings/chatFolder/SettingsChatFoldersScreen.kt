@@ -116,16 +116,12 @@ private fun Content() {
                 SectionItem(
                     text = stringResource(R.string.create_new_folder),
                     icon = Icons.Filled.CreateNewFolder,
-                    iconColor = MaterialTheme.colorScheme.primary,
                     onClick = {
                         navViewModel.addScreenInStack {
                             SettingsFolderScreen()
                         }
                     },
-                    textColor = MaterialTheme.colorScheme.primary,
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary
-                    )
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
                 )
             }
         }

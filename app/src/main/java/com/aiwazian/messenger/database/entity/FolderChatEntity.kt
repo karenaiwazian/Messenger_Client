@@ -5,9 +5,8 @@ import androidx.room.PrimaryKey
 
 @Entity("folderChat")
 data class FolderChatEntity(
-    @PrimaryKey var id: Int,
+    @PrimaryKey var id: Long,
     val folderId: Int = 0,
-    val chatType: Int,
     var chatName: String = "",
     var isPinned: Boolean = false,
     var lastMessageId: Int? = null

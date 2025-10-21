@@ -410,7 +410,6 @@ private fun SettingsPasscodeLockScreen(
             SectionContainer {
                 SectionItem(
                     text = stringResource(R.string.turn_passcode_off),
-                    textColor = MaterialTheme.colorScheme.error,
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     ),

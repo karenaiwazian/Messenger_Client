@@ -26,12 +26,12 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 private data class ChatNotificationData(
-    val chatId: Int,
+    val chatId: Long,
     val title: String,
     val messages: MutableList<String>
 )
 
-private val chatNotifications = mutableMapOf<Int, ChatNotificationData>()
+private val chatNotifications = mutableMapOf<Long, ChatNotificationData>()
 
 class NotificationService : FirebaseMessagingService(), NotificationService {
     
@@ -95,26 +95,26 @@ class NotificationService : FirebaseMessagingService(), NotificationService {
             
             if (response.isSuccessful) {
                 Log.d(
-                    "FCM",
-                    "FCM token updated on server"
+                    "NotificationService",
+                    "Токен обновлен"
                 )
             } else {
                 Log.e(
-                    "FCM",
-                    "Failed to update token: ${response.code()}"
+                    "NotificationService",
+                    "Ошибка при обновлении токена: ${response.code()}"
                 )
             }
         } catch (e: Exception) {
             Log.e(
-                "FCM",
-                "Error updating token:",
+                "NotificationService",
+                "Ошибка при получении токена",
                 e
             )
         }
     }
     
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        val chatId = remoteMessage.data["chatId"]?.toIntOrNull() ?: return
+        val chatId = remoteMessage.data["chatId"]?.toLongOrNull() ?: return
         val title = remoteMessage.data["title"] ?: "Messenger"
         val body = remoteMessage.data["body"] ?: ""
         
@@ -173,7 +173,7 @@ class NotificationService : FirebaseMessagingService(), NotificationService {
         
         val pendingIntent = PendingIntent.getActivity(
             this,
-            notification.chatId,
+            notification.chatId.toInt(),
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
@@ -194,7 +194,7 @@ class NotificationService : FirebaseMessagingService(), NotificationService {
             .build()
         
         notificationManager.notify(
-            notification.chatId,
+            notification.chatId.toInt(),
             summaryNotification
         )
     }

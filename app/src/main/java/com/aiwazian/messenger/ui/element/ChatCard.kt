@@ -1,11 +1,6 @@
 package com.aiwazian.messenger.ui.element
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -160,8 +155,8 @@ private fun UnreadMessageCount(count: Int) {
 private fun Leading(visible: Boolean) {
     Box(modifier = Modifier.size(40.dp)) {
         Icon(
-            Icons.Outlined.AccountCircle,
-            null,
+            imageVector = Icons.Outlined.AccountCircle,
+            contentDescription = null,
             modifier = Modifier.fillMaxSize()
         )
         
@@ -171,18 +166,22 @@ private fun Leading(visible: Boolean) {
                 .size(16.dp)
                 .align(Alignment.BottomEnd)
         ) {
-            AnimatedVisibility(
-                visible = visible,
-                modifier = Modifier.background(Color.Green),
-                enter = scaleIn(tween(200)) + fadeIn(tween(100)),
-                exit = scaleOut(tween(200)) + fadeOut(tween(100))
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Check,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
+            AnimatedContent(targetState = visible) { isVisible ->
+                if (isVisible) {
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(16.dp)
+                            .background(Color.Green),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Check,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
             }
         }
     }

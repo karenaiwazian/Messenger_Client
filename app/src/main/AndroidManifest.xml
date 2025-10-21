@@ -54,6 +54,7 @@
 
         <activity
             android:name=".MainActivity"
+            android:launchMode="singleTop"
             android:exported="true"
             android:theme="@style/Theme.FirebaseMessenger">
             <intent-filter>

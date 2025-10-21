@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DeleteMessagePayload(
-    val chatId: Int,
+    val chatId: Long,
     val messageId: Int
 )

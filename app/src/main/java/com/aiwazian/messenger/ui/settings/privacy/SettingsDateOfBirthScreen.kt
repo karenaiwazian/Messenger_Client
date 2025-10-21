@@ -64,7 +64,7 @@ private fun Content(
     val vibrateService = VibrateService(context)
     
     val actions = if (showSaveButton) {
-        arrayOf(
+        listOf(
             TopBarAction(
                 icon = Icons.Outlined.Check,
                 onClick = {
@@ -81,7 +81,7 @@ private fun Content(
                 })
         )
     } else {
-        emptyArray<TopBarAction>()
+        emptyList()
     }
     
     LaunchedEffect(Unit) {

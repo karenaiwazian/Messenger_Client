@@ -102,7 +102,6 @@ import com.aiwazian.messenger.data.ChatInfo
 import com.aiwazian.messenger.data.DropdownMenuAction
 import com.aiwazian.messenger.data.NavigationIcon
 import com.aiwazian.messenger.data.TopBarAction
-import com.aiwazian.messenger.enums.ChatType
 import com.aiwazian.messenger.services.UserManager
 import com.aiwazian.messenger.ui.element.ChatCard
 import com.aiwazian.messenger.ui.element.PageTopBar
@@ -318,7 +317,7 @@ private fun Content(drawerState: DrawerState) {
                 SelectedChatTopBar(
                     onBack = mainViewModel::unselectAllChats,
                     selectedCount = selectedChatCount,
-                    dropdownActions = arrayOf(
+                    dropdownActions = listOf(
                         DropdownMenuAction(
                             icon = Icons.Outlined.PushPin,
                             text = if (allSelectedChatsArePinned) {
@@ -445,10 +444,7 @@ private fun Content(drawerState: DrawerState) {
                         onChatClick = { chat ->
                             if (selectedChats.isEmpty()) {
                                 navViewModel.addScreenInStack {
-                                    ChatScreen(
-                                        chat.id,
-                                        chat.chatType
-                                    )
+                                    ChatScreen(chat.id)
                                 }
                             } else {
                                 mainViewModel.selectChat(
@@ -487,7 +483,7 @@ private fun Content(drawerState: DrawerState) {
 @Composable
 private fun ChatListSection(
     chatList: List<ChatInfo>,
-    selectedChats: List<Int>,
+    selectedChats: List<Long>,
     enableSwipeable: Boolean,
     onChatClick: (ChatInfo) -> Unit,
     onChatLongClick: (ChatInfo) -> Unit,
@@ -652,9 +648,9 @@ private fun SwipeDismissSnackbarHost(snackbarHostState: SnackbarHostState) {
 private fun SelectedChatTopBar(
     onBack: () -> Unit,
     selectedCount: Int,
-    dropdownActions: Array<DropdownMenuAction>
+    dropdownActions: List<DropdownMenuAction>
 ) {
-    val actions = arrayOf(
+    val actions = listOf(
         TopBarAction(
             icon = Icons.Outlined.MoreVert,
             dropdownActions = dropdownActions
@@ -704,7 +700,7 @@ private fun DefaultTopBar(
     val scope = rememberCoroutineScope()
     
     val actions = if (isLockApp) {
-        arrayOf(
+        listOf(
             TopBarAction(
                 icon = Icons.Outlined.LockOpen,
                 onClick = onLockClick
@@ -718,7 +714,7 @@ private fun DefaultTopBar(
                 })
         )
     } else {
-        arrayOf(
+        listOf(
             TopBarAction(
                 icon = Icons.Outlined.Search,
                 onClick = {
@@ -811,10 +807,7 @@ private fun DrawerContent(drawerState: DrawerState) {
                 drawerState.close()
             }
             navViewModel.addScreenInStack {
-                ChatScreen(
-                    user.id,
-                    ChatType.PRIVATE
-                )
+                ChatScreen(user.id)
             }
         }
         

@@ -6,17 +6,19 @@ import com.aiwazian.messenger.database.dao.AccountDao
 import com.aiwazian.messenger.database.dao.ChannelDao
 import com.aiwazian.messenger.database.dao.FolderChatDao
 import com.aiwazian.messenger.database.dao.FolderDao
+import com.aiwazian.messenger.database.dao.GroupDao
 import com.aiwazian.messenger.database.dao.UserDao
 import com.aiwazian.messenger.database.entity.AccountEntity
 import com.aiwazian.messenger.database.entity.ChannelEntity
 import com.aiwazian.messenger.database.entity.FolderChatEntity
 import com.aiwazian.messenger.database.entity.FolderEntity
+import com.aiwazian.messenger.database.entity.GroupEntity
 import com.aiwazian.messenger.database.entity.MessageEntity
 import com.aiwazian.messenger.database.entity.UserEntity
 
 @Database(
-    entities = [FolderEntity::class, FolderChatEntity::class, UserEntity::class, MessageEntity::class, ChannelEntity::class, AccountEntity::class],
-    version = 1
+    entities = [FolderEntity::class, FolderChatEntity::class, UserEntity::class, MessageEntity::class, ChannelEntity::class, AccountEntity::class, GroupEntity::class],
+    version = 5
 )
 abstract class AppDatabase : RoomDatabase() {
     
@@ -29,4 +31,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun channelDao(): ChannelDao
     
     abstract fun accountDao(): AccountDao
+    
+    abstract fun groupDao(): GroupDao
 }

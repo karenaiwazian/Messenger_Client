@@ -30,8 +30,6 @@ fun SectionItem(
     primaryText: String? = null,
     primaryIcon: ImageVector? = null,
     primaryIconClick: () -> Unit = {},
-    textColor: Color? = null,
-    iconColor: Color? = null,
     colors: ButtonColors? = null,
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
@@ -40,7 +38,7 @@ fun SectionItem(
         shape = RectangleShape,
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
-        colors = colors ?: ButtonDefaults.textButtonColors()
+        colors = colors ?: ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
     ) {
         Row(
             modifier = Modifier
@@ -53,7 +51,7 @@ fun SectionItem(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = iconColor ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = colors?.contentColor ?: MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(end = 16.dp)
                 )
             }
@@ -61,7 +59,7 @@ fun SectionItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = text,
-                    color = textColor ?: MaterialTheme.colorScheme.onSurface,
+                    color = colors?.contentColor ?: MaterialTheme.colorScheme.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal
                 )

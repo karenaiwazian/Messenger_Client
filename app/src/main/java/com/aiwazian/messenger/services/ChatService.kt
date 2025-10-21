@@ -12,16 +12,18 @@ class ChatService @Inject constructor() {
         return if (response.isSuccessful) response.body() else null
     }
     
-    suspend fun getChatInfo(chatId: Int): ChatInfo? {
+    suspend fun getChatInfo(chatId: Long): ChatInfo? {
         val response = RetrofitInstance.api.getChatInfo(chatId)
-        
-        val responseChatInfo = response.body()?.toChatInto()
-        
-        return responseChatInfo
+        return response.body()
+    }
+    
+    suspend fun getAllChatsWithOtherUser(): List<ChatInfo>? {
+        val response = RetrofitInstance.api.getAllChatsWithOtherUser()
+        return response.body()
     }
     
     suspend fun makeAsReadMessage(
-        chatId: Int,
+        chatId: Long,
         messageId: Int
     ): Boolean {
         val response = RetrofitInstance.api.makeAsReadMessage(
@@ -32,28 +34,28 @@ class ChatService @Inject constructor() {
         return response.isSuccessful
     }
     
-    suspend fun getChatLastMessage(chatId: Int): Message? {
+    suspend fun getChatLastMessage(chatId: Long): Message? {
         val response = RetrofitInstance.api.getChatLastMessage(chatId)
         return response.body()
     }
     
-    suspend fun getChatMessages(chatId: Int): List<Message>? {
+    suspend fun getChatMessages(chatId: Long): List<Message>? {
         val response = RetrofitInstance.api.getMessagesBetweenUsers(chatId)
         return response.body()
     }
     
-    suspend fun archiveChat(chatId: Int): Boolean {
+    suspend fun archiveChat(chatId: Long): Boolean {
         val response = RetrofitInstance.api.archiveChat(chatId)
         return response.isSuccessful
     }
     
-    suspend fun unarchiveChat(chatId: Int): Boolean {
+    suspend fun unarchiveChat(chatId: Long): Boolean {
         val response = RetrofitInstance.api.unarchiveChat(chatId)
         return response.isSuccessful
     }
     
     suspend fun pin(
-        chatId: Int,
+        chatId: Long,
         folderId: Int
     ): Boolean {
         val response = if (folderId == 0) {
@@ -69,7 +71,7 @@ class ChatService @Inject constructor() {
     }
     
     suspend fun unpin(
-        chatId: Int,
+        chatId: Long,
         folderId: Int
     ): Boolean {
         val response = if (folderId == 0) {
@@ -85,7 +87,7 @@ class ChatService @Inject constructor() {
     }
     
     suspend fun deleteMessage(
-        chatId: Int,
+        chatId: Long,
         messageId: Int,
         deleteForAll: Boolean
     ): Boolean {
@@ -99,7 +101,7 @@ class ChatService @Inject constructor() {
     }
     
     suspend fun deleteChat(
-        chatId: Int,
+        chatId: Long,
         deleteForReceiver: Boolean
     ): Boolean {
         val response = RetrofitInstance.api.deleteChat(
@@ -111,7 +113,7 @@ class ChatService @Inject constructor() {
     }
     
     suspend fun deleteChatMessages(
-        chatId: Int,
+        chatId: Long,
         deleteForReceiver: Boolean
     ): Boolean {
         val response = RetrofitInstance.api.deleteChatMessages(

@@ -10,11 +10,14 @@ import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.data.ReadMessagePayload
 import com.aiwazian.messenger.database.repository.ChannelRepository
 import com.aiwazian.messenger.database.repository.ChatRepository
+import com.aiwazian.messenger.database.repository.GroupRepository
 import com.aiwazian.messenger.enums.ChatType
 import com.aiwazian.messenger.enums.WebSocketAction
 import com.aiwazian.messenger.interfaces.Profile
+import com.aiwazian.messenger.services.ChatService
 import com.aiwazian.messenger.services.DialogController
 import com.aiwazian.messenger.services.UserManager
+import com.aiwazian.messenger.services.UserService
 import com.aiwazian.messenger.utils.ChatState
 import com.aiwazian.messenger.utils.WebSocketManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,11 +26,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.random.Random
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
-    private val channelRepository: ChannelRepository
+    private val channelRepository: ChannelRepository,
+    private val groupRepository: GroupRepository
 ) : ViewModel() {
     
     val myId = UserManager.user.value.id
@@ -47,11 +52,16 @@ class ChatViewModel @Inject constructor(
     private val _selectedMessages = MutableStateFlow<Set<Message>>(emptySet())
     val selectedMessages = _selectedMessages.asStateFlow()
     
+    private val _userNamesCache = MutableStateFlow(mapOf<Long, String>())
+    val userNamesCache = _userNamesCache.asStateFlow()
+    
     val deleteChatDialog = DialogController()
     
     val clearHistoryDialog = DialogController()
     
     val deleteMessageDialog = DialogController()
+    
+    var onChatDeleted: (() -> Unit)? = null
     
     init {
         WebSocketManager.registerMessageHandler<Message>(WebSocketAction.NEW_MESSAGE) { message ->
@@ -62,7 +72,7 @@ class ChatViewModel @Inject constructor(
         
         WebSocketManager.registerMessageHandler<DeleteChatPayload>(WebSocketAction.DELETE_CHAT) { chat ->
             if (chat.chatId == _chatInfo.value.id) {
-                deleteAllMessages()
+                onChatDeleted?.invoke()
             }
         }
         
@@ -89,13 +99,29 @@ class ChatViewModel @Inject constructor(
         _selectedMessages.update { it - message }
     }
     
-    suspend fun open(chatId: Int) {
+    suspend fun open(chatId: Long) {
         ChatState.openChat(chatId)
         
         _profile.update { null }
         
-        _chatInfo.update { chatInfo ->
-            chatInfo.copy(id = chatId)
+        _chatInfo.update {
+            it.copy(id = chatId)
+        }
+        
+        when (ChatType.fromId(chatId)) {
+            ChatType.CHANNEL -> {
+                val channel = channelRepository.get(chatId)
+                
+                _profile.update { channel }
+            }
+            
+            ChatType.GROUP -> {
+                val group = groupRepository.get(chatId)
+                
+                _profile.update { group }
+            }
+            
+            else -> {}
         }
         
         val chatInfo = chatRepository.get(chatId)
@@ -111,14 +137,6 @@ class ChatViewModel @Inject constructor(
             val chatMessages = chatRepository.getMessages(chatId)
             
             _messages.update { chatMessages }
-        }
-        
-        if (chatInfo.chatType == ChatType.CHANNEL) {
-            val channel = channelRepository.get(chatId)
-            
-            _profile.update { channel }
-            
-            return
         }
     }
     
@@ -136,7 +154,18 @@ class ChatViewModel @Inject constructor(
         
         val validText = _messageText.value.trim()
         
-        val messageId = Math.random().toInt()
+        val lastMessageId = _messages.value.let {
+            if (it.isNotEmpty()) {
+                it.last().id + 1
+            } else {
+                1
+            }
+        }
+        
+        val messageId = Random.nextInt(
+            lastMessageId + 1,
+            Int.MAX_VALUE
+        )
         
         val message = Message(
             id = messageId,
@@ -195,6 +224,40 @@ class ChatViewModel @Inject constructor(
         }
     }
     
+    private val pendingRequests = mutableSetOf<Long>()
+    
+    fun loadUserName(userId: Long) {
+        if (_userNamesCache.value.containsKey(userId)) {
+            return
+        }
+        
+        if (pendingRequests.contains(userId)) {
+            return
+        }
+        
+        pendingRequests.add(userId)
+        
+        viewModelScope.launch {
+            try {
+                val user = UserService().getById(userId)
+                
+                if (user != null) {
+                    val userName = user.let { "${it.firstName} ${it.lastName}" }
+                    
+                    _userNamesCache.update { it + (userId to userName) }
+                }
+                
+                pendingRequests.remove(userId)
+            } catch (e: Exception) {
+                Log.e(
+                    "ChatViewModel",
+                    "Не удалось получить имя отправителя",
+                    e
+                )
+            }
+        }
+    }
+    
     suspend fun tryDeleteMessage(
         messageId: Int,
         deleteForAll: Boolean
@@ -224,7 +287,7 @@ class ChatViewModel @Inject constructor(
     
     suspend fun tryDeleteChat(deleteForReceiver: Boolean): Boolean {
         try {
-            val isDeleted = chatRepository.deleteChat(
+            val isDeleted = ChatService().deleteChat(
                 _chatInfo.value.id,
                 deleteForReceiver
             )

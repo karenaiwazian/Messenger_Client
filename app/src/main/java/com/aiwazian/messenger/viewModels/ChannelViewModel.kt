@@ -51,31 +51,35 @@ class ChannelViewModel @Inject constructor(private val channelRepository: Channe
         _channelInfo.update { channelInfo }
     }
     
-    suspend fun getSubscribers(id: Int): List<UserInfo> {
+    suspend fun getSubscribers(id: Long): List<UserInfo> {
         val subscribers = channelRepository.getSubscribers(id)
         return subscribers
     }
     
-    suspend fun tryJoin(id: Int): Boolean {
+    suspend fun tryJoin(id: Long): Boolean {
         val isJoined = channelRepository.join(id)
         return isJoined
     }
     
-    suspend fun tryLeave(id: Int): Boolean {
+    suspend fun tryLeave(id: Long): Boolean {
         val isLeaved = channelRepository.leave(id)
         return isLeaved
     }
     
-    suspend fun trySave(): Int? {
+    suspend fun trySaveOrCreate(): Long? {
         if (!checkValid()) {
             return null
+        }
+        
+        if (_channelInfo.value.id == 0.toLong()) {
+            return channelRepository.create(_channelInfo.value)
         }
         
         return channelRepository.save(_channelInfo.value)
     }
     
     suspend fun tryDelete(): Boolean {
-        return channelRepository.delete(channelInfo.value)
+        return channelRepository.delete(channelInfo.value.id)
     }
     
     fun cleanData() {

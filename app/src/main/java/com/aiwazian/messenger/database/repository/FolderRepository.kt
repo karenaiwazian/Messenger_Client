@@ -47,13 +47,11 @@ class FolderRepository @Inject constructor(
             
             val response = RetrofitInstance.api.getUnarchivedChats().body()
             
-            val chatsInFolder = response?.map { it.toChatInto() } ?: emptyList()
-            
             val chatFolderInfos = listOf(
                 FolderInfo(
                     id = 0,
                     name = "Все чаты",
-                    chats = chatsInFolder
+                    chats = response ?: emptyList()
                 )
             ) + folders
             

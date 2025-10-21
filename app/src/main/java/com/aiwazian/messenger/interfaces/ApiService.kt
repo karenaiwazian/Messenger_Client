@@ -7,11 +7,11 @@ import com.aiwazian.messenger.data.ChangeCloudPasswordRequest
 import com.aiwazian.messenger.data.ChannelInfo
 import com.aiwazian.messenger.data.ChatInfo
 import com.aiwazian.messenger.data.FolderInfo
+import com.aiwazian.messenger.data.GroupInfo
 import com.aiwazian.messenger.data.Message
 import com.aiwazian.messenger.data.NotificationTokenRequest
 import com.aiwazian.messenger.data.PrivacySettings
 import com.aiwazian.messenger.data.RegisterRequest
-import com.aiwazian.messenger.data.ResponseChatInfo
 import com.aiwazian.messenger.data.SearchInfo
 import com.aiwazian.messenger.data.SessionInfo
 import com.aiwazian.messenger.data.UserInfo
@@ -45,7 +45,7 @@ interface ApiService {
     suspend fun getMe(): Response<UserInfo>
     
     @GET(Route.UNARCHIVED_CHATS)
-    suspend fun getUnarchivedChats(): Response<List<ResponseChatInfo>>
+    suspend fun getUnarchivedChats(): Response<List<ChatInfo>>
     
     @GET(Route.ARCHIVED_CHATS)
     suspend fun getArchivedChats(): Response<List<ChatInfo>>
@@ -67,13 +67,13 @@ interface ApiService {
     
     @DELETE(Route.DELETE_CHAT)
     suspend fun deleteChat(
-        @Path("id") chatId: Int,
+        @Path("id") chatId: Long,
         @Query("deleteForReceiver") deleteForReceiver: Boolean
     ): Response<ApiResponse>
     
     @DELETE(Route.DELETE_CHAT_MESSAGES)
     suspend fun deleteChatMessages(
-        @Path("id") id: Int,
+        @Path("id") id: Long,
         @Query("deleteForReceiver") deleteForReceiver: Boolean
     ): Response<ApiResponse>
     
@@ -87,13 +87,13 @@ interface ApiService {
     suspend fun changeDateOfBirthPrivacy(@Path("value") body: Int): Response<ApiResponse>
     
     @GET(Route.CHAT_MESSAGES)
-    suspend fun getMessagesBetweenUsers(@Path("id") chatId: Int): Response<List<Message>>
+    suspend fun getMessagesBetweenUsers(@Path("id") chatId: Long): Response<List<Message>>
     
     @GET(Route.GET_CHAT_LAST_MESSAGE)
-    suspend fun getChatLastMessage(@Path("chatId") chatId: Int): Response<Message>
+    suspend fun getChatLastMessage(@Path("chatId") chatId: Long): Response<Message>
     
     @GET(Route.GET_CHAT_INFO)
-    suspend fun getChatInfo(@Path("id") id: Int): Response<ResponseChatInfo?>
+    suspend fun getChatInfo(@Path("id") id: Long): Response<ChatInfo?>
     
     @PUT(Route.PROFILE_UPDATE)
     suspend fun updateProfile(@Body profile: UserInfo): Response<Unit>
@@ -102,27 +102,27 @@ interface ApiService {
     suspend fun searchUser(@Query("search") query: String): Response<List<SearchInfo>>
     
     @GET(Route.GE_USER_BY_ID)
-    suspend fun getUserById(@Path("id") id: Int): Response<UserInfo>
+    suspend fun getUserById(@Path("id") id: Long): Response<UserInfo>
     
     @POST(Route.ADD_CHAT_TO_ARCHIVE)
-    suspend fun archiveChat(@Path("id") chatId: Int): Response<ApiResponse>
+    suspend fun archiveChat(@Path("id") chatId: Long): Response<ApiResponse>
     
     @DELETE(Route.DELETE_CHAT_FROM_ARCHIVE)
-    suspend fun unarchiveChat(@Path("id") chatId: Int): Response<ApiResponse>
+    suspend fun unarchiveChat(@Path("id") chatId: Long): Response<ApiResponse>
     
     @POST(Route.SEND_MESSAGE)
     suspend fun sendMessage(@Body requestBody: Message): Response<Message>
     
     @DELETE(Route.DELETE_MESSAGE)
     suspend fun deleteMessage(
-        @Path("chatId") chatId: Int,
+        @Path("chatId") chatId: Long,
         @Path("messageId") messageId: Int,
         @Query("deleteForAllUsers") deleteForAllUsers: Boolean
     ): Response<ApiResponse>
     
     @PATCH(Route.MAKE_AS_READ_MESSAGE)
     suspend fun makeAsReadMessage(
-        @Path("chatId") chatId: Int,
+        @Path("chatId") chatId: Long,
         @Path("messageId") messageId: Int
     ): Response<ApiResponse>
     
@@ -136,28 +136,31 @@ interface ApiService {
     suspend fun getFolders(): Response<List<FolderInfo>>
     
     @GET(Route.CHATS)
-    suspend fun getAllChats(): Response<List<ResponseChatInfo>>
+    suspend fun getAllChats(): Response<List<ChatInfo>>
+    
+    @GET(Route.CHATS_WITH_USERS)
+    suspend fun getAllChatsWithOtherUser(): Response<List<ChatInfo>>
     
     @POST(Route.PIN_CHAT)
     suspend fun pinChat(
-        @Path("id") chatId: Int
+        @Path("id") chatId: Long
     ): Response<ApiResponse>
     
     @DELETE(Route.UNPIN_CHAT)
     suspend fun unpinChat(
-        @Path("id") chatId: Int
+        @Path("id") chatId: Long
     ): Response<ApiResponse>
     
     @POST(Route.PIN_CHAT_IN_FOLDER)
     suspend fun pinChatInFolder(
         @Path("folderId") folderId: Int,
-        @Path("chatId") chatId: Int
+        @Path("chatId") chatId: Long
     ): Response<ApiResponse>
     
     @DELETE(Route.UNPIN_CHAT_IN_FOLDER)
     suspend fun unpinChatInFolder(
         @Path("folderId") folderId: Int,
-        @Path("chatId") chatId: Int
+        @Path("chatId") chatId: Long
     ): Response<ApiResponse>
     
     @GET(Route.GET_MY_PRIVACY)
@@ -169,24 +172,54 @@ interface ApiService {
     @PATCH(Route.SAVE_USERNAME)
     suspend fun saveUsername(@Path("username") username: String): Response<ApiResponse>
     
+    @POST(Route.CREATE_CHANNEL)
+    suspend fun createChannel(@Body channelInfo: ChannelInfo): Response<ApiResponse>
+    
     @POST(Route.SAVE_CHANNEL)
-    suspend fun saveChannel(@Body channelInfo: ChannelInfo): Response<ApiResponse>
+    suspend fun saveChannel(
+        @Path("id") id: Long,
+        @Body channelInfo: ChannelInfo
+    ): Response<ApiResponse>
     
     @DELETE(Route.DELETE_CHANNEL)
-    suspend fun deleteChannel(@Path("id") id: Int): Response<ApiResponse>
+    suspend fun deleteChannel(@Path("id") id: Long): Response<ApiResponse>
     
     @GET(Route.GET_CHANNEL)
-    suspend fun getChannel(@Path("id") id: Int): Response<ChannelInfo>
+    suspend fun getChannel(@Path("id") id: Long): Response<ChannelInfo>
     
     @POST(Route.JOIN_CHANNEL)
-    suspend fun joinChannel(@Path("id") id: Int): Response<ApiResponse>
+    suspend fun joinChannel(@Path("id") id: Long): Response<ApiResponse>
     
     @DELETE(Route.LEAVE_CHANNEL)
-    suspend fun leaveChannel(@Path("id") id: Int): Response<ApiResponse>
+    suspend fun leaveChannel(@Path("id") id: Long): Response<ApiResponse>
     
     @GET(Route.GET_CHANNEL_SUBSCRIBERS)
-    suspend fun getChannelSubscribers(@Path("id") id: Int): Response<List<UserInfo>>
+    suspend fun getChannelSubscribers(@Path("id") id: Long): Response<List<UserInfo>>
     
     @GET(Route.CHECK_CHANNEL_PUBLIC_LINK)
     suspend fun checkChannelPublicLink(@Path("link") link: String): Response<ApiResponse>
+    
+    @POST(Route.CREATE_GROUP)
+    suspend fun createGroup(@Body groupInfo: GroupInfo): Response<ApiResponse>
+    
+    @GET(Route.GET_GROUP)
+    suspend fun getGroup(@Path("id") id: Long): Response<GroupInfo>
+    
+    @DELETE(Route.DELETE_GROUP)
+    suspend fun deleteGroup(@Path("id") id: Long): Response<ApiResponse>
+    
+    @GET(Route.GET_GROUP_MEMBERS)
+    suspend fun getGroupMembers(@Path("id") id: Long): Response<List<UserInfo>>
+    
+    @POST(Route.INVITE_USER_TO_GROUP)
+    suspend fun inviteUserToGroup(
+        @Path("groupId") groupId: Long,
+        @Path("userId") userId: Long
+    ): Response<ApiResponse>
+    
+    @DELETE(Route.REMOVE_USER_FROM_GROUP)
+    suspend fun removeUserFromGroup(
+        @Path("groupId") groupId: Long,
+        @Path("userId") userId: Long
+    ): Response<ApiResponse>
 }

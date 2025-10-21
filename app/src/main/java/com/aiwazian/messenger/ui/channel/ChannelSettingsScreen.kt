@@ -38,7 +38,6 @@ import com.aiwazian.messenger.viewModels.ChannelViewModel
 import com.aiwazian.messenger.viewModels.MainViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 @Composable
 fun ChannelSettingsScreen() {
@@ -64,19 +63,21 @@ private fun Content() {
     Scaffold(
         topBar = {
             TopBar(
-                TopBarAction(
-                    icon = Icons.Outlined.Check,
-                    onClick = {
-                        scope.launch {
-                            val savedId = channelViewModel.trySave()
-                            
-                            if (savedId == null) {
-                                vibrateService.vibrate(VibrationPattern.Error)
-                            } else {
-                                navViewModel.removeLastScreenInStack()
+                listOf(
+                    TopBarAction(
+                        icon = Icons.Outlined.Check,
+                        onClick = {
+                            scope.launch {
+                                val savedId = channelViewModel.trySaveOrCreate()
+                                
+                                if (savedId == null) {
+                                    vibrateService.vibrate(VibrationPattern.Error)
+                                } else {
+                                    navViewModel.removeLastScreenInStack()
+                                }
                             }
-                        }
-                    })
+                        })
+                )
             )
         },
         modifier = Modifier.imePadding()
@@ -113,10 +114,6 @@ private fun Content() {
                             ChannelTypeSettingsScreen()
                         }
                     })
-                //                SectionItem(
-                //                    icon = Icons.Outlined.ColorLens,
-                //                    text = stringResource(R.string.appearance)
-                //                )
             }
             
             SectionContainer {
@@ -129,38 +126,17 @@ private fun Content() {
                             ChannelSubscribersScreen(channelInfo.id)
                         }
                     })
-                //                SectionItem(
-                //                    icon = Icons.Outlined.Link,
-                //                    text = stringResource(R.string.invite_links),
-                //                    primaryText = 1.toString(),
-                //                    onClick = {
-                //                        navViewModel.addScreenInStack {
-                //                            ChannelInviteLinksScreen()
-                //                        }
-                //                    })
-                //                SectionItem(
-                //                    icon = Icons.Outlined.Block,
-                //                    text = stringResource(R.string.removed_user),
-                //                    primaryText = channelInfo.removedUser.toString(),
-                //                    onClick = {
-                //                        navViewModel.addScreenInStack {
-                //                            ChannelBlackListScreen()
-                //                        }
-                //                    })
             }
             
             SectionContainer {
                 SectionItem(
                     text = stringResource(R.string.delete_channel),
-                    textColor = MaterialTheme.colorScheme.error,
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    ),
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     onClick = channelViewModel.deleteDialog::show
                 )
             }
             
-            val mainViewModel = viewModel<MainViewModel>()
+            val mainViewModel = hiltViewModel<MainViewModel>()
             
             if (channelViewModel.deleteDialog.isVisible) {
                 CustomDialog(
@@ -176,7 +152,7 @@ private fun Content() {
                                     val isDeleted = channelViewModel.tryDelete()
                                     
                                     if (isDeleted) {
-                                        mainViewModel.deleteChat(-abs(channelInfo.id))
+                                        mainViewModel.deleteChat(channelInfo.id)
                                         channelViewModel.deleteDialog.hide()
                                         navViewModel.goToMain()
                                     } else {
@@ -198,7 +174,7 @@ private fun Content() {
 }
 
 @Composable
-private fun TopBar(vararg actions: TopBarAction) {
+private fun TopBar(actions: List<TopBarAction>) {
     val navViewModel = viewModel<NavigationViewModel>()
     
     PageTopBar(

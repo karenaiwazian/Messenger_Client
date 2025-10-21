@@ -51,9 +51,9 @@ class UserRepository @Inject constructor(
         return user?.toUser()
     }
     
-    suspend fun getById(id: Int): UserInfo? {
+    suspend fun getById(id: Long): UserInfo? {
         try {
-            val user = userService.getUserById(id)
+            val user = userService.getById(id)
             
             if (user != null) {
                 userDao.insert(user.toEntity())

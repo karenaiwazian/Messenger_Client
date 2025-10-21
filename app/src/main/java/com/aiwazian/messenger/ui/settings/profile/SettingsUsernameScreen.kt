@@ -99,7 +99,7 @@ private fun TopBar(
     val scope = rememberCoroutineScope()
     
     val actions = if (canSave) {
-        arrayOf(
+        listOf(
             TopBarAction(
                 icon = Icons.Outlined.Check,
                 onClick = {
@@ -115,7 +115,7 @@ private fun TopBar(
                 })
         )
     } else {
-        emptyArray()
+        emptyList()
     }
     
     PageTopBar(

@@ -7,8 +7,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Message(
     @Keep var id: Int = 0,
-    @Keep val senderId: Int = 0,
-    @Keep val chatId: Int = 0,
+    @Keep val senderId: Long = 0,
+    @Keep val chatId: Long = 0,
     @Keep val text: String = "",
     @Keep val sendTime: Long = 0,
     @Keep var isRead: Boolean = false

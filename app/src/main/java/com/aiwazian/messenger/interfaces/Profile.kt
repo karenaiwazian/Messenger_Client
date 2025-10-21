@@ -4,5 +4,5 @@ import com.google.errorprone.annotations.Keep
 
 @Keep
 interface Profile {
-    val id: Int
+    val id: Long
 }

@@ -59,10 +59,10 @@ private fun Content(mainViewModel: MainViewModel) {
     
     val chatList by mainViewModel.archivedChats.collectAsState()
     
-    val action = arrayOf(
+    val action = listOf(
         TopBarAction(
             icon = Icons.Outlined.MoreVert,
-            dropdownActions = arrayOf(
+            dropdownActions = listOf(
                 DropdownMenuAction(
                     icon = Icons.Outlined.Settings,
                     text = stringResource(R.string.archive_settings),
@@ -114,10 +114,7 @@ private fun Content(mainViewModel: MainViewModel) {
                         chatInfo = chatInfo,
                         onClick = {
                             navViewModel.addScreenInStack {
-                                ChatScreen(
-                                    chatInfo.id,
-                                    chatInfo.chatType
-                                )
+                                ChatScreen(chatInfo.id)
                             }
                         },
                         backgroundIcon = Icons.Outlined.Unarchive,

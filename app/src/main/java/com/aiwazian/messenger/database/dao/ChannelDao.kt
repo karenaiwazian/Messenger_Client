@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.aiwazian.messenger.database.entity.ChannelEntity
+import com.aiwazian.messenger.types.EntityId
 
 @Dao
 interface ChannelDao {
@@ -17,11 +18,11 @@ interface ChannelDao {
     suspend fun getAll(): List<ChannelEntity>
     
     @Query("SELECT * FROM channel WHERE id = :id")
-    suspend fun get(id: Int): ChannelEntity?
+    suspend fun get(id: Long): ChannelEntity?
     
     @Update
     suspend fun update(channelEntity: ChannelEntity)
     
-    @Delete
-    suspend fun delete(channelEntity: ChannelEntity)
+    @Query("DELETE FROM 'channel' WHERE id = :id")
+    suspend fun delete(id: Long)
 }

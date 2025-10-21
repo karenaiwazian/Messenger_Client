@@ -11,7 +11,7 @@ class UserService @Inject constructor() {
         return response.isSuccessful
     }
     
-    suspend fun getUserById(userId: Int): UserInfo? {
+    suspend fun getById(userId: Long): UserInfo? {
         val response = RetrofitInstance.api.getUserById(userId)
         return response.body()
     }

@@ -1,9 +1,6 @@
 package com.aiwazian.messenger.ui.element
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -25,38 +22,55 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MinimizeChatCard(chatName: String, selected: Boolean = false, onClick: () -> Unit = { }) {
+fun MinimizeChatCard(
+    chatName: String,
+    selected: Boolean = false,
+    trailingContent: @Composable (() -> Unit)? = null,
+    onClick: () -> Unit = { }
+) {
     ListItem(
         modifier = Modifier.clickable {
             onClick()
-        }, leadingContent = {
+        },
+        leadingContent = {
             Box(modifier = Modifier.size(40.dp)) {
-                Icon(Icons.Outlined.AccountCircle, null, modifier = Modifier.fillMaxSize())
-
+                Icon(
+                    imageVector = Icons.Outlined.AccountCircle,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize()
+                )
+                
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
                         .size(16.dp)
                         .align(Alignment.BottomEnd)
                 ) {
-                    AnimatedVisibility(
-                        modifier = Modifier.background(Color.Green),
-                        visible = selected,
-                        enter = fadeIn(animationSpec = tween(durationMillis = 100)),
-                        exit = fadeOut(animationSpec = tween(durationMillis = 100))
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Check,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
+                    AnimatedContent(targetState = selected) { isVisible ->
+                        if (isVisible) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .size(16.dp)
+                                    .background(Color.Green),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Check,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
-        }, headlineContent = {
+        },
+        trailingContent = trailingContent,
+        headlineContent = {
             Text(chatName)
-        }, colors = ListItemDefaults.colors(
+        },
+        colors = ListItemDefaults.colors(
             containerColor = Color.Transparent
         )
     )

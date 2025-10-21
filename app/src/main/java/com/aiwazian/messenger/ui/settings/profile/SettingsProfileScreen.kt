@@ -195,7 +195,7 @@ private fun Content() {
                                 onClick = {
                                     settingsProfileViewModel.onChangeDateOfBirth(null)
                                 },
-                                textColor = MaterialTheme.colorScheme.error
+                                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                             )
                         }
                     }

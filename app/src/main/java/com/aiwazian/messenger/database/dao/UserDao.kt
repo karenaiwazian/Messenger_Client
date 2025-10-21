@@ -13,7 +13,7 @@ interface UserDao {
     suspend fun insert(userEntity: UserEntity)
     
     @Query("SELECT * FROM user WHERE id = :id")
-    suspend fun get(id: Int): UserEntity?
+    suspend fun get(id: Long): UserEntity?
     
     @Delete
     suspend fun delete(userEntity: UserEntity)

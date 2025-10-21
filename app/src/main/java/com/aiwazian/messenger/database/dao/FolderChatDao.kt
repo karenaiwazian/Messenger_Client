@@ -14,10 +14,10 @@ interface FolderChatDao {
     suspend fun getAll(id: Int): List<FolderChatEntity>
     
     @Query("SELECT * FROM folderChat WHERE id = :id")
-    suspend fun get(id: Int): FolderChatEntity?
+    suspend fun get(id: Long): FolderChatEntity?
     
     @Query("SELECT * FROM message WHERE chatId = :id")
-    suspend fun getMessages(id: Int): List<MessageEntity>
+    suspend fun getMessages(id: Long): List<MessageEntity>
     
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertAll(chatEntities: List<FolderChatEntity>)
@@ -27,4 +27,7 @@ interface FolderChatDao {
     
     @Delete
     suspend fun delete(folderChatEntity: FolderChatEntity)
+    
+    @Query("DELETE FROM folderChat WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.ChatInfo
+import com.aiwazian.messenger.data.DeleteChatPayload
 import com.aiwazian.messenger.data.DeleteMessagePayload
 import com.aiwazian.messenger.data.FolderInfo
 import com.aiwazian.messenger.data.Message
@@ -39,7 +40,7 @@ class MainViewModel @Inject constructor(
     val archivedChats = _archivedChats.asStateFlow()
     
     /** Folder id - Chat id **/
-    private val _selectedChats = MutableStateFlow<Map<Int, List<Int>>>(emptyMap())
+    private val _selectedChats = MutableStateFlow<Map<Int, List<Long>>>(emptyMap())
     val selectedChats = _selectedChats.asStateFlow()
     
     private val _chatFolders = MutableStateFlow<Set<FolderInfo>>(emptySet())
@@ -65,6 +66,14 @@ class MainViewModel @Inject constructor(
                 message.chatId,
                 message.messageId
             )
+        }
+        
+        WebSocketManager.registerMessageHandler<ChatInfo>(WebSocketAction.NEW_CHAT) { chatInfo ->
+            showNewChat(chatInfo)
+        }
+        
+        WebSocketManager.registerMessageHandler<DeleteChatPayload>(WebSocketAction.DELETE_CHAT) { payload ->
+            deleteChat(payload.chatId)
         }
         
         viewModelScope.launch {
@@ -97,7 +106,7 @@ class MainViewModel @Inject constructor(
     }
     
     fun selectChat(
-        chatId: Int,
+        chatId: Long,
         folderId: Int
     ) {
         _selectedChats.update { currentMap ->
@@ -146,7 +155,7 @@ class MainViewModel @Inject constructor(
     }
     
     suspend fun pinChat(
-        chatId: Int,
+        chatId: Long,
         folderId: Int
     ) {
         val folder = _chatFolders.value.find { it.id == folderId }
@@ -197,7 +206,7 @@ class MainViewModel @Inject constructor(
     }
     
     suspend fun unpinChat(
-        chatId: Int,
+        chatId: Long,
         folderId: Int
     ) {
         val folder = _chatFolders.value.find { it.id == folderId }
@@ -247,7 +256,7 @@ class MainViewModel @Inject constructor(
         }
     }
     
-    fun archiveChat(chatId: Int) {
+    fun archiveChat(chatId: Long) {
         _chatFolders.update { currentFolders ->
             currentFolders.map { folder ->
                 if (folder.id == 0) {
@@ -281,7 +290,7 @@ class MainViewModel @Inject constructor(
         }
     }
     
-    fun unarchiveChat(chatId: Int) {
+    fun unarchiveChat(chatId: Long) {
         var chatToUnarchive: ChatInfo? = null
         
         _archivedChats.update { currentArchived ->
@@ -345,17 +354,21 @@ class MainViewModel @Inject constructor(
         }
     }
     
-    fun deleteChat(chatId: Int) {
+    fun deleteChat(chatId: Long) {
         _chatFolders.update { currentFolders ->
             currentFolders.map { folder ->
                 folder.copy(chats = folder.chats.filter { it.id != chatId })
             }
                 .toSet()
         }
+        
+        viewModelScope.launch {
+            chatRepository.deleteChat(chatId)
+        }
     }
     
     private fun onReadMessage(
-        chatId: Int,
+        chatId: Long,
         messageId: Int
     ) {
         _chatFolders.update { currentFolders ->
@@ -395,7 +408,7 @@ class MainViewModel @Inject constructor(
     
     private fun onMessageDeleted(
         messageId: Int,
-        chatId: Int
+        chatId: Long
     ) {
         viewModelScope.launch {
             _chatFolders.update { currentFolders ->
@@ -431,7 +444,7 @@ class MainViewModel @Inject constructor(
     }
     
     private fun processMessage(
-        chatId: Int,
+        chatId: Long,
         message: Message
     ) {
         var chatFound = false
@@ -462,7 +475,7 @@ class MainViewModel @Inject constructor(
     }
     
     private fun updateLastMessage(
-        chatId: Int,
+        chatId: Long,
         lastMessage: Message
     ) {
         _chatFolders.update { currentFolders ->

@@ -59,7 +59,7 @@ private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit) {
         )
     }
     
-    val action = arrayOf(
+    val action = listOf(
         TopBarAction(
             icon = Icons.Outlined.Check,
             onClick = {
@@ -72,7 +72,7 @@ private fun Content(onConfirmSelect: (List<ChatInfo>) -> Unit) {
         try {
             val request = RetrofitInstance.api.getAllChats()
             if (request.isSuccessful) {
-                allChats = request.body()?.map { it.toChatInto() } ?: emptyList()
+                allChats = request.body() ?: emptyList()
             }
         } catch (e: Exception) {
             Log.e(

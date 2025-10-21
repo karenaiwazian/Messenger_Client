@@ -55,7 +55,7 @@ private fun Content(folderId: Int) {
     val scope = rememberCoroutineScope()
     
     val action = if (canSave) {
-        arrayOf(
+        listOf(
             TopBarAction(
                 icon = Icons.Outlined.Check,
                 onClick = {
@@ -66,7 +66,7 @@ private fun Content(folderId: Int) {
                 })
         )
     } else {
-        emptyArray()
+        emptyList()
     }
     
     LaunchedEffect(Unit) {
@@ -107,8 +107,7 @@ private fun Content(folderId: Int) {
                 SectionItem(
                     text = stringResource(R.string.add_chats),
                     icon = Icons.Outlined.AddCircle,
-                    textColor = MaterialTheme.colorScheme.primary,
-                    iconColor = MaterialTheme.colorScheme.primary,
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                     onClick = {
                         navViewModel.addScreenInStack {
                             SettingsChatInFolderScreen { selectedChats ->
@@ -142,7 +141,6 @@ private fun Content(folderId: Int) {
                 SectionContainer {
                     SectionItem(
                         text = stringResource(R.string.remove_folder),
-                        textColor = MaterialTheme.colorScheme.error,
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = MaterialTheme.colorScheme.error,
                         ),

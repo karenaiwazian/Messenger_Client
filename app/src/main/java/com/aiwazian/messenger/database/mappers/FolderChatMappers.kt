@@ -13,8 +13,7 @@ fun ChatInfo.toEntity(
         chatName = this.chatName,
         isPinned = this.isPinned,
         folderId = folderId,
-        lastMessageId = lastMessageId,
-        chatType = this.chatType.ordinal
+        lastMessageId = lastMessageId
     )
 }
 
@@ -22,7 +21,6 @@ fun FolderChatEntity.toChat(): ChatInfo {
     return ChatInfo(
         id = this.id,
         chatName = this.chatName,
-        isPinned = this.isPinned,
-        chatType = ChatType.fromInt(this.chatType)
+        isPinned = this.isPinned
     )
 }

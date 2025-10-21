@@ -111,4 +111,8 @@
     <string name="channel_name">Название канала</string>
     <string name="description">Описание</string>
     <string name="remove_date_of_birth">Удалить дату рождения</string>
+    <string name="subscriberCount">Подписчиков</string>
+    <string name="leave_group">Покинуть группу</string>
+    <string name="add_member">Добавить участников</string>
+    <string name="delete_group">Удалить группу</string>
 </resources>

@@ -14,7 +14,7 @@ class ChatRepository @Inject constructor(
     private val chatDao: FolderChatDao
 ) {
     
-    suspend fun get(id: Int): ChatInfo? {
+    suspend fun get(id: Long): ChatInfo? {
         try {
             val chat = chatService.getChatInfo(id)
             
@@ -34,7 +34,7 @@ class ChatRepository @Inject constructor(
         return localChat?.toChat()
     }
     
-    suspend fun getMessages(id: Int): List<Message> {
+    suspend fun getMessages(id: Long): List<Message> {
         try {
             val messages = chatService.getChatMessages(id)
             
@@ -58,7 +58,7 @@ class ChatRepository @Inject constructor(
         return localMessages.map { it.toMessage() }
     }
     
-    suspend fun getLastMessage(id: Int): Message? {
+    suspend fun getLastMessage(id: Long): Message? {
         return chatService.getChatLastMessage(id)
     }
     
@@ -67,7 +67,7 @@ class ChatRepository @Inject constructor(
     }
     
     suspend fun makeAsRead(
-        chatId: Int,
+        chatId: Long,
         messageId: Int
     ): Boolean {
         return chatService.makeAsReadMessage(
@@ -77,29 +77,44 @@ class ChatRepository @Inject constructor(
     }
     
     suspend fun deleteMessage(
-        chatId: Int,
+        chatId: Long,
         messageId: Int,
         deleteForAll: Boolean
     ): Boolean {
-        return chatService.deleteMessage(
-            chatId,
-            messageId,
-            deleteForAll
-        )
+        try {
+            return chatService.deleteMessage(
+                chatId,
+                messageId,
+                deleteForAll
+            )
+        } catch (e: Exception) {
+            Log.e(
+                "ChatRepository",
+                "Ошибка при удалени сообщения",
+                e
+            )
+            
+            return false
+        }
     }
     
     suspend fun deleteChat(
-        chatId: Int,
-        deleteForReceiver: Boolean
-    ): Boolean {
-        return chatService.deleteChat(
-            chatId,
-            deleteForReceiver
-        )
+        chatId: Long
+    ) {
+        try {
+            chatDao.deleteById(chatId)
+            
+        } catch (e: Exception) {
+            Log.e(
+                "ChatRepository",
+                "Ошибка при удалении чата",
+                e
+            )
+        }
     }
     
     suspend fun deleteChatMessages(
-        chatId: Int,
+        chatId: Long,
         deleteForReceiver: Boolean
     ): Boolean {
         return chatService.deleteChatMessages(
@@ -109,7 +124,7 @@ class ChatRepository @Inject constructor(
     }
     
     suspend fun pin(
-        chatId: Int,
+        chatId: Long,
         folderId: Int
     ): Boolean {
         return chatService.pin(
@@ -119,7 +134,7 @@ class ChatRepository @Inject constructor(
     }
     
     suspend fun unpin(
-        chatId: Int,
+        chatId: Long,
         folderId: Int
     ): Boolean {
         return chatService.unpin(
@@ -128,11 +143,11 @@ class ChatRepository @Inject constructor(
         )
     }
     
-    suspend fun archive(id: Int): Boolean {
+    suspend fun archive(id: Long): Boolean {
         return chatService.archiveChat(id)
     }
     
-    suspend fun unarchive(id: Int): Boolean {
+    suspend fun unarchive(id: Long): Boolean {
         return chatService.unarchiveChat(id)
     }
 }
