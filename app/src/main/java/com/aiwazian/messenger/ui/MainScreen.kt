@@ -5,6 +5,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
+import android.view.LayoutInflater
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,16 +24,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Reply
 import androidx.compose.material.icons.filled.Create
@@ -82,6 +89,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -90,6 +98,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -97,6 +106,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.aiwazian.messenger.AdViewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.data.ChatInfo
 import com.aiwazian.messenger.data.DropdownMenuAction
@@ -112,6 +122,10 @@ import com.aiwazian.messenger.utils.Shape
 import com.aiwazian.messenger.utils.WebSocketManager
 import com.aiwazian.messenger.viewModels.MainViewModel
 import com.aiwazian.messenger.viewModels.NavigationViewModel
+import com.yandex.mobile.ads.nativeads.MediaView
+import com.yandex.mobile.ads.nativeads.NativeAdView
+import com.yandex.mobile.ads.nativeads.NativeAdViewBinder
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -766,61 +780,135 @@ private fun DefaultTopBar(
 
 @Composable
 private fun DrawerContent(drawerState: DrawerState) {
+    val context = LocalContext.current
+    
     val navViewModel = viewModel<NavigationViewModel>()
+    
     val user by UserManager.user.collectAsState()
     val scope = rememberCoroutineScope()
     
     ModalDrawerSheet(
-        modifier = Modifier.fillMaxWidth(0.7f)
+        modifier = Modifier
+            .width(300.dp)
+            .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = "${user.firstName} ${user.lastName}",
+        Column(
             modifier = Modifier.padding(
-                start = 20.dp,
                 top = 80.dp,
-                end = 20.dp,
                 bottom = 40.dp
-            ),
-            fontSize = 24.sp,
-            maxLines = 1,
-            softWrap = false,
-            overflow = TextOverflow.Ellipsis
-        )
-        
-        DrawerItem(
-            label = stringResource(R.string.profile),
-            icon = Icons.Outlined.AccountCircle
+            )
         ) {
-            scope.launch {
-                drawerState.close()
+            Text(
+                text = "${user.firstName} ${user.lastName}",
+                modifier = Modifier.padding(
+                    start = 20.dp,
+                    end = 20.dp,
+                    bottom = 40.dp
+                ),
+                fontSize = 24.sp,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis
+            )
+            
+            DrawerItem(
+                label = stringResource(R.string.profile),
+                icon = Icons.Outlined.AccountCircle
+            ) {
+                scope.launch {
+                    drawerState.close()
+                }
+                navViewModel.addScreenInStack {
+                    ProfileScreen(user.id)
+                }
             }
-            navViewModel.addScreenInStack {
-                ProfileScreen(user.id)
+            
+            DrawerItem(
+                label = stringResource(R.string.saved_messages),
+                icon = Icons.Outlined.BookmarkBorder
+            ) {
+                scope.launch {
+                    drawerState.close()
+                }
+                navViewModel.addScreenInStack {
+                    ChatScreen(user.id)
+                }
+            }
+            
+            DrawerItem(
+                label = stringResource(R.string.settings),
+                icon = Icons.Outlined.Settings
+            ) {
+                scope.launch {
+                    drawerState.close()
+                }
+                navViewModel.addScreenInStack {
+                    SettingsScreen()
+                }
             }
         }
         
-        DrawerItem(
-            label = stringResource(R.string.saved_messages),
-            icon = Icons.Outlined.BookmarkBorder
-        ) {
-            scope.launch {
-                drawerState.close()
-            }
-            navViewModel.addScreenInStack {
-                ChatScreen(user.id)
-            }
+        Box(Modifier.weight(1f))
+        
+        val adViewModel = hiltViewModel<AdViewModel>()
+        
+        LaunchedEffect(Unit) {
+            delay(2000)
+            adViewModel.initialize(context)
         }
         
-        DrawerItem(
-            label = stringResource(R.string.settings),
-            icon = Icons.Outlined.Settings
-        ) {
-            scope.launch {
-                drawerState.close()
-            }
-            navViewModel.addScreenInStack {
-                SettingsScreen()
-            }
+        val isAdLoaded by adViewModel.isAdLoaded.collectAsState()
+        val nativeAd = adViewModel.nativeAd
+        
+        if (isAdLoaded) {
+            val textColor = MaterialTheme.colorScheme.onSurface
+            
+            AndroidView(
+                modifier = Modifier
+                    .padding(bottom = 20.dp)
+                    .fillMaxWidth(),
+                factory = { context ->
+                    LayoutInflater.from(context).inflate(
+                        R.layout.fragment_ad_mob,
+                        null,
+                        false
+                    ).apply {
+                        val title = findViewById<TextView>(R.id.title)
+                        val domain = findViewById<TextView>(R.id.domain)
+                        val warning = findViewById<TextView>(R.id.warning)
+                        val sponsored = findViewById<TextView>(R.id.sponsored)
+                        val feedback = findViewById<ImageView>(R.id.feedback)
+                        val media = findViewById<MediaView>(R.id.media)
+                        val favicon = findViewById<ImageView>(R.id.favicon)
+                        val price = findViewById<TextView>(R.id.price)
+                        val appIcon = findViewById<ImageView>(R.id.app_icon)
+                        
+                        title.setTextColor(textColor.toArgb())
+                        domain.setTextColor(textColor.toArgb())
+                        warning.setTextColor(textColor.toArgb())
+                        sponsored.setTextColor(textColor.toArgb())
+                        price.setTextColor(textColor.toArgb())
+                        
+                        val nativeAdView = findViewById<NativeAdView>(R.id.native_ad_container)
+                        
+                        val viewBinder =
+                            NativeAdViewBinder.Builder(nativeAdView)
+                                .setTitleView(title)
+                                .setDomainView(domain)
+                                .setWarningView(warning)
+                                .setSponsoredView(sponsored)
+                                .setFeedbackView(feedback)
+                                .setMediaView(media)
+                                .setIconView(appIcon)
+                                .setPriceView(price)
+                                .setFaviconView(favicon)
+                                .build()
+                        
+                        nativeAd?.bindNativeAd(viewBinder)
+                        nativeAd?.setNativeAdEventListener(adViewModel.NativeAdEventLogger())
+                    }
+                })
         }
     }
 }
