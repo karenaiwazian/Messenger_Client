@@ -87,13 +87,8 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
                 backgroundAlpha
             )
             
-            var inSwipe by remember { mutableStateOf(false) }
-            
-            val cornerRadius by animateDpAsState(targetValue = if (inSwipe) 16.dp else 0.dp)
-            
             val draggableState = rememberDraggableState { delta ->
                 keyboardController?.hide()
-                inSwipe = true
                 scope.launch {
                     offsetX.snapTo((offsetX.value + delta).coerceAtLeast(0f))
                 }
@@ -109,12 +104,6 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
                         )
                     }
                     .zIndex(index + 0.2f)
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = cornerRadius,
-                            bottomStart = cornerRadius
-                        )
-                    )
                     .then(
                         if (isTop && canGoBackBySwipe) {
                             Modifier.draggable(
@@ -129,7 +118,6 @@ fun NavigationController(startScreen: @Composable () -> Unit) {
                                                 0f,
                                                 tween(tweenDurationMillis)
                                             )
-                                            inSwipe = false
                                         }
                                     }
                                 })
