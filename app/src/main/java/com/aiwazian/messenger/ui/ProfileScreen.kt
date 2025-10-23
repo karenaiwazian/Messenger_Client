@@ -168,7 +168,21 @@ private fun GroupProfile(group: GroupInfo) {
             )
         } else {
             listOf(
-                TopBarAction(icon = Icons.Outlined.MoreVert)
+                TopBarAction(
+                    icon = Icons.Outlined.MoreVert,
+                    dropdownActions = listOf(
+                        DropdownMenuAction(
+                            icon = Icons.Outlined.AddHome,
+                            text = context.getString(R.string.add_to_home_screen),
+                            onClick = {
+                                ShortcutHelper.createChatShortcut(
+                                    context,
+                                    group.id,
+                                    group.name
+                                )
+                            })
+                    )
+                )
             )
         }
     }
