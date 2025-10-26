@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.aiwazian.messenger.R
+import com.aiwazian.messenger.services.DialogController
 import com.aiwazian.messenger.services.VibrateService
 import com.aiwazian.messenger.ui.element.CustomDialog
 import com.aiwazian.messenger.utils.VibrationPattern
@@ -50,13 +51,15 @@ fun LoginScreen(
     
     val vibrateService = VibrateService(context)
     
-    var isLoad by remember { mutableStateOf(true) }
+    var isLoaded by remember { mutableStateOf(true) }
+    
+    val dialogController = DialogController()
+    
+    var isFoundUser by remember { mutableStateOf<Boolean?>(null) }
+    
+    val loginFieldError by authViewModel.loginFieldError.collectAsState()
     
     val scope = rememberCoroutineScope()
-    
-    var showFindUserDialog by remember { mutableStateOf(false) }
-    var showNotFindUserDialog by remember { mutableStateOf(false) }
-    val loginFieldError by authViewModel.loginFieldError.collectAsState()
     
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -71,19 +74,13 @@ fun LoginScreen(
                             return@launch
                         }
                         
-                        isLoad = false
+                        isLoaded = false
                         
-                        val isFind = authViewModel.findUserByLogin()
+                        isFoundUser = authViewModel.findUserByLogin()
                         
-                        authViewModel.setUserFoundState(isFind)
+                        dialogController.show()
                         
-                        if (isFind) {
-                            showFindUserDialog = true
-                        } else {
-                            showNotFindUserDialog = true
-                        }
-                        
-                        isLoad = true
+                        isLoaded = true
                     }
                 },
                 modifier = Modifier.imePadding(),
@@ -91,7 +88,7 @@ fun LoginScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             ) {
-                if (isLoad) {
+                if (isLoaded) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
                         contentDescription = null,
@@ -129,56 +126,76 @@ fun LoginScreen(
             }
         }
         
-        if (showFindUserDialog) {
-            CustomDialog(
-                title = stringResource(R.string.app_name),
-                onDismissRequest = {
-                    showFindUserDialog = false
-                },
-                content = {
-                    Text(
-                        text = "Пользователь найден. Продолжить?"
+        if (dialogController.isVisible) {
+            when (isFoundUser) {
+                null -> {
+                    CustomDialog(
+                        title = stringResource(R.string.app_name),
+                        onDismissRequest = dialogController::hide,
+                        content = {
+                            Text(
+                                text = "Не удалось проверить, попробуйте ещё раз.",
+                                lineHeight = 18.sp
+                            )
+                        },
+                        buttons = {
+                            TextButton(onClick = dialogController::hide) {
+                                Text("ОК")
+                            }
+                        }
                     )
-                },
-                buttons = {
-                    TextButton(onClick = { showFindUserDialog = false }) {
-                        Text("Нет")
-                    }
-                    TextButton(onClick = {
-                        showFindUserDialog = false
-                        navController.navigate(Screen.PASSWORD)
-                    }) {
-                        Text("Да")
-                    }
-                })
+                }
+                
+                true -> {
+                    CustomDialog(
+                        title = stringResource(R.string.app_name),
+                        onDismissRequest = dialogController::hide,
+                        content = {
+                            Text(
+                                text = "Пользователь найден. Продолжить?",
+                                lineHeight = 18.sp
+                            )
+                        },
+                        buttons = {
+                            TextButton(onClick = dialogController::hide) {
+                                Text("Нет")
+                            }
+                            TextButton(onClick = {
+                                dialogController.hide()
+                                navController.navigate(Screen.PASSWORD)
+                            }) {
+                                Text("Да")
+                            }
+                        }
+                    )
+                }
+                
+                else -> {
+                    CustomDialog(
+                        title = stringResource(R.string.app_name),
+                        onDismissRequest = dialogController::hide,
+                        content = {
+                            Text(
+                                text = "Пользователь не найден. Создать?",
+                                lineHeight = 18.sp
+                            )
+                        },
+                        buttons = {
+                            TextButton(onClick = dialogController::hide) {
+                                Text("Нет")
+                            }
+                            TextButton(onClick = {
+                                dialogController.hide()
+                                navController.navigate(Screen.PASSWORD)
+                            }) {
+                                Text("Да")
+                            }
+                        }
+                    )
+                }
+            }
         }
         
-        if (showNotFindUserDialog) {
-            CustomDialog(
-                title = stringResource(R.string.app_name),
-                onDismissRequest = {
-                    showNotFindUserDialog = false
-                },
-                content = {
-                    Text(
-                        text = "Пользователь не найден. Создать?"
-                    )
-                },
-                buttons = {
-                    TextButton(
-                        onClick = {
-                            showNotFindUserDialog = false
-                        }) {
-                        Text("Нет")
-                    }
-                    TextButton(onClick = {
-                        showNotFindUserDialog = false
-                        navController.navigate(Screen.PASSWORD)
-                    }) {
-                        Text("Да")
-                    }
-                })
-        }
     }
 }
 

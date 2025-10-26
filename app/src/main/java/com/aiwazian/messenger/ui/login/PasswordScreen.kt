@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,9 +67,9 @@ fun PasswordScreen(
     var showFailureLogin by remember { mutableStateOf(false) }
     var showFailureRegister by remember { mutableStateOf(false) }
     val passwordFieldError by authViewModel.passwordFieldError.collectAsState()
+    val isUserFound by authViewModel.isUserFound.collectAsState()
     
     val onClick = {
-        val isUserFound = authViewModel.getUserFoundState()
         val isValidPassword = authViewModel.checkValidPassword()
         
         scope.launch {
@@ -112,6 +113,12 @@ fun PasswordScreen(
                 
                 startMainActivity(context)
             }
+        }
+    }
+    
+    DisposableEffect(Unit) {
+        onDispose {
+            authViewModel.onPasswordChanged("")
         }
     }
     
@@ -171,7 +178,8 @@ fun PasswordScreen(
                 onDismissRequest = { showFailureLogin = false },
                 content = {
                     Text(
-                        text = "Не удалось войти в аккаунт. Попробуйте ещё раз."
+                        text = "Не удалось войти в аккаунт. Попробуйте ещё раз.",
+                        lineHeight = 18.sp
                     )
                 },
                 buttons = {
@@ -180,8 +188,7 @@ fun PasswordScreen(
                     }) {
                         Text("Ок")
                     }
-                }
-            )
+                })
         }
         
         if (showFailureRegister) {
@@ -191,6 +198,7 @@ fun PasswordScreen(
                 content = {
                     Text(
                         text = "Не удалось создать пользователя. Попробуйте ещё раз.",
+                        lineHeight = 18.sp
                     )
                 },
                 buttons = {
@@ -199,8 +207,7 @@ fun PasswordScreen(
                     }) {
                         Text("Ок")
                     }
-                }
-            )
+                })
         }
     }
 }

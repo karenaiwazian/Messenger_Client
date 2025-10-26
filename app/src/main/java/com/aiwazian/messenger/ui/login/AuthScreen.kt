@@ -1,17 +1,16 @@
 package com.aiwazian.messenger.ui.login
 
-import androidx.compose.runtime.Composable
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.aiwazian.messenger.viewModels.AuthViewModel
-import androidx.navigation.compose.NavHost
 
 object Screen {
     const val LOGIN = "login"
@@ -19,7 +18,6 @@ object Screen {
     const val PASSWORD = "password"
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AuthScreen() {
     Content()
@@ -30,12 +28,12 @@ private fun Content() {
     val navController = rememberNavController()
     
     val authViewModel = viewModel<AuthViewModel>()
-
+    
     val transition = tween<IntOffset>(
         durationMillis = 500,
         easing = FastOutSlowInEasing
     )
-
+    
     NavHost(
         navController = navController,
         startDestination = Screen.LOGIN,
@@ -53,13 +51,22 @@ private fun Content() {
         }
     ) {
         composable(route = Screen.LOGIN) {
-            LoginScreen(navController = navController, authViewModel = authViewModel)
+            LoginScreen(
+                navController = navController,
+                authViewModel = authViewModel
+            )
         }
         composable(route = Screen.VERIFICATION) {
-            VerificationCodeScreen(navController = navController, viewModel = authViewModel)
+            VerificationCodeScreen(
+                navController = navController,
+                viewModel = authViewModel
+            )
         }
         composable(route = Screen.PASSWORD) {
-            PasswordScreen(navController = navController, authViewModel = authViewModel)
+            PasswordScreen(
+                navController = navController,
+                authViewModel = authViewModel
+            )
         }
     }
 }

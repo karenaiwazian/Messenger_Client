@@ -26,4 +26,9 @@ class AuthService @Inject constructor() {
         
         return response.code() == 200
     }
+    
+    suspend fun findUserByLogin(login: String): Boolean {
+        val response = RetrofitInstance.api.findUserByLogin(login)
+        return response.isSuccessful
+    }
 }

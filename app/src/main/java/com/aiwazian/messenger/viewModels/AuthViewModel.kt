@@ -2,7 +2,6 @@ package com.aiwazian.messenger.viewModels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.aiwazian.messenger.api.RetrofitInstance
 import com.aiwazian.messenger.data.AuthRequest
 import com.aiwazian.messenger.data.RegisterRequest
 import com.aiwazian.messenger.services.AuthService
@@ -33,12 +32,7 @@ class AuthViewModel @Inject constructor(
     val passwordFieldError = _passwordFieldError.asStateFlow()
     
     private val _isUserFound = MutableStateFlow(false)
-    
-    fun setUserFoundState(state: Boolean) {
-        _isUserFound.update { state }
-    }
-    
-    fun getUserFoundState() = _isUserFound.value
+    val isUserFound = _isUserFound.asStateFlow()
     
     fun onLoginChanged(newLogin: String) {
         _login.update { newLogin.trim() }
@@ -50,22 +44,21 @@ class AuthViewModel @Inject constructor(
         clearError()
     }
     
-    suspend fun findUserByLogin(): Boolean {
+    suspend fun findUserByLogin(): Boolean? {
         try {
-            val response = RetrofitInstance.api.findUserByLogin(login = _login.value)
+            val isFind = authService.findUserByLogin(login = _login.value)
             
-            if (!response.isSuccessful) {
-                return false
-            }
+            _isUserFound.update { isFind }
             
-            return response.code() == 200
+            return isFind
         } catch (e: Exception) {
             Log.e(
                 "AuthViewModel",
-                "findUserByLogin: ${e.message}"
+                "Ошибка при поиске пользователя с логином ${_login.value}",
+                e
             )
             
-            return false
+            return null
         }
     }
     
@@ -92,7 +85,8 @@ class AuthViewModel @Inject constructor(
         } catch (e: Exception) {
             Log.e(
                 "AuthViewModel",
-                "onLoginClicked: ${e.message}"
+                "Ошибка при авторизации",
+                e
             )
             
             return false
@@ -110,7 +104,8 @@ class AuthViewModel @Inject constructor(
         } catch (e: Exception) {
             Log.e(
                 "AuthViewModel",
-                "onRegisterClicked: ${e.message}"
+                "Ошибка при регистрации",
+                e
             )
             
             return false
