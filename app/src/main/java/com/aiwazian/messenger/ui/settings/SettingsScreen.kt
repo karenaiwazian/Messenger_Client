@@ -21,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aiwazian.messenger.R
 import com.aiwazian.messenger.data.DropdownMenuAction
@@ -41,14 +40,6 @@ import com.aiwazian.messenger.ui.settings.privacy.SettingsPrivacyScreen
 import com.aiwazian.messenger.ui.settings.profile.SettingsProfileScreen
 import com.aiwazian.messenger.ui.settings.security.SettingsSecurityScreen
 import com.aiwazian.messenger.viewModels.NavigationViewModel
-import com.yandex.mobile.ads.banner.BannerAdSize
-import com.yandex.mobile.ads.banner.BannerAdView
-import com.yandex.mobile.ads.common.AdRequest
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 @Composable
 fun SettingsScreen() {
@@ -150,36 +141,6 @@ private fun Content() {
             val versionCode = packageInfo.longVersionCode
             
             SectionDescription(text = "${stringResource(R.string.app_name)} v${versionName} (${versionCode})")
-            
-            SectionContainer {
-                AndroidView(factory = { context ->
-                    BannerAdView(context).apply {
-                        val width =
-                            resources.displayMetrics.run { widthPixels / density }.roundToInt() - 20
-                        val maxHeight = 200
-                        
-                        setAdUnitId("R-M-15520718-1")
-                        setAdSize(
-                            BannerAdSize.inlineSize(
-                                context,
-                                width,
-                                maxHeight
-                            )
-                        )
-                        
-                        val adRequest = AdRequest.Builder().build()
-                        loadAd(adRequest)
-                        
-                        CoroutineScope(Dispatchers.Main).launch {
-                            while (true) {
-                                delay(60_000L)
-                                val adRequest = AdRequest.Builder().build()
-                                loadAd(adRequest)
-                            }
-                        }
-                    }
-                })
-            }
         }
     }
 }
