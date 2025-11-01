@@ -86,13 +86,29 @@
                     android:layout_marginEnd="8dp"
                     android:importantForAccessibility="no" />
 
-                <TextView
-                    android:id="@+id/title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="title"
-                    android:textSize="14sp"
-                    tools:ignore="HardcodedText" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="title"
+                        android:textSize="14sp"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:id="@+id/price"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="price"
+                        android:textSize="12sp"
+                        tools:ignore="HardcodedText,SmallSp" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
@@ -103,14 +119,6 @@
             <!--            android:text="body"-->
             <!--            android:textSize="12sp"-->
             <!--            tools:ignore="HardcodedText" />-->
-
-            <TextView
-                android:id="@+id/price"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="price"
-                android:textSize="12sp"
-                tools:ignore="HardcodedText,SmallSp" />
 
             <!--        <TextView-->
             <!--            android:id="@+id/call_to_action"-->
