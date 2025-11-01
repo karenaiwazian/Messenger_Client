@@ -1,4 +1,4 @@
-package com.aiwazian.messenger
+package com.aiwazian.messenger.viewModels
 
 import android.content.Context
 import android.util.Log
@@ -15,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,7 +30,7 @@ class AdViewModel @Inject constructor() : ViewModel() {
     private val _isAdLoaded = MutableStateFlow(false)
     val isAdLoaded = _isAdLoaded.asStateFlow()
     
-    private val RELOAD_INTERVAL_MS = 60_000L
+    private val RELOAD_INTERVAL_MS = 40_000L
     
     init {
         viewModelScope.launch {
@@ -38,8 +39,6 @@ class AdViewModel @Inject constructor() : ViewModel() {
                 
                 if (_isAdLoaded.value) {
                     _isAdLoaded.value = false
-                    
-                    delay(1000)
                     
                     nativeAdLoader?.let {
                         loadAd()
@@ -65,7 +64,7 @@ class AdViewModel @Inject constructor() : ViewModel() {
                         ">>> Yandex Ads onAdLoaded"
                     )
                     this@AdViewModel.nativeAd = nativeAd
-                    _isAdLoaded.value = true
+                    _isAdLoaded.update { true }
                 }
                 
                 override fun onAdFailedToLoad(error: AdRequestError) {
@@ -73,7 +72,7 @@ class AdViewModel @Inject constructor() : ViewModel() {
                         "YandexAds",
                         ">>> Yandex Ads onAdFailedToLoad: ${error.description}"
                     )
-                    _isAdLoaded.value = false
+                    _isAdLoaded.update { false }
                 }
             })
         }
