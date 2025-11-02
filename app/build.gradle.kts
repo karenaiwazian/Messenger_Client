@@ -27,21 +27,9 @@ android {
     }
     
     buildTypes {
-        debug {
-            buildConfigField(
-                "String",
-                "SERVER_IP",
-                "\"192.168.43.167\""
-            )
-        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            buildConfigField(
-                "String",
-                "SERVER_IP",
-                "\"89.23.99.80\""
-            )
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 
